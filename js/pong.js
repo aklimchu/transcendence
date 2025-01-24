@@ -106,6 +106,8 @@ function loop()
         else
             score[1]++;
 
+        ballSpeed = 5;
+
         // give some time for the player to recover before launching the ball again
         setTimeout(() => {
             ball.resetting = false;
@@ -119,11 +121,13 @@ function loop()
     {
         ball.dx *= -1;
         ball.x = leftPaddle.x + leftPaddle.width; // move ball otherwise collision happens next frame
+        ballSpeed += 1
     }
     else if (collides(ball, rightPaddle))
     {
         ball.dx *= -1;
         ball.x = rightPaddle.x - ball.width; // move ball otherwise collision happens next frame
+        ballSpeed += 1
     }
 
     // draw ball
