@@ -1,6 +1,6 @@
 Usage:
 ```bash
-git@github.com:LucasOpoka/transcendence.git
+git clone git@github.com:LucasOpoka/transcendence.git
 ```
 Ensure you have python3 and django installed
 ```bash
