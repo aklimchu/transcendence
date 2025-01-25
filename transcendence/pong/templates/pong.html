@@ -1,16 +1,17 @@
-<!DOCTYPE html>
+{% load static %}
 
+<!DOCTYPE html>
 <html>
 
 <head>
     <title>Will it pong?</title>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 
 <body>
     <canvas width="900" height="600" id="pong"></canvas>
-    <script src="js/pong.js"></script>
+    <script src="{% static 'js/pong.js' %}"></script>
 </body>
 
 </html>
