@@ -5,3 +5,28 @@ services:
     ports:
       - "8000:8000"
     env_file: .env
+    networks:
+      - pong_network
+    depends_on:
+      - database_service
+
+
+  database_service:
+    container_name: postgres_container
+    image: postgres:17.2-bullseye
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file: .env
+    expose:
+      - 5432
+    networks:
+      - pong_network
+
+volumes:
+  postgres_data:
+    name: postgres_data
+
+networks:
+  pong_network:
+    name: pong_network
+    driver: bridge

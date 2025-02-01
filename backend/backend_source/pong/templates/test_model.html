@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1> Test model </h1>
+<u1>
+    {%for element in Elements %}
+    <li>
+        {{element.field1}}: {{element.field2}}
+    </li>
+    {% endfor %}
+</u1>
+{% endblock %}
