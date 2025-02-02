@@ -8,3 +8,6 @@ def pong(request):
 def test_model(request):
     elements = TestModel.objects.all()
     return render(request, "test_model.html", {"Elements": elements})
+
+def login(request):
+    return render(request, "login.html")
