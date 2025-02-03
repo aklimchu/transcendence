@@ -7,7 +7,10 @@ Ensure you have docker installed
 cd transcendence
 docker compose up --build
 ```
-Access site at http://127.0.0.1:8000/
+
+Access the frontend at https://127.0.0.1:8042/
+
+For now, access the backend at http://127.0.0.1:8000/
 
 Move paddles with arrow up/down and W/S
 
