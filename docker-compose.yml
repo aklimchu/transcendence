@@ -1,4 +1,17 @@
 services:
+
+  frontend_service:
+    container_name: frontend_container
+    build: frontend
+    ports:
+       - '8042:8042'
+    volumes:
+      - ./frontend/frontend_source:/var/www/html
+    networks:
+      - pong_network
+    depends_on:
+      - backend_service
+
   backend_service:
     container_name: backend_container
     build: backend
@@ -9,7 +22,6 @@ services:
       - pong_network
     depends_on:
       - database_service
-
 
   database_service:
     container_name: postgres_container
