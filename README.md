@@ -8,9 +8,7 @@ cd transcendence
 docker compose up --build
 ```
 
-Access the frontend at https://127.0.0.1:8042/
-
-For now, access the backend at http://127.0.0.1:8000/
+Access the site at https://127.0.0.1:8042/
 
 Move paddles with arrow up/down and W/S
 
@@ -22,7 +20,7 @@ docker exec -it postgres_container  psql --username=pong_db_user --dbname=pong_d
 ```
 
 Add data to Django's test_model through:
-http://127.0.0.1:8000/admin
+https://127.0.0.1:8042/admin
 
 Check the added data here:
-http://127.0.0.1:8000/test_model
+https://127.0.0.1:8042/test_model
