@@ -38,6 +38,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-
     router();
 });
