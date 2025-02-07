@@ -5,11 +5,17 @@ from django.http import JsonResponse
 
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
+
+import os
+from django.core.signing import Signer
+
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.core.exceptions import BadRequest
 
-# Create your views here.
+from django.utils.html import escape
+
+
 def pong(request):
     return render(request, "pong.html")
 
@@ -31,7 +37,16 @@ def pong_login(request):
         user = authenticate(request, username=data.get("username"), password=data.get("password"))
 
         if user is not None:
-            return JsonResponse({"ok": True, "message": "Logged in", "statusCode": 200}, status=200)
+            response = JsonResponse({"ok": True, "message": "Logged in", "statusCode": 200}, status=200)
+            key = f"session_{user.username}"
+            value = {"user": user.username, "is_authenticated": True}
+            signer = Signer(key = os.environ.get("SECRET_KEY"))
+            value = signer.sign_object(value)
+            
+            #value = signer.unsign_object(value)
+
+            response.set_cookie(key, value, httponly=True, secure=True, max_age=3600)
+            return response
         else:
             return JsonResponse({"ok": False, "error": "Invalid credentials", "statusCode": 401}, status=401)
 
@@ -49,8 +64,8 @@ def pong_register(request):
             raise BadRequest("Request without body")
         
         data = json.loads(request.body)
-        username=data.get("username")
-        password=data.get("password")
+        username = escape(data.get("username"))
+        password = data.get("password")
 
         if not username or not password:
             return JsonResponse({"ok": False, "error": "Both username and password required", "statusCode": 400}, status=400)
