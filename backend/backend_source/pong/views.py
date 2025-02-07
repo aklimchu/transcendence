@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from .models import TestModel
 import json
 from django.http import JsonResponse
 
@@ -14,14 +13,6 @@ from django.db import IntegrityError
 from django.core.exceptions import BadRequest
 
 from django.utils.html import escape
-
-
-def pong(request):
-    return render(request, "pong.html")
-
-def test_model(request):
-    elements = TestModel.objects.all()
-    return render(request, "test_model.html", {"Elements": elements})
 
 
 @csrf_exempt
