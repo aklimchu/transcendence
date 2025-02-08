@@ -1,13 +1,17 @@
-export default class {
-    constructor(params) {
+export default class
+{
+    constructor(params)
+    {
         this.params = params;
     }
 
-    setTitle(title) {
+    setTitle(title)
+    {
         document.title = title;
     }
 
-    async getHtml() {
+    async getHtml(auth)
+    {
         return "";
     }
 }

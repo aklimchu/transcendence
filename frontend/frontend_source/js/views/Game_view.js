@@ -1,12 +1,15 @@
 import AbstractView from "./Base_view.js";
 
-export default class extends AbstractView {
-    constructor(params) {
+export default class extends AbstractView
+{
+    constructor(params)
+    {
         super(params);
         this.setTitle("Game");
     }
 
-    async getHtml() {
+    async getHtml()
+    {
         return `
             <body>
                 <canvas width="900" height="600" id="pong"></canvas>

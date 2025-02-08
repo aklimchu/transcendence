@@ -1,12 +1,18 @@
 import AbstractView from "./Base_view.js";
 
-export default class extends AbstractView {
-    constructor(params) {
+export default class extends AbstractView
+{
+    constructor(params)
+    {
         super(params);
         this.setTitle("Login");
     }
 
-    async getHtml() {
+    async getHtml(pong_auth)
+    {
+        if (pong_auth)
+            return `<h2>Already logged in!</h2>`
+
         return `
         <body style="background-color:powderblue;">
 

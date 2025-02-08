@@ -29,12 +29,10 @@ def pong_login(request):
 
         if user is not None:
             response = JsonResponse({"ok": True, "message": "Logged in", "statusCode": 200}, status=200)
-            key = f"session_{user.username}"
+            key = f"pong_session"
             value = {"user": user.username, "is_authenticated": True}
             signer = Signer(key = os.environ.get("SECRET_KEY"))
             value = signer.sign_object(value)
-            
-            #value = signer.unsign_object(value)
 
             response.set_cookie(key, value, httponly=True, secure=True, max_age=3600)
             return response
@@ -69,3 +67,23 @@ def pong_register(request):
         return JsonResponse({"ok": False, "error": "This username is already used", "statusCode": 400}, status=400)
     except Exception as err:
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+    
+
+def pong_auth(request):
+
+    signer = Signer(key = os.environ.get("SECRET_KEY"))
+
+    for key, value in request.COOKIES.items():
+
+        if key != "pong_session":
+            continue
+
+        try:
+            value = signer.unsign_object(value)
+        except:
+            return JsonResponse({"ok": False, "error": "Bad session cookie", "statusCode": 400}, status=400)
+        
+        if value.get('is_authenticated') == True:
+            return JsonResponse({"ok": True, "message": f"User {value.get('user')} authenticated", "statusCode": 200}, status=200)
+
+    return JsonResponse({"ok": False, "error": "Not authenticated", "statusCode": 400}, status=400)

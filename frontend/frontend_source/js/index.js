@@ -2,14 +2,28 @@ import Register from "./views/Register_view.js";
 import Login from "./views/Login_view.js";
 import Game from "./views/Game_view.js";
 
-const go_to_view = view_id => {
+async function is_auth()
+{
+    const response = await fetch("pong_api/pong_auth/", {method: "GET"});
+    if (response.ok)
+        return true;
+    return false;
+};
+
+export async function go_to_view(view_id)
+{
+    let pong_auth = await is_auth();
+    if (!pong_auth && view_id !== "login_view" && view_id !== "register_view")
+        view_id = "login_view"
+
     console.log("History.state before: ", history.state);
     history.pushState({view : view_id}, null, null);
     console.log("History.state after: ", history.state);
-    router();
+    router(pong_auth);
 };
 
-const router = async () => {
+async function router(pong_auth)
+{
     const view_obj_arr = [
         {id: "register_view", view: Register },
         {id: "login_view", view: Login },
@@ -25,10 +39,15 @@ const router = async () => {
 
     const view = new match.view_obj.view();
 
-    document.querySelector("#app").innerHTML = await view.getHtml();
+    document.querySelector("#app").innerHTML = await view.getHtml(pong_auth);
 };
 
-window.addEventListener("popstate", router);
+window.onpopstate = async function()
+{
+    let pong_auth = await is_auth();
+    router(pong_auth);
+};
+
 
 document.addEventListener("DOMContentLoaded", () => {
     document.body.addEventListener("click", e => {
