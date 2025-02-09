@@ -51,7 +51,8 @@ window.onpopstate = async function()
 
 document.addEventListener("DOMContentLoaded", () => {
     document.body.addEventListener("click", e => {
-        if (e.target.matches("[view-reference]")) {
+        if (e.target.matches("[view-reference]"))
+        {
             e.preventDefault();
             go_to_view(e.target.id);
         }

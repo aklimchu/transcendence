@@ -8,12 +8,15 @@ function play_pong()
     const paddleHeight = grid * 5;
     const maxPaddleY = canvas.height - grid - paddleHeight;
 
-    var paused = 0;
+    var paused = false;
+    var end = false;
     var score = [0,0];
 
 
     var paddleSpeed = 6;
     var ballSpeed = 5;
+
+    var requestId;
 
     const leftPaddle =
     {
@@ -46,21 +49,21 @@ function play_pong()
 
     function collides(obj1, obj2)
     {
-    return obj1.x < obj2.x + obj2.width &&
-            obj1.x + obj1.width > obj2.x &&
-            obj1.y < obj2.y + obj2.height &&
-            obj1.y + obj1.height > obj2.y;
+        return obj1.x < obj2.x + obj2.width &&
+                obj1.x + obj1.width > obj2.x &&
+                obj1.y < obj2.y + obj2.height &&
+                obj1.y + obj1.height > obj2.y;
     }
 
-    // Game loop
+
+    // Pong loop
     function loop()
     {
-        requestAnimationFrame(loop);
+        canvas.focus();
 
-        if (paused)
+        if (end)
             return;
 
-        // Reset canvas
         context.clearRect(0,0,canvas.width,canvas.height);
         context.fillStyle = 'black';
         context.fillRect(0,0,canvas.width,canvas.height);
@@ -137,55 +140,60 @@ function play_pong()
             ballSpeed += 1
         }
 
-        // draw ball
+        // ball
         context.fillRect(ball.x, ball.y, ball.width, ball.height);
 
-        // draw walls
+        // walls
         context.fillStyle = 'orange';
         context.fillRect(0, 0, canvas.width, grid);
         context.fillRect(0, canvas.height - grid, canvas.width, canvas.height);
 
-        // draw dotted line down the middle
+        // dotted line
         for (let i = grid; i < canvas.height - grid; i += grid * 2)
         {
             context.fillRect(canvas.width / 2 - grid / 2, i, grid, grid);
         }
+
+        requestId = window.requestAnimationFrame(loop);
     }
 
-    // listen keydown
     document.addEventListener('keydown',
-    function(e)
-    {
-        // up and down
-        if (e.which === 38)
-            rightPaddle.dy = -paddleSpeed;
-        else if (e.which === 40)
-            rightPaddle.dy = paddleSpeed;
+        function(e)
+        {
+            if (e.key === "ArrowUp")
+                rightPaddle.dy = -paddleSpeed;
+            else if (e.key === "ArrowDown")
+                rightPaddle.dy = paddleSpeed;
 
-        // w and a
-        if (e.which === 87)
-            leftPaddle.dy = -paddleSpeed;
-        else if (e.which === 83)
-            leftPaddle.dy = paddleSpeed;
+            if (e.key === "w")
+                leftPaddle.dy = -paddleSpeed;
+            else if (e.key === "s")
+                leftPaddle.dy = paddleSpeed;
 
-        // pause
-        if (e.which === 13)
-            paused = (paused + 1) % 2;
-    }
+            if (e.key === "Enter")
+            {
+                console.log("Is canvas focused: " + (document.activeElement === canvas));
+                paused = !paused;
+                if (paused)    
+                    window.cancelAnimationFrame(requestId);
+                else
+                    requestId = window.requestAnimationFrame(loop);
+            }
+            if (e.key === "e")
+                end = true;
+        }
     );
 
-    // listen keyup
     document.addEventListener('keyup',
-    function(e)
-    {
-        if (e.which === 38 || e.which === 40)
-            rightPaddle.dy = 0;
+        function(e)
+        {
+            if (e.key === "ArrowUp" || e.key === "ArrowDown")
+                rightPaddle.dy = 0;
 
-        if (e.which === 83 || e.which === 87)
-            leftPaddle.dy = 0;
-    }
+            if (e.key === "w" || e.key === "s")
+                leftPaddle.dy = 0;
+        }
     );
 
-    // start the game
-    requestAnimationFrame(loop);
+    requestId = window.requestAnimationFrame(loop);
 }
