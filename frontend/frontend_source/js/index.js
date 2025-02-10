@@ -1,6 +1,7 @@
 import Register from "./views/Register_view.js";
 import Login from "./views/Login_view.js";
 import Game from "./views/Game_view.js";
+import Lobby from "./views/Lobby_view.js";
 
 async function is_auth()
 {
@@ -27,7 +28,8 @@ async function router(pong_auth)
     const view_obj_arr = [
         {id: "register_view", view: Register },
         {id: "login_view", view: Login },
-        {id: "game_view", view: Game }
+        {id: "game_view", view: Game },
+        {id: "lobby_view", view: Lobby}
     ];
 
     const view_match_map = view_obj_arr.map(view_obj => {return {view_obj: view_obj, is_match: history.state !== null && history.state.view === view_obj.id};});
