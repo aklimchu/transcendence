@@ -29,3 +29,10 @@ class PongPlayer(models.Model):
     player_name = models.CharField(max_length=30, blank=True, null=True)
     class Meta:
         constraints = [models.UniqueConstraint(fields=['player_session', 'player_name'], name='Unique player names for each session')]
+
+class PongGame(models.Model):
+    score = models.CharField(null=True, blank=True)
+    game_winner_1 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_winner_1")
+    game_winner_2 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_winner_2")
+    game_loser_1 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_loser_1")
+    game_loser_2 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_loser_2")
