@@ -10,6 +10,9 @@ export default class extends AbstractView
 
     async getHtml()
     {
+        var response = await fetch("pong_api/pong_player_data/", {method: "GET"});
+        var json = await response.json()
+
         return `
         <style>
             #div1
@@ -64,13 +67,13 @@ export default class extends AbstractView
 
         <body>
 
-        <div id="div1"> User 1 </div>
+        <div id="div1"> ${json.data[0]} </div>
 
-        <div id="div2"> User 2 </div>
+        <div id="div2"> ${json.data[1]} </div>
 
-        <div id="div3"> User 3 </div>
+        <div id="div3"> ${json.data[2]} </div>
 
-        <div id="div4"> User 4 </div>
+        <div id="div4"> ${json.data[3]} </div>
 
         </body>
         `;

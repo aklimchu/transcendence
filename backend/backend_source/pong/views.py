@@ -13,6 +13,8 @@ from django.core.exceptions import BadRequest
 
 from django.utils.html import escape
 
+from .models import *
+
 
 @csrf_exempt
 def pong_login(request):
@@ -86,3 +88,22 @@ def pong_auth(request):
             return JsonResponse({"ok": True, "message": f"User {value.get('user')} authenticated", "statusCode": 200}, status=200)
 
     return JsonResponse({"ok": False, "error": "Not authenticated", "statusCode": 400}, status=400)
+
+
+def pong_player_data(request):
+
+    signer = Signer(key = os.environ.get("SECRET_KEY"))
+
+    for key, value in request.COOKIES.items():
+
+        if key != "pong_session":
+            continue
+        try:
+            value = signer.unsign_object(value)
+        except:
+            return JsonResponse({"ok": False, "error": "Bad session cookie", "statusCode": 400}, status=400)
+        
+        user = User.objects.get(username=value.get("user"))
+        query_set = PongPlayer.objects.filter(player_session_id=user.pongsession.id)
+        players_list = [q.player_name for q in query_set]
+        return JsonResponse({"ok": True, "message": "Players successfuly retrieved", "data": players_list, "statusCode": 200}, status=200)

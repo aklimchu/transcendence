@@ -8,7 +8,6 @@ from django.dispatch import receiver
 
 class PongSession(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    text_field = models.TextField(blank=True, null=True)
     def __str__(self):
         return self.user.username
 
