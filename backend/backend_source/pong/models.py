@@ -16,11 +16,16 @@ class PongSession(models.Model):
 @receiver(post_save, sender=User)
 def create_pong_session(sender, instance, created, **kwargs):
     if created:
-        PongSession.objects.create(user=instance)
+        session = PongSession.objects.create(user=instance)
+        PongPlayer.objects.create(player_session = session, player_name = "Player 1")
+        PongPlayer.objects.create(player_session = session, player_name = "Player 2")
+        PongPlayer.objects.create(player_session = session, player_name = "Player 3")
+        PongPlayer.objects.create(player_session = session, player_name = "Player 4")
     instance.pongsession.save()
 
-# On signal delete user connected to PongSession
-@receiver(post_delete, sender=PongSession)
-def delete_pong_session(sender, instance, **kwargs):
-    if instance.user:
-        instance.user.delete()
+
+class PongPlayer(models.Model):
+    player_session = models.ForeignKey(PongSession, on_delete=models.CASCADE)
+    player_name = models.CharField(max_length=30, blank=True, null=True)
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['player_session', 'player_name'], name='Unique player names for each session')]
