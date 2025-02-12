@@ -67,13 +67,29 @@ export default class extends AbstractView
 
         <body>
 
-        <div id="div1"> ${json.data[0]} </div>
+        <div id="div1">
+            <br> ${json.data["players"]["p1"]["name"]} </br>
+            <br> won: ${json.data["players"]["p1"]["won"]} </br>
+            <br> lost: ${json.data["players"]["p1"]["lost"]} </br>
+        </div>
 
-        <div id="div2"> ${json.data[1]} </div>
+        <div id="div2">
+            <br> ${json.data["players"]["p2"]["name"]} </br>
+            <br> won: ${json.data["players"]["p2"]["won"]} </br>
+            <br> lost: ${json.data["players"]["p2"]["lost"]} </br>
+        </div>
 
-        <div id="div3"> ${json.data[2]} </div>
+        <div id="div3">
+            <br> ${json.data["players"]["p3"]["name"]} </br>
+            <br> won: ${json.data["players"]["p3"]["won"]} </br>
+            <br> lost: ${json.data["players"]["p3"]["lost"]} </br>
+        </div>
 
-        <div id="div4"> ${json.data[3]} </div>
+        <div id="div4">
+            <br> ${json.data["players"]["p4"]["name"]} </br>
+            <br> won: ${json.data["players"]["p4"]["won"]} </br>
+            <br> lost: ${json.data["players"]["p4"]["lost"]} </br>
+        </div>
 
         </body>
         `;

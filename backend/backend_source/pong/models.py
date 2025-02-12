@@ -36,6 +36,7 @@ class PongPlayer(models.Model):
 
 class PongGame(models.Model):
     game_score = models.CharField(null=True, blank=True)
+    game_session = models.ForeignKey(PongSession, on_delete=models.CASCADE)
     game_winner_1 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_winner_1")
     game_winner_2 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_winner_2")
     game_loser_1 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_loser_1")

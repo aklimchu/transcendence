@@ -100,10 +100,66 @@ def pong_auth(request, username):
     return JsonResponse({"ok": True, "message": f"User {username} authenticated", "statusCode": 200}, status=200)
 
 
+from django.db.models import Q
+
+def get_player_data(player_id):
+
+    name = PongPlayer.objects.get(id=player_id).player_name
+    crit1 = Q(game_winner_1=player_id)
+    crit2 = Q(game_winner_2=player_id)
+    crit3 = Q(game_loser_1=player_id)
+    crit4 = Q(game_loser_2=player_id)
+    
+    q_won = PongGame.objects.filter(crit1 | crit2)
+    q_lost = PongGame.objects.filter(crit3 | crit4)
+
+    return {"name": name, "won": q_won.count(), "lost": q_lost.count()}
+
+
+def get_session_games(session_id):
+
+    crit1 = Q(game_session=session_id)
+    q_games = PongGame.objects.filter(crit1)
+
+    games_list = []
+
+    for game in q_games:
+        
+        game_data = {
+            "score": game.game_score,
+            "winner_1": game.game_winner_1.player_name if game.game_winner_1 is not None else None,
+            "winner_2": game.game_winner_2.player_name if game.game_winner_2 is not None else None,
+            "loser_1": game.game_loser_1.player_name if game.game_loser_1 is not None else None,
+            "loser_2": game.game_loser_2.player_name if game.game_loser_2 is not None else None
+        }
+
+        games_list.append(game_data)
+    
+    return games_list
+
+
+
+
 @pong_auth_wrapper
 def pong_player_data(request, username):
         
     user = User.objects.get(username=username)
-    query_set = PongPlayer.objects.filter(player_session_id=user.pongsession.id)
-    players_list = [q.player_name for q in query_set]
-    return JsonResponse({"ok": True, "message": "Players successfuly retrieved", "data": players_list, "statusCode": 200}, status=200)
+    session = user.pongsession
+
+    #[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
+    #[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
+
+    active_players = {
+        "p1" : get_player_data(session.active_player_1.id),
+        "p2" : get_player_data(session.active_player_2.id),
+        "p3" : get_player_data(session.active_player_3.id),
+        "p4" : get_player_data(session.active_player_4.id)
+    }
+
+    data = {
+        "players" : active_players,
+        "games" : get_session_games(session.id)
+    }
+
+
+    return JsonResponse({"ok": True, "message": "Players successfuly retrieved", "data": data, "statusCode": 200}, status=200)
