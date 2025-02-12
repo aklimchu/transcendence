@@ -8,6 +8,11 @@ from django.dispatch import receiver
 
 class PongSession(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    active_player_1 = models.ForeignKey("PongPlayer", null=True, blank=True, on_delete=models.SET_NULL, related_name="active_player_1")
+    active_player_2 = models.ForeignKey("PongPlayer", null=True, blank=True, on_delete=models.SET_NULL, related_name="active_player_2")
+    active_player_3 = models.ForeignKey("PongPlayer", null=True, blank=True, on_delete=models.SET_NULL, related_name="active_player_3")
+    active_player_4 = models.ForeignKey("PongPlayer", null=True, blank=True, on_delete=models.SET_NULL, related_name="active_player_4")
+
     def __str__(self):
         return self.user.username
 
@@ -16,10 +21,10 @@ class PongSession(models.Model):
 def create_pong_session(sender, instance, created, **kwargs):
     if created:
         session = PongSession.objects.create(user=instance)
-        PongPlayer.objects.create(player_session = session, player_name = "Player 1")
-        PongPlayer.objects.create(player_session = session, player_name = "Player 2")
-        PongPlayer.objects.create(player_session = session, player_name = "Player 3")
-        PongPlayer.objects.create(player_session = session, player_name = "Player 4")
+        session.active_player_1 = PongPlayer.objects.create(player_session = session, player_name = "Player 1")
+        session.active_player_2 = PongPlayer.objects.create(player_session = session, player_name = "Player 2")
+        session.active_player_3 = PongPlayer.objects.create(player_session = session, player_name = "Player 3")
+        session.active_player_4 = PongPlayer.objects.create(player_session = session, player_name = "Player 4")
     instance.pongsession.save()
 
 
