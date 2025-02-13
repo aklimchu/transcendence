@@ -17,6 +17,9 @@ from .models import *
 
 from functools import wraps
 
+#[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
+#[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
+
 
 def pong_auth_wrapper(func):
 
@@ -138,28 +141,28 @@ def get_session_games(session_id):
     return games_list
 
 
-
-
 @pong_auth_wrapper
-def pong_player_data(request, username):
-        
-    user = User.objects.get(username=username)
-    session = user.pongsession
+def pong_session_data(request, username):
+    try:
+        if request.method != "GET":
+            return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
 
-    #[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
-    #[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
+        user = User.objects.get(username=username)
+        session = user.pongsession
 
-    active_players = {
-        "p1" : get_player_data(session.active_player_1.id),
-        "p2" : get_player_data(session.active_player_2.id),
-        "p3" : get_player_data(session.active_player_3.id),
-        "p4" : get_player_data(session.active_player_4.id)
-    }
+        active_players = {
+            "p1" : get_player_data(session.active_player_1.id),
+            "p2" : get_player_data(session.active_player_2.id),
+            "p3" : get_player_data(session.active_player_3.id),
+            "p4" : get_player_data(session.active_player_4.id)
+        }
 
-    data = {
-        "players" : active_players,
-        "games" : get_session_games(session.id)
-    }
+        data = {
+            "players" : active_players,
+            "games" : get_session_games(session.id)
+        }
 
-
-    return JsonResponse({"ok": True, "message": "Players successfuly retrieved", "data": data, "statusCode": 200}, status=200)
+        return JsonResponse({"ok": True, "message": "Session data successfuly retrieved", "data": data, "statusCode": 200}, status=200)
+    
+    except Exception as err:
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)

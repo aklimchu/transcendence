@@ -10,8 +10,18 @@ export default class extends AbstractView
 
     async getHtml()
     {
-        var response = await fetch("pong_api/pong_player_data/", {method: "GET"});
-        var json = await response.json()
+        try
+        {
+            var response = await fetch("pong_api/pong_session_data/", {method: "GET"});
+            if (!response.ok)
+              throw new Error("Failed to retrieve session data");
+            var json = await response.json()
+        }
+        catch (err)
+        {
+            console.error(err.message);
+            return `Something went terribly worng!`;
+        }
 
         return `
         <style>
