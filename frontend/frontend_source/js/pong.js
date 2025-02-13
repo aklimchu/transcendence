@@ -1,6 +1,24 @@
 
-function play_pong()
+async function push_game(w1, w2, l1, l2, score)
 {
+    try
+    {
+        const response = await fetch("pong_api/pong_push_game/", {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({winner1: w1, winner2: w2, loser1: l1, loser2: l2, score: score})});
+
+        if (!response.ok) {throw new Error("Failed to push game");}
+    }
+    catch (error) {console.error(error.message);}
+};
+
+
+function play_pong(player_left, player_right)
+{
+    // Temporary hard coded values
+    player_left = "Player 1";
+    player_right = "Player 2";
 
     const canvas = document.getElementById('pong');
     const context = canvas.getContext('2d');
@@ -11,6 +29,7 @@ function play_pong()
     var paused = false;
     var end = false;
     var score = [0,0];
+    var max_score = 5;
 
 
     var paddleSpeed = 6;
@@ -69,7 +88,7 @@ function play_pong()
         context.fillRect(0,0,canvas.width,canvas.height);
         
         context.textAlign = 'center', context.font = '50px "Press Start 2P", Arial, sans-serif', context.fillStyle = 'white';
-        context.fillText(score[1] + '  ' + score[0], canvas.width / 2, canvas.height * 0.2);
+        context.fillText(score[0] + '  ' + score[1], canvas.width / 2, canvas.height * 0.2);
 
         // Move paddles
         leftPaddle.y += leftPaddle.dy;
@@ -111,12 +130,27 @@ function play_pong()
         if ( (ball.x < 0 || ball.x > canvas.width) && !ball.resetting)
         {
             ball.resetting = true;
-            if (ball.x < 0)
+            if (ball.x > canvas.width)
                 score[0]++;
             else
                 score[1]++;
 
             ballSpeed = 5;
+
+            if (score[0] === max_score || score[1] === max_score)
+            {
+                window.cancelAnimationFrame(requestId);
+                var score_str = score[0].toString() + " - " + score[1].toString();
+
+                if (score[0] > score[1])
+                    push_game(player_left, null, player_right, null, score_str);
+                else
+                    push_game(player_right, null, player_left, null, score_str);
+
+                console.log("Game ended, result: " + score_str + "\n");
+                document.querySelector("#app").innerHTML = "Game ended, result: " + score_str;
+                return;
+            }
 
             // give some time for the player to recover before launching the ball again
             setTimeout(() => {
@@ -172,7 +206,6 @@ function play_pong()
 
             if (e.key === "Enter")
             {
-                console.log("Is canvas focused: " + (document.activeElement === canvas));
                 paused = !paused;
                 if (paused)    
                     window.cancelAnimationFrame(requestId);

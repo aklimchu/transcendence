@@ -1,5 +1,5 @@
 
-const login_button = async () =>
+async function login_button()
 {
     await login_func
     (
@@ -8,19 +8,16 @@ const login_button = async () =>
     );
 };
 
-const login_func = async (user, pwd) => 
+async function login_func(user, pwd)
 {
     try
     {
         const response = await fetch("pong_api/pong_login/", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: user, password: pwd,})});
+                body: JSON.stringify({username: user, password: pwd})});
 
         if (!response.ok) {throw new Error("Failed to login");}
-    
-        const json = await response.json();
     }
-
     catch (error) {console.error(error.message);}
 };

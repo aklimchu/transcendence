@@ -13,6 +13,7 @@ from django.core.exceptions import BadRequest
 
 from django.utils.html import escape
 
+from django.db.models import Q
 from .models import *
 
 from functools import wraps
@@ -103,18 +104,12 @@ def pong_auth(request, username):
     return JsonResponse({"ok": True, "message": f"User {username} authenticated", "statusCode": 200}, status=200)
 
 
-from django.db.models import Q
-
 def get_player_data(player_id):
 
     name = PongPlayer.objects.get(id=player_id).player_name
-    crit1 = Q(game_winner_1=player_id)
-    crit2 = Q(game_winner_2=player_id)
-    crit3 = Q(game_loser_1=player_id)
-    crit4 = Q(game_loser_2=player_id)
     
-    q_won = PongGame.objects.filter(crit1 | crit2)
-    q_lost = PongGame.objects.filter(crit3 | crit4)
+    q_won = PongGame.objects.filter(Q(game_winner_1=player_id) | Q(game_winner_2=player_id))
+    q_lost = PongGame.objects.filter(Q(game_loser_1=player_id) | Q(game_loser_2=player_id))
 
     return {"name": name, "won": q_won.count(), "lost": q_lost.count()}
 
@@ -163,6 +158,55 @@ def pong_session_data(request, username):
         }
 
         return JsonResponse({"ok": True, "message": "Session data successfuly retrieved", "data": data, "statusCode": 200}, status=200)
+    
+    except Exception as err:
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+    
+
+@csrf_exempt
+@pong_auth_wrapper
+def pong_push_game(request, username):
+    try:
+        if request.method != "POST":
+            return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
+
+        if not request.body:
+            raise BadRequest("Request without body")
+        
+        user = User.objects.get(username=username)
+        session = user.pongsession
+        
+        data = json.loads(request.body)
+        w1 = data.get("winner1")
+        w2 = data.get("winner2")
+        l1 = data.get("loser1")
+        l2 = data.get("loser2")
+        score = data.get("score")
+
+        if ((w1 is None) != (w2 is None)) and ((l1 is None) != (l2 is None)) and score:
+
+            winner = w1 if w1 is not None else w2
+            loser = l1 if l1 is not None else l2
+
+            winner_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=winner))
+            loser_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=loser))
+            print(f"HELLO THERE {winner_object.player_name}\n")
+
+            PongGame.objects.create(
+                game_score = score,
+                game_session = session,
+                game_winner_1 = winner_object,
+                game_winner_2 = None,
+                game_loser_1 = loser_object,
+                game_loser_2 = None)
+
+            return JsonResponse({"ok": True, "message": "Pong 1v1 game - data successfuly pushed", "statusCode": 200}, status=200)
+        
+        elif None not in (w1, w2, l1, l2) and score:
+            return JsonResponse({"ok": True, "message": "2v2", "statusCode": 200}, status=200)
+        
+        else:
+            return JsonResponse({"ok": False, "error": "Incomplete game data", "statusCode": 400}, status=400)
     
     except Exception as err:
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
