@@ -136,6 +136,37 @@ def get_session_games(session_id):
     return games_list
 
 
+def get_session_tournaments(session_id):
+        
+        session_tournaments = PongTournament.objects.filter(Q(tournament_session=session_id))
+        unfinished_tournaments_query =  session_tournaments.filter(Q(tournament_game_3=None))
+        print(f"Unfinished tournametn: {unfinished_tournaments_query.count()}")
+
+        unfinished_tournament = None
+        finished_tournaments = []
+
+        for t in session_tournaments:
+            t_data = {
+                "semi1_score" : t.tournament_game_1.game_score if t.tournament_game_1 is not None else None,
+                "semi1_winner" : t.tournament_game_1.game_winner_1.player_name if t.tournament_game_1 is not None else None,
+                "semi1_loser" : t.tournament_game_1.game_loser_1.player_name if t.tournament_game_1 is not None else None,
+                "semi2_score" : t.tournament_game_2.game_score if t.tournament_game_2 is not None else None,
+                "semi2_winner" : t.tournament_game_2.game_winner_1.player_name if t.tournament_game_2 is not None else None,
+                "semi2_loser" : t.tournament_game_2.game_loser_1.player_name if t.tournament_game_2 is not None else None,
+                "final_score" : t.tournament_game_3.game_score if t.tournament_game_3 is not None else None,
+                "final_winner" : t.tournament_game_3.game_winner_1.player_name if t.tournament_game_3 is not None else None,
+                "final_loser" : t.tournament_game_3.game_loser_1.player_name if t.tournament_game_3 is not None else None
+            }
+            
+            if t.tournament_game_3 is None:
+                unfinished_tournament = t_data
+            else:
+                finished_tournaments.append(t_data)
+
+        return unfinished_tournament, finished_tournaments
+
+
+
 @pong_auth_wrapper
 def pong_session_data(request, username):
     try:
@@ -152,9 +183,13 @@ def pong_session_data(request, username):
             "p4" : get_player_data(session.active_player_4.id)
         }
 
+        unfinished_tournament, finished_tournaments = get_session_tournaments(session.id)
+
         data = {
-            "players" : active_players,
-            "games" : get_session_games(session.id)
+            "players": active_players,
+            "games": get_session_games(session.id),
+            "unfinished_tournament": unfinished_tournament,
+            "finished_tournaments": finished_tournaments
         }
 
         return JsonResponse({"ok": True, "message": "Session data successfuly retrieved", "data": data, "statusCode": 200}, status=200)
@@ -190,7 +225,6 @@ def pong_push_game(request, username):
 
             winner_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=winner))
             loser_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=loser))
-            print(f"HELLO THERE {winner_object.player_name}\n")
 
             PongGame.objects.create(
                 game_score = score,
