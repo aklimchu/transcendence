@@ -14,11 +14,16 @@ async function push_game(w1, w2, l1, l2, score)
 };
 
 
-function play_pong(player_left, player_right)
+function play_pong()
 {
-    // Temporary hard coded values
-    player_left = "Player 1";
-    player_right = "Player 2";
+    // Get players
+    var left_select = document.getElementById("left-select");
+    var right_select = document.getElementById("right-select");
+    var player_left = left_select.options[left_select.selectedIndex].text;
+    var player_right = right_select.options[right_select.selectedIndex].text;
+
+    // Set canvas
+    document.querySelector("#app").innerHTML = `<canvas width="900" height="600" id="pong" tabindex="-1"></canvas>`;
 
     const canvas = document.getElementById('pong');
     const context = canvas.getContext('2d');

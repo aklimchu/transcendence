@@ -64,7 +64,7 @@ def pong_login(request):
             signer = Signer(key = os.environ.get("SECRET_KEY"))
             value = signer.sign_object(value)
 
-            response.set_cookie(key, value, httponly=True, secure=True, max_age=3600)
+            response.set_cookie(key, value, httponly=True, secure=True, max_age=3600, samesite="Strict")
             return response
         else:
             return JsonResponse({"ok": False, "error": "Invalid credentials", "statusCode": 401}, status=401)

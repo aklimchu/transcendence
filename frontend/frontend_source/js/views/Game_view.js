@@ -10,11 +10,39 @@ export default class extends AbstractView
 
     async getHtml()
     {
+        try
+        {
+            var response = await fetch("pong_api/pong_session_data/", {method: "GET"});
+            if (!response.ok)
+              throw new Error("Failed to retrieve session data");
+            var json = await response.json()
+        }
+        catch (err)
+        {
+            console.error(err.message);
+            return `Something went terribly worng!`;
+        }
+
+
         return `
-            <body>
-                <canvas width="900" height="600" id="pong" tabindex="-1"></canvas>
-                <br> <button type="submit" class="btn" onclick="play_pong()">Play pong</button> </br>
-            </body>
+        <br>
+            <label for="left-select">Choose left player:</label>
+            <select name="LeftPlayer" id="left-select">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+
+            <label for="right-select">Choose right player:</label>
+            <select name="RightPlayer" id="right-select">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+        </br>
+        <br> <button type="submit" class="btn" onclick="play_pong()">Play pong</button> </br>
         `;
     }
 }
