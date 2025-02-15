@@ -12,7 +12,7 @@ async function is_auth()
     return false;
 };
 
-export async function go_to_view(view_id)
+async function go_to_view(view_id)
 {
     let pong_auth = await is_auth();
     if (!pong_auth && view_id !== "login_view" && view_id !== "register_view")

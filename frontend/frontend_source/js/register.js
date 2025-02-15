@@ -18,8 +18,6 @@ const register_func = async (user, pwd) =>
                 body: JSON.stringify({username: user, password: pwd,})});
 
         if (!response.ok) {throw new Error("Failed to register");}
-    
-        const json = await response.json();
     }
 
     catch (error) {console.error(error.message);}

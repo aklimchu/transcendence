@@ -13,6 +13,35 @@ async function push_game(tournament, w1, w2, l1, l2, score)
     catch (error) {console.error(error.message);}
 };
 
+function display_result(tournament, left1, left2, right1, right2, score)
+{
+    var go_back_id;
+
+    if (tournament === null || tournament === 3)
+        go_back_id = "game_view"
+    else
+        go_back_id = "tournament_view"
+
+    document.querySelector("#app").innerHTML = `
+    <style>
+    #back_button
+    {
+        height: 3%;
+        width: 5%;
+        background-color:orange;
+        position:absolute;
+        top: 5%;
+        left: 25%;
+    }
+    </style>
+
+    <button type="submit" id="${go_back_id}" view-reference> Go back </button>
+
+    <br> Game completed! </br>
+    
+    ${left1}   ${score}    ${right1}
+    `;    
+};
 
 function play_pong(tournament)
 {
@@ -38,7 +67,7 @@ function play_pong(tournament)
 
 
     var paddleSpeed = 6;
-    var ballSpeed = 5;
+    var ballSpeed = 7;
 
     var requestId;
 
@@ -146,14 +175,11 @@ function play_pong(tournament)
             {
                 window.cancelAnimationFrame(requestId);
                 var score_str = score[0].toString() + " - " + score[1].toString();
+                var winner = (score[0] > score[1]) ? player_left : player_right;
+                var loser = (score[0] > score[1]) ? player_right : player_left;
 
-                if (score[0] > score[1])
-                    push_game(tournament, player_left, null, player_right, null, score_str);
-                else
-                    push_game(tournament, player_right, null, player_left, null, score_str);
-
-                console.log("Game ended, result: " + score_str + "\n");
-                document.querySelector("#app").innerHTML = "Game ended, result: " + score_str;
+                push_game(tournament, winner, null, loser, null, score_str);
+                display_result(tournament, player_left, null, player_right, null, score_str);
                 return;
             }
 

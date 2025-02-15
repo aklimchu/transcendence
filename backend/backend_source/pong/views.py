@@ -141,8 +141,6 @@ def get_session_games(session_id):
 def get_session_tournaments(session_id):
         
         session_tournaments = PongTournament.objects.filter(Q(tournament_session=session_id))
-        unfinished_tournaments_query =  session_tournaments.filter(Q(tournament_game_3=None))
-
         unfinished_tournament = None
         finished_tournaments = []
 
@@ -231,6 +229,9 @@ def pong_push_game(request, username):
             winner = w1 if w1 is not None else w2
             loser = l1 if l1 is not None else l2
 
+            if winner == loser:
+                return JsonResponse({"ok": False, "error": "Can't push game with duplicate players", "statusCode": 400}, status=400)
+
             winner_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=winner))
             loser_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=loser))
 
@@ -282,6 +283,9 @@ def pong_push_game(request, username):
 
             if tournament is not None:
                 return JsonResponse({"ok": False, "error": "Can't push a 2v2 game as part of a tournament", "statusCode": 400}, status=400)
+            
+            if len(set[w1, w2, l1, l2]) != 4:
+                return JsonResponse({"ok": False, "error": "Can't push game with duplicate players", "statusCode": 400}, status=400)
 
             # TO BE DONE
 
