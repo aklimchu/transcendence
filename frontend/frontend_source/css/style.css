@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
 
 body {
-    --nav-width: 200px;
+    --nav-width: 10%;
+    height: 100vh;
     margin: 0 0 0 var(--nav-width);
     font-family: 'Quicksand', sans-serif;
     font-size: 18px;
@@ -30,6 +31,7 @@ body {
 }
 
 #app {
+    height: 100vh;
     margin: 2em;
     line-height: 1.5;
     font-weight: 500;

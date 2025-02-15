@@ -18,6 +18,8 @@ from .models import *
 
 from functools import wraps
 
+from random import shuffle
+
 #[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
 #[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
 
@@ -140,7 +142,6 @@ def get_session_tournaments(session_id):
         
         session_tournaments = PongTournament.objects.filter(Q(tournament_session=session_id))
         unfinished_tournaments_query =  session_tournaments.filter(Q(tournament_game_3=None))
-        print(f"Unfinished tournametn: {unfinished_tournaments_query.count()}")
 
         unfinished_tournament = None
         finished_tournaments = []
@@ -159,6 +160,10 @@ def get_session_tournaments(session_id):
             }
             
             if t.tournament_game_3 is None:
+                t_data["semi_one_p1"] = t.semi_one_p1.player_name
+                t_data["semi_one_p2"] = t.semi_one_p2.player_name
+                t_data["semi_two_p1"] = t.semi_two_p1.player_name
+                t_data["semi_two_p2"] = t.semi_two_p2.player_name
                 unfinished_tournament = t_data
             else:
                 finished_tournaments.append(t_data)
@@ -212,11 +217,14 @@ def pong_push_game(request, username):
         session = user.pongsession
         
         data = json.loads(request.body)
+        tournament = data.get("tournament")
         w1 = data.get("winner1")
         w2 = data.get("winner2")
         l1 = data.get("loser1")
         l2 = data.get("loser2")
         score = data.get("score")
+        pong_game = None
+        tournament_index = None
 
         if ((w1 is None) != (w2 is None)) and ((l1 is None) != (l2 is None)) and score:
 
@@ -226,21 +234,95 @@ def pong_push_game(request, username):
             winner_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=winner))
             loser_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=loser))
 
-            PongGame.objects.create(
-                game_score = score,
-                game_session = session,
-                game_winner_1 = winner_object,
-                game_winner_2 = None,
-                game_loser_1 = loser_object,
-                game_loser_2 = None)
+            if tournament is not None:
+                tournament_index = int(tournament) - 1
+                if tournament_index not in [0, 1, 2]:
+                    return JsonResponse({"ok": False, "error": "Incorrect tournament index", "statusCode": 400}, status=400)
+                
+                tournament_object = PongTournament.objects.get(Q(tournament_session=session.id) & Q(tournament_game_3=None))
+                tournament_games = [tournament_object.tournament_game_1, tournament_object.tournament_game_2,tournament_object.tournament_game_3]
 
-            return JsonResponse({"ok": True, "message": "Pong 1v1 game - data successfuly pushed", "statusCode": 200}, status=200)
+                # Check semifinals are completed before final
+                if tournament_index == 2 and None in tournament_games[:2]:
+                    return JsonResponse({"ok": False, "error": "Can't push final before semifinals", "statusCode": 400}, status=400)
+
+                # Check if players from request match the expected ones
+                if tournament_index == 0 and {winner_object, loser_object} != {tournament_object.semi_one_p1, tournament_object.semi_one_p2}:
+                    return JsonResponse({"ok": False, "error": "Incorrect players for tournament game", "statusCode": 400}, status=400)
+                if tournament_index == 1 and {winner_object, loser_object} != {tournament_object.semi_two_p1, tournament_object.semi_two_p2}:
+                    return JsonResponse({"ok": False, "error": "Incorrect players for tournament game", "statusCode": 400}, status=400)
+                if tournament_index == 2 and {winner_object, loser_object} != {tournament_object.tournament_game_1.game_winner_1, tournament_object.tournament_game_2.game_winner_1}:
+                    return JsonResponse({"ok": False, "error": "Incorrect players for tournament game", "statusCode": 400}, status=400)
+                
+                # Check if game doesn't already exist
+                if (tournament_games[tournament_index] is not None):
+                    return JsonResponse({"ok": False, "error": "Can't overwrite tournament game", "statusCode": 400}, status=400)
+
+                pong_game = PongGame.objects.create(
+                    game_score = score,
+                    game_session = session,
+                    game_winner_1 = winner_object,
+                    game_winner_2 = None,
+                    game_loser_1 = loser_object,
+                    game_loser_2 = None)
+
+            if tournament is None:
+                return JsonResponse({"ok": True, "message": "Pong 1v1 game - data successfuly pushed", "statusCode": 200}, status=200)
+            
+            else:
+                if tournament_index == 0: tournament_object.tournament_game_1 = pong_game
+                elif tournament_index == 1: tournament_object.tournament_game_2 = pong_game
+                else: tournament_object.tournament_game_3 = pong_game
+                tournament_object.save()
+
+                return JsonResponse({"ok": True, "message": f"Successfuly pushed game {tournament_index + 1} of tournament", "statusCode": 200}, status=200)
         
+
         elif None not in (w1, w2, l1, l2) and score:
+
+            if tournament is not None:
+                return JsonResponse({"ok": False, "error": "Can't push a 2v2 game as part of a tournament", "statusCode": 400}, status=400)
+
+            # TO BE DONE
+
             return JsonResponse({"ok": True, "message": "2v2", "statusCode": 200}, status=200)
         
+
         else:
             return JsonResponse({"ok": False, "error": "Incomplete game data", "statusCode": 400}, status=400)
     
+
+    except Exception as err:
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+
+
+@pong_auth_wrapper
+def pong_create_tournament(request, username):
+    try:
+        if request.method != "GET":
+            return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
+        
+        user = User.objects.get(username=username)
+        session = user.pongsession
+        
+        unfinished_tournaments = PongTournament.objects.filter(Q(tournament_session=session.id) & Q(tournament_game_3=None))
+
+        if (unfinished_tournaments.count() > 0):
+            return JsonResponse({"ok": False, "error": "Can't have more than one tournament ongoing", "statusCode": 400}, status=400)
+
+        session_players_list = [session.active_player_1, session.active_player_2, session.active_player_3, session.active_player_4]
+
+        shuffle(session_players_list)
+
+        PongTournament.objects.create(
+            tournament_session=session,
+            semi_one_p1 = session_players_list[0],
+            semi_one_p2 = session_players_list[1],
+            semi_two_p1 = session_players_list[2],
+            semi_two_p2 = session_players_list[3]
+        )
+
+        return pong_session_data(request)
+
     except Exception as err:
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)

@@ -1,12 +1,12 @@
 
-async function push_game(w1, w2, l1, l2, score)
+async function push_game(tournament, w1, w2, l1, l2, score)
 {
     try
     {
         const response = await fetch("pong_api/pong_push_game/", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({winner1: w1, winner2: w2, loser1: l1, loser2: l2, score: score})});
+                body: JSON.stringify({tournament: tournament, winner1: w1, winner2: w2, loser1: l1, loser2: l2, score: score})});
 
         if (!response.ok) {throw new Error("Failed to push game");}
     }
@@ -14,7 +14,7 @@ async function push_game(w1, w2, l1, l2, score)
 };
 
 
-function play_pong()
+function play_pong(tournament)
 {
     // Get players
     var left_select = document.getElementById("left-select");
@@ -148,9 +148,9 @@ function play_pong()
                 var score_str = score[0].toString() + " - " + score[1].toString();
 
                 if (score[0] > score[1])
-                    push_game(player_left, null, player_right, null, score_str);
+                    push_game(tournament, player_left, null, player_right, null, score_str);
                 else
-                    push_game(player_right, null, player_left, null, score_str);
+                    push_game(tournament, player_right, null, player_left, null, score_str);
 
                 console.log("Game ended, result: " + score_str + "\n");
                 document.querySelector("#app").innerHTML = "Game ended, result: " + score_str;

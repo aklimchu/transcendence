@@ -23,6 +23,11 @@ export default class extends AbstractView
             return `Something went terribly worng!`;
         }
 
+        var tournament_button_txt;
+        if (json.data["unfinished_tournament"] === null)
+            tournament_button_txt = "Create tournament";
+        else
+            tournament_button_txt = "Continue tournament";
 
         return `
         <br>
@@ -42,7 +47,8 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
         </br>
-        <br> <button type="submit" class="btn" onclick="play_pong()">Play pong</button> </br>
+        <br> <button type="submit" class="btn" onclick="play_pong(null)">Play pong</button> </br>
+        <br> <button type="submit" class="btn" id="tournament_view" view-reference>${tournament_button_txt}</button> </br>
         `;
     }
 }
