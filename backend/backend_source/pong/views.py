@@ -118,13 +118,11 @@ def get_player_data(player_id):
 
 def get_session_games(session_id):
 
-    crit1 = Q(game_session=session_id)
-    q_games = PongGame.objects.filter(crit1)
+    q_games = PongGame.objects.filter(Q(game_session=session_id)).order_by("-id")
 
     games_list = []
 
     for game in q_games:
-        
         game_data = {
             "score": game.game_score,
             "winner_1": game.game_winner_1.player_name if game.game_winner_1 is not None else None,
@@ -140,21 +138,21 @@ def get_session_games(session_id):
 
 def get_session_tournaments(session_id):
         
-        session_tournaments = PongTournament.objects.filter(Q(tournament_session=session_id))
+        session_tournaments = PongTournament.objects.filter(Q(tournament_session=session_id)).order_by("-id")
         unfinished_tournament = None
         finished_tournaments = []
 
         for t in session_tournaments:
             t_data = {
-                "semi1_score" : t.tournament_game_1.game_score if t.tournament_game_1 is not None else None,
-                "semi1_winner" : t.tournament_game_1.game_winner_1.player_name if t.tournament_game_1 is not None else None,
-                "semi1_loser" : t.tournament_game_1.game_loser_1.player_name if t.tournament_game_1 is not None else None,
-                "semi2_score" : t.tournament_game_2.game_score if t.tournament_game_2 is not None else None,
-                "semi2_winner" : t.tournament_game_2.game_winner_1.player_name if t.tournament_game_2 is not None else None,
-                "semi2_loser" : t.tournament_game_2.game_loser_1.player_name if t.tournament_game_2 is not None else None,
-                "final_score" : t.tournament_game_3.game_score if t.tournament_game_3 is not None else None,
-                "final_winner" : t.tournament_game_3.game_winner_1.player_name if t.tournament_game_3 is not None else None,
-                "final_loser" : t.tournament_game_3.game_loser_1.player_name if t.tournament_game_3 is not None else None
+                "semi1_score": t.tournament_game_1.game_score if t.tournament_game_1 is not None else None,
+                "semi1_winner": t.tournament_game_1.game_winner_1.player_name if t.tournament_game_1 is not None else None,
+                "semi1_loser": t.tournament_game_1.game_loser_1.player_name if t.tournament_game_1 is not None else None,
+                "semi2_score": t.tournament_game_2.game_score if t.tournament_game_2 is not None else None,
+                "semi2_winner": t.tournament_game_2.game_winner_1.player_name if t.tournament_game_2 is not None else None,
+                "semi2_loser": t.tournament_game_2.game_loser_1.player_name if t.tournament_game_2 is not None else None,
+                "final_score": t.tournament_game_3.game_score if t.tournament_game_3 is not None else None,
+                "final_winner": t.tournament_game_3.game_winner_1.player_name if t.tournament_game_3 is not None else None,
+                "final_loser": t.tournament_game_3.game_loser_1.player_name if t.tournament_game_3 is not None else None
             }
             
             if t.tournament_game_3 is None:
