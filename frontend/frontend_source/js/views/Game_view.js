@@ -48,7 +48,6 @@ export default class extends AbstractView
             </select>
         </br>
         <br> <button type="submit" class="btn" onclick="play_pong(null)">Play pong</button> </br>
-        <br> <button type="submit" class="btn" id="tournament_view" view-reference>${tournament_button_txt}</button> </br>
         `;
     }
 }

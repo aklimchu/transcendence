@@ -3,6 +3,7 @@ import Login from "./views/Login_view.js";
 import Game from "./views/Game_view.js";
 import Lobby from "./views/Lobby_view.js";
 import Tournament from "./views/Tournament_view.js";
+import NewTournament from "./views/New_Tournament_view.js";
 
 async function is_auth()
 {
@@ -59,6 +60,46 @@ document.addEventListener("DOMContentLoaded", () => {
         {
             e.preventDefault();
             go_to_view(e.target.id);
+        }
+    });
+
+    router();
+});
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------
+
+
+async function sub_router(path)
+{
+    const view_obj_arr = [
+        {id: "register_view", view: Register },
+        {id: "login_view", view: Login },
+        {id: "game_view", view: Game },
+        {id: "lobby_view", view: Lobby},
+        {id: "tournament_view", view: Tournament},
+        {id: "new_tournament_view", view: NewTournament}
+    ];
+
+    const view_match_map = view_obj_arr.map(view_obj => {return {view_obj: view_obj, is_match: path !== null && path === view_obj.id};});
+
+    let match = view_match_map.find(potential_match => potential_match.is_match);
+
+    if (!match)
+        match = {view_obj: view_obj_arr[0], is_match: true};
+
+    const view = new match.view_obj.view();
+
+    document.querySelector("#app").innerHTML = await view.getHtml();
+};
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.addEventListener("click", e => {
+        if (e.target.matches("[sub-view-reference]"))
+        {
+            e.preventDefault();
+            sub_router(e.target.id);
         }
     });
 

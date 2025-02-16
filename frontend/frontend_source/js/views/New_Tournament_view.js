@@ -20,7 +20,12 @@ export default class extends AbstractView
             json = await response.json()
 
             if (json.data["unfinished_tournament"] === null)
-                return `<br> <button type="submit" class="btn" id="new_tournament_view" sub-view-reference>Create tournament</button> </br>`
+            {
+                response = await fetch("pong_api/pong_create_tournament/", {method: "GET"});
+                if (!response.ok)   
+                    throw new Error("Failed to create tournament");
+                json = await response.json()
+            }
         }
         catch (err)
         {

@@ -17,7 +17,7 @@ function display_result(tournament, left1, left2, right1, right2, score)
 {
     var go_back_id;
 
-    if (tournament === null || tournament === 3)
+    if (tournament === null)
         go_back_id = "game_view"
     else
         go_back_id = "tournament_view"
@@ -35,7 +35,7 @@ function display_result(tournament, left1, left2, right1, right2, score)
     }
     </style>
 
-    <button type="submit" id="${go_back_id}" view-reference> Go back </button>
+    <button type="submit" id="${go_back_id}" sub-view-reference> Go back </button>
 
     <br> Game completed! </br>
     
