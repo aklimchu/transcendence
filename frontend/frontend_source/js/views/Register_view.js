@@ -19,7 +19,7 @@ export default class extends AbstractView
                 <br> <input id="register_user" type="text" title="username" placeholder="username" maxlength="42" required/> </br>
                 <br> <input id="register_pwd" type="password" title="username" placeholder="password" maxlength="42" required/> </br>
                 </form>
-                <br> <button type="submit" class="btn" onclick="register_button()">Register</button> </br>
+                <br> <button id="register"> Register </button> </br>
             </div>
 
             </body>

@@ -22,7 +22,7 @@ export default class extends AbstractView
             <br> <input id="login_user" type="text" title="username" placeholder="username" maxlength="42" required/> </br>
             <br> <input id="login_pwd" type="password" title="username" placeholder="password" maxlength="42" required/> </br>
             </form>
-            <br> <button type="submit" class="btn" onclick="login_button()">Login</button> </br>
+            <br> <button id="login"> Login </button> </br>
         </div>
 
         </body>

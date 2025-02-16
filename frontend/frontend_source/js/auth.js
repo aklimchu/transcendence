@@ -1,12 +1,4 @@
 
-async function register_button()
-{
-    await register_func
-    (
-      document.getElementById("register_user").value,
-      document.getElementById("register_pwd").value
-    );
-};
 
 async function register_func(user, pwd)
 {
@@ -23,14 +15,6 @@ async function register_func(user, pwd)
     catch (error) {console.error(error.message);}
 };
 
-async function login_button()
-{
-    await login_func
-    (
-      document.getElementById("login_user").value,
-      document.getElementById("login_pwd").value
-    );
-};
 
 async function login_func(user, pwd)
 {

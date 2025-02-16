@@ -85,7 +85,7 @@ async function sub_router(path)
 //----------------------------------------------------------------------------------------------------------------------------------------
 
 
-function view_reference_listener(event)
+async function view_reference_listener(event)
 {
     if (event.target.matches("[view-reference]"))
     {
@@ -94,7 +94,7 @@ function view_reference_listener(event)
     }
 }
 
-function sub_view_reference_listener(event)
+async function sub_view_reference_listener(event)
 {
     if (event.target.matches("[sub-view-reference]"))
     {
@@ -103,7 +103,31 @@ function sub_view_reference_listener(event)
     }
 }
 
-function play_game_listener(event)
+async function register_listener(event)
+{
+    if (event.target.id === "register")
+    {
+        await register_func
+        (
+          document.getElementById("register_user").value,
+          document.getElementById("register_pwd").value
+        );
+    }   
+}
+
+async function login_listener(event)
+{
+    if (event.target.id === "login")
+    {
+        await login_func
+        (
+          document.getElementById("login_user").value,
+          document.getElementById("login_pwd").value
+        );
+    }   
+}
+
+async function play_game_listener(event)
 {
     if (event.target.id === "play_game")
     {
@@ -142,6 +166,8 @@ function add_all_event_listeners()
 {
     document.body.addEventListener("click", e => view_reference_listener(e));
     document.body.addEventListener("click", e => sub_view_reference_listener(e));
+    document.body.addEventListener("click", e => register_listener(e));
+    document.body.addEventListener("click", e => login_listener(e));
     document.body.addEventListener("click", e => play_game_listener(e));
     document.body.addEventListener("click", e => create_tournament_listener(e));
 }
