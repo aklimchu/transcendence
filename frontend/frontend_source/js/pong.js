@@ -43,7 +43,7 @@ function display_result(tournament, left1, left2, right1, right2, score)
     `;    
 };
 
-function play_pong(tournament)
+export function play_pong(tournament)
 {
     // Get players
     var left_select = document.getElementById("left-select");

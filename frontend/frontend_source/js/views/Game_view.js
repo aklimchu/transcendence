@@ -47,7 +47,7 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
         </br>
-        <br> <button type="submit" class="btn" onclick="play_pong(null)">Play pong</button> </br>
+        <br> <button id="play_game" class="1v1"> Play pong </button> </br>
         `;
     }
 }

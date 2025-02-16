@@ -20,7 +20,7 @@ export default class extends AbstractView
             json = await response.json()
 
             if (json.data["unfinished_tournament"] === null)
-                return `<br> <button type="submit" class="btn" id="new_tournament_view" sub-view-reference>Create tournament</button> </br>`
+                return `<button id="create_tournament"> Create NEW tournament </button>`
         }
         catch (err)
         {
@@ -48,7 +48,7 @@ export default class extends AbstractView
                 <option>${json.data["unfinished_tournament"]["semi_one_p2"]}</option>
                 </select>
 
-            <br> <button type="submit" class="btn" onclick="play_pong(1)">Play pong</button> </br>
+            <br> <button id="play_game" class="Tournament1"> Play pong </button> </br>
             `
         }
         else
@@ -79,7 +79,7 @@ export default class extends AbstractView
                 <option>${json.data["unfinished_tournament"]["semi_two_p2"]}</option>
                 </select>
 
-            <br> <button type="submit" class="btn" onclick="play_pong(2)">Play pong</button> </br>
+            <br> <button id="play_game" class="Tournament2"> Play pong </button> </br>
             `
         }
         else
@@ -110,7 +110,7 @@ export default class extends AbstractView
                 <option>${json.data["unfinished_tournament"]["semi2_winner"]}</option>
                 </select>
 
-            <br> <button type="submit" class="btn" onclick="play_pong(3)">Play pong</button> </br>
+            <br> <button id="play_game" class="Tournament3"> Play pong </button> </br>
             `
         }
         else
