@@ -21,7 +21,7 @@ async function go_to_view(view_id)
     router(null);
 };
 
-async function router(pong_auth)
+async function router(path)
 {
     const view_obj_arr = [
         {id: "lobby_view", view: Lobby},
@@ -29,45 +29,26 @@ async function router(pong_auth)
         {id: "tournament_view", view: Tournament}
     ];
 
-    const view_match_map = view_obj_arr.map(view_obj => {return {view_obj: view_obj, is_match: history.state !== null && history.state.view === view_obj.id};});
+    var view_match_map, match, view;
 
-    let match = view_match_map.find(potential_match => potential_match.is_match);
+    if (path === null)
+        view_match_map = view_obj_arr.map(view_obj => {return {view_obj: view_obj, is_match: history.state !== null && history.state.view === view_obj.id};});
+    else
+        view_match_map = view_obj_arr.map(view_obj => {return {view_obj: view_obj, is_match: path === view_obj.id};});
+
+    match = view_match_map.find(potential_match => potential_match.is_match);
 
     if (!match)
         match = {view_obj: view_obj_arr[0], is_match: true};
 
-    const view = new match.view_obj.view();
+    view = new match.view_obj.view();
 
-    document.querySelector("#app").innerHTML = await view.getHtml(pong_auth);
+    document.querySelector("#app").innerHTML = await view.getHtml();
 };
 
 window.onpopstate = async function()
 {
     router(null);
-};
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------
-
-
-async function sub_router(path)
-{
-    const view_obj_arr = [
-        {id: "lobby_view", view: Lobby},
-        {id: "game_view", view: Game},
-        {id: "tournament_view", view: Tournament}
-    ];
-
-    const view_match_map = view_obj_arr.map(view_obj => {return {view_obj: view_obj, is_match: path !== null && path === view_obj.id};});
-
-    let match = view_match_map.find(potential_match => potential_match.is_match);
-
-    if (!match)
-        match = {view_obj: view_obj_arr[0], is_match: true};
-
-    const view = new match.view_obj.view();
-
-    document.querySelector("#app").innerHTML = await view.getHtml();
 };
 
 
@@ -88,7 +69,7 @@ async function sub_view_reference_listener(event)
     if (event.target.matches("[sub-view-reference]"))
     {
         event.preventDefault();
-        sub_router(event.target.id);
+        router(event.target.id);
     }
 }
 
@@ -147,7 +128,7 @@ async function create_tournament_listener(event)
             console.error(err.message);
             return document.querySelector("#app").innerHTML = `Something went terribly worng!`;
         }
-        sub_router("tournament_view");
+        router("tournament_view");
     }
 }
 
