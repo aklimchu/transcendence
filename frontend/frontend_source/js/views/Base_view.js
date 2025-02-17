@@ -17,6 +17,9 @@ export default class
 
     async getHtmlNoLogin()
     {
+        this.setTitle("Lobby");
+        history.replaceState({view : "lobby_view"}, null, null);
+
         return `
         <div class="log-form">
             <h3>Login to your account</h3>
