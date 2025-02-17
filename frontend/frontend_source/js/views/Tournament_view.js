@@ -25,6 +25,8 @@ export default class extends AbstractView
         catch (err)
         {
             console.error(err.message);
+            if (response.status === 401)
+                return this.getHtmlNoLogin();
             return `Something went terribly worng!`;
         }
 

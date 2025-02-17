@@ -38,11 +38,11 @@ def pong_auth_wrapper(func):
             try:
                 value = signer.unsign_object(value)
             except:
-                return JsonResponse({"ok": False, "error": "Bad session cookie", "statusCode": 400}, status=400)
+                return JsonResponse({"ok": False, "error": "Bad session cookie", "statusCode": 401}, status=400)
             if value.get("is_authenticated") == True:
                 return func(request, value.get("username"))
 
-        return JsonResponse({"ok": False, "error": "Not authenticated", "statusCode": 400}, status=400)
+        return JsonResponse({"ok": False, "error": "Not authenticated", "statusCode": 401}, status=401)
 
     return pong_auth_wrapper_sub
 

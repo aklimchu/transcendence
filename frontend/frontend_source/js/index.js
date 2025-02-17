@@ -1,7 +1,5 @@
-import Register from "./views/Register_view.js";
-import Login from "./views/Login_view.js";
-import Game from "./views/Game_view.js";
 import Lobby from "./views/Lobby_view.js";
+import Game from "./views/Game_view.js";
 import Tournament from "./views/Tournament_view.js";
 
 import {play_pong} from "./pong.js"
@@ -17,23 +15,17 @@ async function is_auth()
 
 async function go_to_view(view_id)
 {
-    let pong_auth = await is_auth();
-    if (!pong_auth && view_id !== "login_view" && view_id !== "register_view")
-        view_id = "login_view"
-
     console.log("History.state before: ", history.state);
     history.pushState({view : view_id}, null, null);
     console.log("History.state after: ", history.state);
-    router(pong_auth);
+    router(null);
 };
 
 async function router(pong_auth)
 {
     const view_obj_arr = [
-        {id: "register_view", view: Register},
-        {id: "login_view", view: Login},
-        {id: "game_view", view: Game},
         {id: "lobby_view", view: Lobby},
+        {id: "game_view", view: Game},
         {id: "tournament_view", view: Tournament}
     ];
 
@@ -51,8 +43,7 @@ async function router(pong_auth)
 
 window.onpopstate = async function()
 {
-    let pong_auth = await is_auth();
-    router(pong_auth);
+    router(null);
 };
 
 
@@ -62,10 +53,8 @@ window.onpopstate = async function()
 async function sub_router(path)
 {
     const view_obj_arr = [
-        {id: "register_view", view: Register},
-        {id: "login_view", view: Login},
-        {id: "game_view", view: Game},
         {id: "lobby_view", view: Lobby},
+        {id: "game_view", view: Game},
         {id: "tournament_view", view: Tournament}
     ];
 
