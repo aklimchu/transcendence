@@ -5,14 +5,6 @@ import Tournament from "./views/Tournament_view.js";
 import {play_pong} from "./pong.js"
 
 
-async function is_auth()
-{
-    const response = await fetch("pong_api/pong_auth/", {method: "GET"});
-    if (response.ok)
-        return true;
-    return false;
-};
-
 async function go_to_view(view_id)
 {
     console.log("History.state before: ", history.state);
@@ -132,7 +124,7 @@ async function create_tournament_listener(event)
     }
 }
 
-function add_all_event_listeners()
+function content_loaded_listener()
 {
     document.body.addEventListener("click", e => view_reference_listener(e));
     document.body.addEventListener("click", e => sub_view_reference_listener(e));
@@ -140,6 +132,8 @@ function add_all_event_listeners()
     document.body.addEventListener("click", e => login_listener(e));
     document.body.addEventListener("click", e => play_game_listener(e));
     document.body.addEventListener("click", e => create_tournament_listener(e));
+    
+    router(null);
 }
 
-document.addEventListener("DOMContentLoaded", add_all_event_listeners());
+document.addEventListener("DOMContentLoaded", content_loaded_listener());
