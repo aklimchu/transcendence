@@ -10,17 +10,19 @@ export default class
         document.title = title;
     }
 
+    setContent(content)
+    {
+        document.querySelector("#content").innerHTML = content;
+    }
+
     async goToView()
     {
         return;
     }
 
-    async goToNoAuthView()
+    async goToNoAuth()
     {
-        this.setTitle("Lobby");
-        history.replaceState({view : "lobby_view"}, null, null);
-
-        document.querySelector("#app").innerHTML = `
+        var content = `
         
         <div class="log-form">
             <h3>Login to your account</h3>
@@ -42,5 +44,16 @@ export default class
             <br> <button id="register"> Register </button> </br>
         </div>
         `
+
+        history.replaceState({view : "lobby_view"}, null, null);
+        this.setTitle("Lobby");
+        this.setContent(content);
+    }
+
+    async goToError()
+    {
+        var content = `Something went terribly worng!`
+
+        this.setContent(content);
     }
 }

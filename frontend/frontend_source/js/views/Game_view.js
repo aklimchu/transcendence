@@ -5,7 +5,6 @@ export default class extends AbstractView
     constructor(params)
     {
         super(params);
-        this.setTitle("Game");
     }
 
     async goToView()
@@ -21,17 +20,18 @@ export default class extends AbstractView
         {
             console.error(err.message);
             if (response.status === 401)
-                return this.goToNoAuthView();
-            return `Something went terribly worng!`;
+                return this.goToNoAuth();
+            return this.goToError();
         }
 
         var tournament_button_txt;
+
         if (json.data["unfinished_tournament"] === null)
             tournament_button_txt = "Create tournament";
         else
             tournament_button_txt = "Continue tournament";
 
-        document.querySelector("#app").innerHTML = `
+        var content = `
         
         <br>
             <label for="left-select">Choose left player:</label>
@@ -52,5 +52,8 @@ export default class extends AbstractView
         </br>
         <br> <button id="play_game" class="1v1"> Play pong </button> </br>
         `;
+
+        this.setTitle("Game");
+        this.setContent(content);
     }
 }

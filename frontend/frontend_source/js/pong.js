@@ -22,7 +22,7 @@ function display_result(tournament, left1, left2, right1, right2, score)
     else
         go_back_id = "tournament_view"
 
-    document.querySelector("#app").innerHTML = `
+    document.querySelector("#content").innerHTML = `
     <style>
     #back_button
     {
@@ -52,7 +52,7 @@ export function play_pong(tournament)
     var player_right = right_select.options[right_select.selectedIndex].text;
 
     // Set canvas
-    document.querySelector("#app").innerHTML = `<canvas width="900" height="600" id="pong" tabindex="-1"></canvas>`;
+    document.querySelector("#content").innerHTML = `<canvas width="900" height="600" id="pong" tabindex="-1"></canvas>`;
 
     const canvas = document.getElementById('pong');
     const context = canvas.getContext('2d');

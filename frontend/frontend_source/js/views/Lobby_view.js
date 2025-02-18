@@ -5,7 +5,6 @@ export default class extends AbstractView
     constructor(params)
     {
         super(params);
-        this.setTitle("Lobby");
     }
 
     async goToView()
@@ -21,11 +20,12 @@ export default class extends AbstractView
         {
             console.error(err.message);
             if (response.status === 401)
-                return this.goToNoAuthView();
-            return `Something went terribly worng!`;
+                return this.goToNoAuth();
+            return this.goToError();
         }
 
-        document.querySelector("#app").innerHTML = `
+
+        var content = `
         
         <style>
             #div1
@@ -106,5 +106,8 @@ export default class extends AbstractView
 
         </body>
         `;
+
+        this.setTitle("Lobby");
+        this.setContent(content);
     }
 }

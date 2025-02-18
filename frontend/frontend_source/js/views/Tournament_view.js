@@ -5,7 +5,6 @@ export default class extends AbstractView
     constructor(params)
     {
         super(params);
-        this.setTitle("Tournament");
     }
 
     async goToView()
@@ -26,12 +25,12 @@ export default class extends AbstractView
         {
             console.error(err.message);
             if (response.status === 401)
-                return this.goToNoAuthView();
-            return `Something went terribly worng!`;
+                return this.goToNoAuth();
+            return this.goToError();
         }
 
+
         var semi_one_box, semi_two_box, final_box;
-        
 
         // Semifinal 1 box
         if (json.data["unfinished_tournament"]["semi1_score"] === null)
@@ -121,7 +120,7 @@ export default class extends AbstractView
         }
 
 
-        document.querySelector("#app").innerHTML = `
+        var content = `
 
         <style>
             #semi_one_div
@@ -173,5 +172,8 @@ export default class extends AbstractView
             ${final_box}
         </div>
         `;
+
+        this.setTitle("Tournament");
+        this.setContent(content);
     }
 }
