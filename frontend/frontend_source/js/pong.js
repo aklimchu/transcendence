@@ -35,7 +35,7 @@ function display_result(tournament, left1, left2, right1, right2, score)
     }
     </style>
 
-    <button type="submit" id="${go_back_id}" sub-view-reference> Go back </button>
+    <button id="${go_back_id}" sub-view-reference> Go back </button>
 
     <br> Game completed! </br>
     

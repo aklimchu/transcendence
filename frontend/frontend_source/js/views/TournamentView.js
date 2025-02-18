@@ -20,7 +20,10 @@ export default class extends AbstractView
             json = await response.json()
 
             if (json.data["unfinished_tournament"] === null)
-                return `<button id="create_tournament"> Create NEW tournament </button>`
+            {
+                var content = `<button id="create_tournament"> Create NEW tournament </button>`;
+                this.setContent(content)
+            }
         }
         catch (err)
         {
