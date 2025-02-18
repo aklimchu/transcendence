@@ -10,27 +10,13 @@ export default class extends AbstractView
 
     async goToView()
     {
-        var response, json;
+        try {var json = await this.fetchSessionData();}
+        catch (err) {return;}
 
-        try
+        if (json.data["unfinished_tournament"] === null)
         {
-            response = await fetch("pong_api/pong_session_data/", {method: "GET"});
-            if (!response.ok)
-                throw new Error("Failed to retrieve session data");
-            json = await response.json()
-
-            if (json.data["unfinished_tournament"] === null)
-            {
-                var content = `<button id="create_tournament"> Create NEW tournament </button>`;
-                this.setContent(content)
-            }
-        }
-        catch (err)
-        {
-            console.error(err.message);
-            if (response.status === 401)
-                return this.goToNoAuth();
-            return this.goToError();
+            var content = `<button id="create_tournament"> Create NEW tournament </button>`;
+            return this.setContent(content)
         }
 
 

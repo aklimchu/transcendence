@@ -6,6 +6,26 @@ export default class
         this.params = params;
     }
 
+    async fetchSessionData()
+    {
+        try
+        {
+            var response = await fetch("pong_api/pong_session_data/", {method: "GET"});
+            if (!response.ok)
+                throw new Error("Failed to fetch session data");
+            return await response.json();
+        }
+        catch (err)
+        {
+            console.error(err.message);
+            if (response.status === 401)
+                this.goToNoAuth();
+            else
+                this.goToError();
+            throw err;
+        }
+    }
+
     setTitle(title)
     {
         document.title = title;

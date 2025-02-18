@@ -10,21 +10,8 @@ export default class extends AbstractView
 
     async goToView()
     {
-        try
-        {
-            var response = await fetch("pong_api/pong_session_data/", {method: "GET"});
-            if (!response.ok)
-              throw new Error("Failed to retrieve session data");
-            var json = await response.json()
-        }
-        catch (err)
-        {
-            console.error(err.message);
-            if (response.status === 401)
-                return this.goToNoAuth();
-            return this.goToError();
-        }
-
+        try {var json = await this.fetchSessionData();}
+        catch (err) {return;}
 
         var content = `
         
