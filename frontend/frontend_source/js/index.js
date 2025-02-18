@@ -1,6 +1,6 @@
-import Lobby from "./views/Lobby_view.js";
-import Game from "./views/Game_view.js";
-import Tournament from "./views/Tournament_view.js";
+import Lobby from "./views/LobbyView.js";
+import Game from "./views/GameView.js";
+import Tournament from "./views/TournamentView.js";
 
 import {play_pong} from "./pong.js"
 

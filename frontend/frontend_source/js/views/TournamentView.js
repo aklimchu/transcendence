@@ -1,4 +1,5 @@
-import AbstractView from "./Base_view.js";
+
+import AbstractView from "./AbstractView.js";
 
 export default class extends AbstractView
 {
@@ -30,12 +31,13 @@ export default class extends AbstractView
         }
 
 
-        var semi_one_box, semi_two_box, final_box;
+        var semi1_div_content, semi2_div_content, final_div_content;
 
-        // Semifinal 1 box
+
+        // --------------------------------------- semi1_div_content --------------------------------------- 
         if (json.data["unfinished_tournament"]["semi1_score"] === null)
         {
-            semi_one_box = `
+            semi1_div_content = `
             <br>
                 <label for="left-select">Left:</label>
                 <select name="LeftPlayer" id="left-select">
@@ -54,7 +56,7 @@ export default class extends AbstractView
         }
         else
         {
-            semi_one_box = `
+            semi1_div_content = `
             <br>winner: ${json.data["unfinished_tournament"]["semi1_winner"]}</br>
             loser: ${json.data["unfinished_tournament"]["semi1_loser"]}
             <br>score: ${json.data["unfinished_tournament"]["semi1_score"]}</br>
@@ -62,10 +64,10 @@ export default class extends AbstractView
         }
 
 
-        //Semifinal 2 box
+        // --------------------------------------- semi2_div_content --------------------------------------- 
         if (json.data["unfinished_tournament"]["semi2_score"] === null)
         {
-            semi_two_box = `
+            semi2_div_content = `
             <br>
                 <label for="left-select">Left:</label>
                 <select name="LeftPlayer" id="left-select">
@@ -85,7 +87,7 @@ export default class extends AbstractView
         }
         else
         {
-            semi_two_box = `
+            semi2_div_content = `
             <br>winner: ${json.data["unfinished_tournament"]["semi2_winner"]}</br>
             loser: ${json.data["unfinished_tournament"]["semi2_loser"]}
             <br>score: ${json.data["unfinished_tournament"]["semi2_score"]}</br>
@@ -93,10 +95,10 @@ export default class extends AbstractView
         }
 
 
-        //Final box
+        // --------------------------------------- final_div_content --------------------------------------- 
         if (json.data["unfinished_tournament"]["semi1_score"] !== null && json.data["unfinished_tournament"]["semi2_score"] !== null)
         {
-            final_box = `
+            final_div_content = `
             <br>
                 <label for="left-select">Left:</label>
                 <select name="LeftPlayer" id="left-select">
@@ -116,62 +118,29 @@ export default class extends AbstractView
         }
         else
         {
-            final_box = `<br>Waiting for semifinals</br>`
+            final_div_content = `<br>Waiting for semifinals</br>`
         }
 
 
+        // --------------------------------------- total content --------------------------------------- 
         var content = `
 
-        <style>
-            #semi_one_div
-            {
-                height: 20%;
-                width: 37.5%;
-                background-color:orange;
-                position:absolute;
-                left:15%;
-                bottom:20%;
-                margin:0;
-            }
-
-            #semi_two_div
-            {
-                height: 20%;
-                width: 37.5%;
-                background-color:orange;
-                position:absolute;
-                left:57.5%;
-                bottom:20%;
-                margin:0;
-            }
-            
-            #final_div
-            {
-                height:20%;
-                width:37.5%;
-                background-color:orange;
-                position:absolute;
-                left:36.25%;
-                bottom:50%;
-            }
-        </style>
-
-
-        <div id="semi_one_div">
+        <div id="tournament_semi1_div">
             Semifinal 1
-            ${semi_one_box}
+            ${semi1_div_content}
         </div>
 
-        <div id="semi_two_div">
+        <div id="tournament_semi2_div">
             Semifinal 2
-            ${semi_two_box}
+            ${semi2_div_content}
         </div>
 
-        <div id="final_div">
+        <div id="tournament_final_div">
             Final
-            ${final_box}
+            ${final_div_content}
         </div>
         `;
+
 
         this.setTitle("Tournament");
         this.setContent(content);

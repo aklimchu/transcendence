@@ -1,4 +1,5 @@
-import AbstractView from "./Base_view.js";
+
+import AbstractView from "./AbstractView.js";
 
 export default class extends AbstractView
 {
@@ -24,12 +25,6 @@ export default class extends AbstractView
             return this.goToError();
         }
 
-        var tournament_button_txt;
-
-        if (json.data["unfinished_tournament"] === null)
-            tournament_button_txt = "Create tournament";
-        else
-            tournament_button_txt = "Continue tournament";
 
         var content = `
         
