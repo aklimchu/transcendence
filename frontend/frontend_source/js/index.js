@@ -5,7 +5,7 @@ import Tournament from "./views/Tournament_view.js";
 import {play_pong} from "./pong.js"
 
 
-async function go_to_view(view_id)
+async function history_and_router(view_id)
 {
     console.log("History.state before: ", history.state);
     history.pushState({view : view_id}, null, null);
@@ -35,7 +35,7 @@ async function router(path)
 
     view = new match.view_obj.view();
 
-    document.querySelector("#app").innerHTML = await view.getHtml();
+    await view.goToView();
 };
 
 window.onpopstate = async function()
@@ -52,7 +52,7 @@ async function view_reference_listener(event)
     if (event.target.matches("[view-reference]"))
     {
         event.preventDefault();
-        go_to_view(event.target.id);
+        history_and_router(event.target.id);
     }
 }
 

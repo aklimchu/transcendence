@@ -8,7 +8,7 @@ export default class extends AbstractView
         this.setTitle("Game");
     }
 
-    async getHtml()
+    async goToView()
     {
         try
         {
@@ -21,7 +21,7 @@ export default class extends AbstractView
         {
             console.error(err.message);
             if (response.status === 401)
-                return this.getHtmlNoLogin();
+                return this.goToNoAuthView();
             return `Something went terribly worng!`;
         }
 
@@ -31,7 +31,8 @@ export default class extends AbstractView
         else
             tournament_button_txt = "Continue tournament";
 
-        return `
+        document.querySelector("#app").innerHTML = `
+        
         <br>
             <label for="left-select">Choose left player:</label>
             <select name="LeftPlayer" id="left-select">

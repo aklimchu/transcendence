@@ -8,7 +8,7 @@ export default class extends AbstractView
         this.setTitle("Lobby");
     }
 
-    async getHtml()
+    async goToView()
     {
         try
         {
@@ -21,11 +21,12 @@ export default class extends AbstractView
         {
             console.error(err.message);
             if (response.status === 401)
-                return this.getHtmlNoLogin();
+                return this.goToNoAuthView();
             return `Something went terribly worng!`;
         }
 
-        return `
+        document.querySelector("#app").innerHTML = `
+        
         <style>
             #div1
             {

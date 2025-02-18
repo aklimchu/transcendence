@@ -8,7 +8,7 @@ export default class extends AbstractView
         this.setTitle("Tournament");
     }
 
-    async getHtml()
+    async goToView()
     {
         var response, json;
 
@@ -26,7 +26,7 @@ export default class extends AbstractView
         {
             console.error(err.message);
             if (response.status === 401)
-                return this.getHtmlNoLogin();
+                return this.goToNoAuthView();
             return `Something went terribly worng!`;
         }
 
@@ -121,7 +121,7 @@ export default class extends AbstractView
         }
 
 
-        return `
+        document.querySelector("#app").innerHTML = `
 
         <style>
             #semi_one_div

@@ -10,17 +10,18 @@ export default class
         document.title = title;
     }
 
-    async getHtml()
+    async goToView()
     {
-        return ``;
+        return;
     }
 
-    async getHtmlNoLogin()
+    async goToNoAuthView()
     {
         this.setTitle("Lobby");
         history.replaceState({view : "lobby_view"}, null, null);
 
-        return `
+        document.querySelector("#app").innerHTML = `
+        
         <div class="log-form">
             <h3>Login to your account</h3>
             <form>
