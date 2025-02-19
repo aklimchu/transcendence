@@ -257,13 +257,13 @@ def pong_push_game(request, username):
                 if (tournament_games[tournament_index] is not None):
                     return JsonResponse({"ok": False, "error": "Can't overwrite tournament game", "statusCode": 400}, status=400)
 
-                pong_game = PongGame.objects.create(
-                    game_score = score,
-                    game_session = session,
-                    game_winner_1 = winner_object,
-                    game_winner_2 = None,
-                    game_loser_1 = loser_object,
-                    game_loser_2 = None)
+            pong_game = PongGame.objects.create(
+                game_score = score,
+                game_session = session,
+                game_winner_1 = winner_object,
+                game_winner_2 = None,
+                game_loser_1 = loser_object,
+                game_loser_2 = None)
 
             if tournament is None:
                 return JsonResponse({"ok": True, "message": "Pong 1v1 game - data successfuly pushed", "statusCode": 200}, status=200)

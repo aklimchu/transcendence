@@ -24,11 +24,18 @@ async function push_game(tournament, w1, w2, l1, l2, score)
 async function display_result(tournament)
 {
     if (tournament === null)
+    {    
         var result_view = new Game;
+        result_view.goToResult();
+    }
     else
-        var result_view = new Tournament;
-    
-    result_view.goToResult();
+    {
+        var tournament_view = new Tournament;
+        if (tournament === 3)
+            tournament_view.goToResult();
+        else
+            tournament_view.goToView();
+    }
 };
 
 export async function play_pong(tournament)
@@ -165,11 +172,13 @@ export async function play_pong(tournament)
                 var score_str = score[0].toString() + " - " + score[1].toString();
                 var winner = (score[0] > score[1]) ? player_left : player_right;
                 var loser = (score[0] > score[1]) ? player_right : player_left;
-                
-                try {await push_game(tournament, winner, null, loser, null, score_str);}
+
+                try
+                {
+                    await push_game(tournament, winner, null, loser, null, score_str);
+                    return display_result(tournament);
+                }
                 catch (err) {return;}
-                
-                return display_result(tournament);
             }
 
             // give some time for the player to recover before launching the ball again
@@ -204,9 +213,7 @@ export async function play_pong(tournament)
 
         // dotted line
         for (let i = grid; i < canvas.height - grid; i += grid * 2)
-        {
             context.fillRect(canvas.width / 2 - grid / 2, i, grid, grid);
-        }
 
         requestId = window.requestAnimationFrame(loop);
     }
