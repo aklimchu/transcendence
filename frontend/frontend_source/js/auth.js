@@ -10,9 +10,13 @@ async function register_func(user, pwd)
                 body: JSON.stringify({username: user, password: pwd,})});
 
         if (!response.ok) {throw new Error("Failed to register");}
+        return true;
     }
-
-    catch (error) {console.error(error.message);}
+    catch(err)
+    {
+        console.err(err.message);
+        return false;
+    }
 };
 
 
@@ -26,6 +30,11 @@ async function login_func(user, pwd)
                 body: JSON.stringify({username: user, password: pwd})});
 
         if (!response.ok) {throw new Error("Failed to login");}
+        return true
     }
-    catch (error) {console.error(error.message);}
+    catch(err)
+    {
+        console.err(err.message);
+        return false;
+    }
 };

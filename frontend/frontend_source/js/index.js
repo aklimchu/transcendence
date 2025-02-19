@@ -65,27 +65,27 @@ async function sub_view_reference_listener(event)
     }
 }
 
-async function register_listener(event)
+async function authentication_listener(event)
 {
-    if (event.target.id === "register")
+    if (event.target.id === "login" || event.target.id === "register")
     {
-        await register_func
-        (
-          document.getElementById("register_user").value,
-          document.getElementById("register_pwd").value
-        );
-    }   
-}
+        var user, pwd, successful;
 
-async function login_listener(event)
-{
-    if (event.target.id === "login")
-    {
-        await login_func
-        (
-          document.getElementById("login_user").value,
-          document.getElementById("login_pwd").value
-        );
+        user = document.getElementById("auth_user").value,
+        pwd = document.getElementById("auth_pwd").value;
+
+        // Handle original request
+        if (event.target.id === "login")
+            successful = await login_func(user, pwd);
+        else
+            successful = await register_func(user, pwd);
+        
+        // On successful register try login
+        if (event.target.id === "register" && successful)
+            successful = await login_func(user, pwd);
+
+        if (successful)
+            router(null);
     }   
 }
 
@@ -128,8 +128,7 @@ function content_loaded_listener()
 {
     document.body.addEventListener("click", e => view_reference_listener(e));
     document.body.addEventListener("click", e => sub_view_reference_listener(e));
-    document.body.addEventListener("click", e => register_listener(e));
-    document.body.addEventListener("click", e => login_listener(e));
+    document.body.addEventListener("click", e => authentication_listener(e));
     document.body.addEventListener("click", e => play_game_listener(e));
     document.body.addEventListener("click", e => create_tournament_listener(e));
     
