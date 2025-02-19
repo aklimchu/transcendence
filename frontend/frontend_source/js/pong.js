@@ -1,3 +1,5 @@
+import Game from "./views/GameView.js";
+import Tournament from "./views/TournamentView.js";
 
 async function push_game(tournament, w1, w2, l1, l2, score)
 {
@@ -7,43 +9,29 @@ async function push_game(tournament, w1, w2, l1, l2, score)
                 method: "POST",
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({tournament: tournament, winner1: w1, winner2: w2, loser1: l1, loser2: l2, score: score})});
-
-        if (!response.ok) {throw new Error("Failed to push game");}
+        if (!response.ok)
+            throw new Error("Failed to push game");
     }
-    catch (error) {console.error(error.message);}
-};
-
-function display_result(tournament, left1, left2, right1, right2, score)
-{
-    var go_back_id;
-
-    if (tournament === null)
-        go_back_id = "game_view"
-    else
-        go_back_id = "tournament_view"
-
-    document.querySelector("#content").innerHTML = `
-    <style>
-    #back_button
+    catch (err)
     {
-        height: 3%;
-        width: 5%;
-        background-color:orange;
-        position:absolute;
-        top: 5%;
-        left: 25%;
+        console.error(err.message);
+        var error_view = new Game;
+        await error_view.goToError();
+        throw err;
     }
-    </style>
-
-    <button id="${go_back_id}" sub-view-reference> Go back </button>
-
-    <br> Game completed! </br>
-    
-    ${left1}   ${score}    ${right1}
-    `;    
 };
 
-export function play_pong(tournament)
+async function display_result(tournament)
+{
+    if (tournament === null)
+        var result_view = new Game;
+    else
+        var result_view = new Tournament;
+    
+    result_view.goToResult();
+};
+
+export async function play_pong(tournament)
 {
     // Get players
     var left_select = document.getElementById("left-select");
@@ -110,7 +98,7 @@ export function play_pong(tournament)
 
 
     // Pong loop
-    function loop()
+    async function loop()
     {
         canvas.focus();
 
@@ -177,10 +165,11 @@ export function play_pong(tournament)
                 var score_str = score[0].toString() + " - " + score[1].toString();
                 var winner = (score[0] > score[1]) ? player_left : player_right;
                 var loser = (score[0] > score[1]) ? player_right : player_left;
-
-                push_game(tournament, winner, null, loser, null, score_str);
-                display_result(tournament, player_left, null, player_right, null, score_str);
-                return;
+                
+                try {await push_game(tournament, winner, null, loser, null, score_str);}
+                catch (err) {return;}
+                
+                return display_result(tournament);
             }
 
             // give some time for the player to recover before launching the ball again

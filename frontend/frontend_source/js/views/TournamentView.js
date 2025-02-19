@@ -134,4 +134,42 @@ export default class extends AbstractView
         this.setTitle("Tournament");
         this.setContent(content);
     }
+
+    async goToResult()
+    {
+        try {var json = await this.fetchSessionData();}
+        catch (err) {return;}
+
+        var content = `
+
+        <button id="tournament_view" sub-view-reference> Go back </button>
+
+        <br> Tournament completed! </br>
+
+        <div id="tournament_semi1_div">
+            Semifinal 1
+            <br>winner: ${json.data["finished_tournaments"][0]["semi1_winner"]}</br>
+            loser: ${json.data["finished_tournaments"][0]["semi1_loser"]}
+            <br>score: ${json.data["finished_tournaments"][0]["semi1_score"]}</br>
+        </div>
+
+        <div id="tournament_semi2_div">
+            Semifinal 2
+            <br>winner: ${json.data["finished_tournaments"][0]["semi2_winner"]}</br>
+            loser: ${json.data["finished_tournaments"][0]["semi2_loser"]}
+            <br>score: ${json.data["finished_tournaments"][0]["semi2_score"]}</br>
+        </div>
+
+        <div id="tournament_final_div">
+            Final
+            <br>winner: ${json.data["finished_tournaments"][0]["final_winner"]}</br>
+            loser: ${json.data["finished_tournaments"][0]["final_loser"]}
+            <br>score: ${json.data["finished_tournaments"][0]["final_score"]}</br>
+        </div>
+        `;
+
+
+        this.setTitle("Tournament");
+        this.setContent(content);
+    }
 }

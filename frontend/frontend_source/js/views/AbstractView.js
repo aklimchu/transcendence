@@ -15,7 +15,7 @@ export default class
                 throw new Error("Failed to fetch session data");
             return await response.json();
         }
-        catch (err)
+        catch(err)
         {
             console.error(err.message);
             if (response.status === 401)
