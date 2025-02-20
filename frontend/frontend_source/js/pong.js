@@ -47,7 +47,8 @@ export async function play_pong(tournament)
     var player_right = right_select.options[right_select.selectedIndex].text;
 
     // Set canvas
-    document.querySelector("#content").innerHTML = `<canvas width="900" height="600" id="pong" tabindex="-1"></canvas>`;
+    var game_view = new Game;
+    await game_view.goToGameView();
 
     const canvas = document.getElementById('pong');
     const context = canvas.getContext('2d');

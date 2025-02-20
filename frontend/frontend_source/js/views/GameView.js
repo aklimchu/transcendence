@@ -36,7 +36,8 @@ export default class extends AbstractView
         `;
 
         this.setTitle("Game");
-        this.setContent(content);
+        this.unhideNavbar();
+        await this.setContent(content);
     }
 
     async goToResult()
@@ -71,6 +72,7 @@ export default class extends AbstractView
         `;
 
         this.setTitle("Game");
-        this.setContent(content);
+        this.unhideNavbar();
+        await this.setContent(content);
     }
 }

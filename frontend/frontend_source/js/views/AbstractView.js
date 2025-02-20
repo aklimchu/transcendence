@@ -31,9 +31,32 @@ export default class
         document.title = title;
     }
 
-    setContent(content)
+    async setContent(content)
     {
+        document.querySelector("#content").style.opacity = 0;
+
+        await new Promise(r => setTimeout(r, 400));
+
         document.querySelector("#content").innerHTML = content;
+        document.querySelector("#content").style.opacity = 1;
+    }
+
+    hideNavbar()
+    {
+        if (document.getElementById("navbar").style.opacity !== 0)
+        {
+            document.getElementById("navbar").style.opacity = 0;
+            document.getElementById("navbar").style.display = "none";
+        }
+    }
+
+    unhideNavbar()
+    {
+        if (document.getElementById("navbar").style.opacity !== 1)
+        {
+            document.getElementById("navbar").style.opacity = 1;
+            document.getElementById("navbar").style.display = "block";
+        }
     }
 
     async goToView()
@@ -56,6 +79,7 @@ export default class
         `
 
         history.replaceState({view : "lobby_view"}, null, null);
+        this.hideNavbar();
         this.setTitle("Lobby");
         this.setContent(content);
     }
@@ -64,6 +88,15 @@ export default class
     {
         var content = `Something went terribly worng!`
 
-        this.setContent(content);
+        this.hideNavbar();
+        await this.setContent(content);
+    }
+
+    async goToGameView()
+    {
+        var content = `<canvas width="900" height="600" id="pong" tabindex="-1"></canvas>`;
+        
+        this.hideNavbar();
+        await this.setContent(content);
     }
 }

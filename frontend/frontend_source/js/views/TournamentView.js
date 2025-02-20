@@ -132,7 +132,8 @@ export default class extends AbstractView
 
 
         this.setTitle("Tournament");
-        this.setContent(content);
+        this.unhideNavbar();
+        await this.setContent(content);
     }
 
     async goToResult()
@@ -170,6 +171,7 @@ export default class extends AbstractView
 
 
         this.setTitle("Tournament");
-        this.setContent(content);
+        this.unhideNavbar();
+        await this.setContent(content);
     }
 }

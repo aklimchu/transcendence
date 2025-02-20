@@ -41,6 +41,7 @@ export default class extends AbstractView
         `;
 
         this.setTitle("Lobby");
-        this.setContent(content);
+        this.unhideNavbar();
+        await this.setContent(content);
     }
 }
