@@ -1,50 +1,113 @@
 @import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
 
-body
+:root
 {
-    --nav-width: 10rem;
-    height: 100vh;
-    margin: 0 0 0 var(--nav-width);
-    font-family: 'Quicksand', sans-serif;
     font-size: 18px;
-    background: teal;
+    font-family: 'Quicksand', sans-serif;
+    --text-secondary: #ececec;
+
+    --navbar_width_closed: 5rem;
+    --navbar_width_open: 15rem;
+
+    --transition-speed: 600ms;
 }
 
-.nav
+body
+{
+    background: teal;
+    color: black;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* ----------------------------- Navbar Style ----------------------------- */
+
+.navbar
 {
     position: fixed;
     top: 0;
-    left: 0;
-    width: var(--nav-width);
+    width: var(--navbar_width_closed);
     height: 100vh;
-    background: #222222;
+    background-color: #222222;
+    transition: width 600ms ease;
+    overflow: scroll;
 }
 
-.nav__link
+.navbar:hover
 {
-    display: block;
-    padding: 12px 18px;
-    text-decoration: none;
+    width: var(--navbar_width_open);
+}
+
+.navbar:hover .link-text
+{
+    display: inline;
+}
+
+.navbar_nav
+{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.nav_item
+{
+    width: 100%;
+}
+
+.nav_link
+{
+    display: flex;
+    align-items: center;
+    height: var(--navbar_width_closed);
     color: #eeeeee;
-    font-weight: 500;
+    text-decoration: none;
+    transition: var(--transition-speed);
+    filter: grayscale(100%) opacity(0.7);
 }
 
-.nav__link:hover
+.nav_link svg
 {
+    width: 3rem;
+    min-width: 3rem;
+    margin: 1rem;
+}
+
+.nav_link:hover
+{
+    filter: grayscale(0%) opacity(1);
     background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
 }
 
-#content
+object
 {
-    height: 100vh;
-    margin: 2em;
-    line-height: 1.5;
-    font-weight: 500;
+    pointer-events: none;
+}
+
+.link-text
+{
+    display: none;
+    margin-left: 1rem;
 }
 
 a
 {
     color: #009579;
+}
+
+
+/* ----------------------------- Content Style ----------------------------- */
+
+#content
+{
+    margin-left: var(--navbar_width_closed);
+    padding: 1rem;
 }
 
 
@@ -59,6 +122,7 @@ a
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index:-1;
 }
 
 #lobby_p2_div
@@ -72,6 +136,7 @@ a
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index:-1;
 }
 
 #lobby_p3_div
@@ -84,6 +149,7 @@ a
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index:-1;
 }
 
 #lobby_p4_div
@@ -97,6 +163,7 @@ a
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index:-1;
 }
 
 
