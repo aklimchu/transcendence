@@ -40,60 +40,62 @@ async function display_result(tournament)
 
 export async function play_pong(tournament)
 {
+    var game_data = {};
+
+    game_data.tournament = tournament;
+
     // Get players
     var left_select = document.getElementById("left-select");
     var right_select = document.getElementById("right-select");
-    var player_left = left_select.options[left_select.selectedIndex].text;
-    var player_right = right_select.options[right_select.selectedIndex].text;
+    game_data.player_left = left_select.options[left_select.selectedIndex].text;
+    game_data.player_right = right_select.options[right_select.selectedIndex].text;
 
     // Set canvas
     var game_view = new Game;
     await game_view.goToGameView();
 
-    const canvas = document.getElementById('pong');
-    const context = canvas.getContext('2d');
-    const grid = 15;
-    const paddleHeight = grid * 5;
-    const maxPaddleY = canvas.height - grid - paddleHeight;
+    game_data.canvas = document.getElementById('pong');
+    game_data.context = game_data.canvas.getContext('2d');
+    game_data.grid = 15;
+    game_data.paddleHeight = game_data.grid * 5;
+    game_data.maxPaddleY = game_data.canvas.height - game_data.grid - game_data.paddleHeight;
 
-    var paused = false;
-    var end = false;
-    var score = [0,0];
-    var max_score = 5;
+    game_data.paused = false;
+    game_data.end = false;
+    game_data.score = [0,0];
+    game_data.max_score = 5;
 
+    game_data.paddleSpeed = 6;
+    game_data.ballSpeed = 7;
+    game_data.requestId;
 
-    var paddleSpeed = 6;
-    var ballSpeed = 7;
-
-    var requestId;
-
-    const leftPaddle =
+    game_data.leftPaddle =
     {
-        x: grid * 0,
-        y: (canvas.height - paddleHeight) / 2,
-        width: grid,
-        height: paddleHeight,
+        x: game_data.grid * 0,
+        y: (game_data.canvas.height - game_data.paddleHeight) / 2,
+        width: game_data.grid,
+        height: game_data.paddleHeight,
         dy: 0
     };
 
-    const rightPaddle =
+    game_data.rightPaddle =
     {
-        x: canvas.width - grid * 1,
-        y: (canvas.height - paddleHeight) / 2,
-        width: grid,
-        height: paddleHeight,
+        x: game_data.canvas.width - game_data.grid * 1,
+        y: (game_data.canvas.height - game_data.paddleHeight) / 2,
+        width: game_data.grid,
+        height: game_data.paddleHeight,
         dy: 0
     };
 
-    const ball =
+    game_data.ball =
     {
-        x: canvas.width / 2,
-        y: canvas.height / 2,
-        width: grid,
-        height: grid,
+        x: game_data.canvas.width / 2,
+        y: game_data.canvas.height / 2,
+        width: game_data.grid,
+        height: game_data.grid,
         resetting: false,
-        dx: ballSpeed,
-        dy: -ballSpeed
+        dx: game_data.ballSpeed,
+        dy: -game_data.ballSpeed
     };
 
     function collides(obj1, obj2)
@@ -106,142 +108,144 @@ export async function play_pong(tournament)
 
 
     // Pong loop
-    async function loop()
+    async function loop(game_data)
     {
-        canvas.focus();
+        console.log(game_data.player_left)
 
-        if (end)
+        game_data.canvas.focus();
+
+        if (game_data.end)
             return;
 
-        context.clearRect(0,0,canvas.width,canvas.height);
-        context.fillStyle = 'black';
-        context.fillRect(0,0,canvas.width,canvas.height);
+        game_data.context.clearRect(0, 0, game_data.canvas.width, game_data.canvas.height);
+        game_data.context.fillStyle = 'black';
+        game_data.context.fillRect(0, 0, game_data.canvas.width, game_data.canvas.height);
         
-        context.textAlign = 'center', context.font = '50px "Press Start 2P", Arial, sans-serif', context.fillStyle = 'white';
-        context.fillText(score[0] + '  ' + score[1], canvas.width / 2, canvas.height * 0.2);
+        game_data.context.textAlign = 'center', game_data.context.font = '50px "Press Start 2P", Arial, sans-serif', game_data.context.fillStyle = 'white';
+        game_data.context.fillText(game_data.score[0] + '  ' + game_data.score[1], game_data.canvas.width / 2, game_data.canvas.height * 0.2);
 
         // Move paddles
-        leftPaddle.y += leftPaddle.dy;
-        rightPaddle.y += rightPaddle.dy;
+        game_data.leftPaddle.y += game_data.leftPaddle.dy;
+        game_data.rightPaddle.y += game_data.rightPaddle.dy;
 
         // Check paddles out of bounds
-        if (leftPaddle.y < grid)
-            leftPaddle.y = grid;
-        else if (leftPaddle.y > maxPaddleY)
-            leftPaddle.y = maxPaddleY;
+        if (game_data.leftPaddle.y < game_data.grid)
+            game_data.leftPaddle.y = game_data.grid;
+        else if (game_data.leftPaddle.y > game_data.maxPaddleY)
+            game_data.leftPaddle.y = game_data.maxPaddleY;
 
-        if (rightPaddle.y < grid)
-            rightPaddle.y = grid;
-        else if (rightPaddle.y > maxPaddleY)
-            rightPaddle.y = maxPaddleY;
+        if (game_data.rightPaddle.y < game_data.grid)
+            game_data.rightPaddle.y = game_data.grid;
+        else if (game_data.rightPaddle.y > game_data.maxPaddleY)
+            game_data.rightPaddle.y = game_data.maxPaddleY;
 
         // draw paddles
-        context.fillStyle = 'white';
-        context.fillRect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height);
-        context.fillRect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height);
+        game_data.context.fillStyle = 'white';
+        game_data.context.fillRect(game_data.leftPaddle.x, game_data.leftPaddle.y, game_data.leftPaddle.width, game_data.leftPaddle.height);
+        game_data.context.fillRect(game_data.rightPaddle.x, game_data.rightPaddle.y, game_data.rightPaddle.width, game_data.rightPaddle.height);
 
         // move ball by its velocity
-        ball.x += ball.dx;
-        ball.y += ball.dy;
+        game_data.ball.x += game_data.ball.dx;
+        game_data.ball.y += game_data.ball.dy;
 
         // prevent ball from going through walls by changing its velocity
-        if (ball.y < grid)
+        if (game_data.ball.y < game_data.grid)
         {
-            ball.y = grid;
-            ball.dy *= -1;
+            game_data.ball.y = game_data.grid;
+            game_data.ball.dy *= -1;
         }
-        else if (ball.y + grid > canvas.height - grid)
+        else if (game_data.ball.y + game_data.grid > game_data.canvas.height - game_data.grid)
         {
-            ball.y = canvas.height - grid * 2;
-            ball.dy *= -1;
+            game_data.ball.y = game_data.canvas.height - game_data.grid * 2;
+            game_data.ball.dy *= -1;
         }
 
         // reset ball if it goes past paddle (but only if we haven't already done so)
-        if ( (ball.x < 0 || ball.x > canvas.width) && !ball.resetting)
+        if ( (game_data.ball.x < 0 || game_data.ball.x > game_data.canvas.width) && !game_data.ball.resetting)
         {
-            ball.resetting = true;
-            if (ball.x > canvas.width)
-                score[0]++;
+            game_data.ball.resetting = true;
+            if (game_data.ball.x > game_data.canvas.width)
+                game_data.score[0]++;
             else
-                score[1]++;
+            game_data.score[1]++;
 
-            ballSpeed = 5;
+            game_data.ballSpeed = 5;
 
-            if (score[0] === max_score || score[1] === max_score)
+            if (game_data.score[0] === game_data.max_score || game_data.score[1] === game_data.max_score)
             {
-                window.cancelAnimationFrame(requestId);
-                var score_str = score[0].toString() + " - " + score[1].toString();
-                var winner = (score[0] > score[1]) ? player_left : player_right;
-                var loser = (score[0] > score[1]) ? player_right : player_left;
+                window.cancelAnimationFrame(game_data.requestId);
+                var score_str = game_data.score[0].toString() + " - " + game_data.score[1].toString();
+                var winner = (game_data.score[0] > game_data.score[1]) ? game_data.player_left : game_data.player_right;
+                var loser = (game_data.score[0] > game_data.score[1]) ? game_data.player_right : game_data.player_left;
 
                 try
                 {
-                    await push_game(tournament, winner, null, loser, null, score_str);
-                    return display_result(tournament);
+                    await push_game(game_data.tournament, winner, null, loser, null, score_str);
+                    return display_result(game_data.tournament);
                 }
                 catch (err) {return;}
             }
 
             // give some time for the player to recover before launching the ball again
             setTimeout(() => {
-                ball.resetting = false;
-                ball.x = canvas.width / 2;
-                ball.y = canvas.height / 2;
+                game_data.ball.resetting = false;
+                game_data.ball.x = game_data.canvas.width / 2;
+                game_data.ball.y = game_data.canvas.height / 2;
                 }, 400);
         }
 
         // check to see if ball collides with paddle. if they do change x velocity
-        if (collides(ball, leftPaddle))
+        if (collides(game_data.ball, game_data.leftPaddle))
         {
-            ball.dx *= -1;
-            ball.x = leftPaddle.x + leftPaddle.width; // move ball otherwise collision happens next frame
-            ballSpeed += 1
+            game_data.ball.dx *= -1;
+            game_data.ball.x = game_data.leftPaddle.x + game_data.leftPaddle.width; // move ball otherwise collision happens next frame
+            game_data.ballSpeed += 1
         }
-        else if (collides(ball, rightPaddle))
+        else if (collides(game_data.ball, game_data.rightPaddle))
         {
-            ball.dx *= -1;
-            ball.x = rightPaddle.x - ball.width; // move ball otherwise collision happens next frame
-            ballSpeed += 1
+            game_data.ball.dx *= -1;
+            game_data.ball.x = game_data.rightPaddle.x - game_data.ball.width; // move ball otherwise collision happens next frame
+            game_data.ballSpeed += 1
         }
 
         // ball
-        context.fillRect(ball.x, ball.y, ball.width, ball.height);
+        game_data.context.fillRect(game_data.ball.x, game_data.ball.y, game_data.ball.width, game_data.ball.height);
 
         // walls
-        context.fillStyle = 'orange';
-        context.fillRect(0, 0, canvas.width, grid);
-        context.fillRect(0, canvas.height - grid, canvas.width, canvas.height);
+        game_data.context.fillStyle = 'orange';
+        game_data.context.fillRect(0, 0, game_data.canvas.width, game_data.grid);
+        game_data.context.fillRect(0, game_data.canvas.height - game_data.grid, game_data.canvas.width, game_data.canvas.height);
 
         // dotted line
-        for (let i = grid; i < canvas.height - grid; i += grid * 2)
-            context.fillRect(canvas.width / 2 - grid / 2, i, grid, grid);
+        for (let i = game_data.grid; i < game_data.canvas.height - game_data.grid; i += game_data.grid * 2)
+            game_data.context.fillRect(game_data.canvas.width / 2 - game_data.grid / 2, i, game_data.grid, game_data.grid);
 
-        requestId = window.requestAnimationFrame(loop);
+        game_data.requestId = window.requestAnimationFrame(loop.bind(null, game_data));
     }
 
     document.addEventListener('keydown',
         function(e)
         {
             if (e.key === "ArrowUp")
-                rightPaddle.dy = -paddleSpeed;
+                game_data.rightPaddle.dy = -game_data.paddleSpeed;
             else if (e.key === "ArrowDown")
-                rightPaddle.dy = paddleSpeed;
+                game_data.rightPaddle.dy = game_data.paddleSpeed;
 
             if (e.key === "w")
-                leftPaddle.dy = -paddleSpeed;
+                game_data.leftPaddle.dy = -game_data.paddleSpeed;
             else if (e.key === "s")
-                leftPaddle.dy = paddleSpeed;
+                game_data.leftPaddle.dy = game_data.paddleSpeed;
 
             if (e.key === "Enter")
             {
-                paused = !paused;
-                if (paused)    
-                    window.cancelAnimationFrame(requestId);
+                game_data.paused = !game_data.paused;
+                if (game_data.paused)    
+                    window.cancelAnimationFrame(game_data.requestId);
                 else
-                    requestId = window.requestAnimationFrame(loop);
+                    game_data.requestId = window.requestAnimationFrame(loop.bind(null, game_data));
             }
             if (e.key === "e")
-                end = true;
+                game_data.end = true;
         }
     );
 
@@ -249,12 +253,12 @@ export async function play_pong(tournament)
         function(e)
         {
             if (e.key === "ArrowUp" || e.key === "ArrowDown")
-                rightPaddle.dy = 0;
+                game_data.rightPaddle.dy = 0;
 
             if (e.key === "w" || e.key === "s")
-                leftPaddle.dy = 0;
+                game_data.leftPaddle.dy = 0;
         }
     );
 
-    requestId = window.requestAnimationFrame(loop);
+    game_data.requestId = window.requestAnimationFrame(loop.bind(null, game_data));
 }
