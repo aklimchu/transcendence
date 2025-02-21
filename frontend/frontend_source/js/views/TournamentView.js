@@ -1,7 +1,7 @@
 
-import AbstractView from "./AbstractView.js";
+import GameView from "./GameView.js";
 
-export default class extends AbstractView
+export default class extends GameView
 {
     constructor(params)
     {
@@ -176,4 +176,15 @@ export default class extends AbstractView
         this.unhideNavbar();
         await this.setContent(content);
     }
+
+
+    /* ---------------------------------------------------------- Post game handling functions ---------------------------------------------------------- */
+
+    async display_result(tournament)
+    {
+        if (tournament === 3)
+            await this.goToResult();
+        else
+            await this.goToView();
+    };
 }

@@ -2,8 +2,6 @@ import Lobby from "./views/LobbyView.js";
 import Game from "./views/GameView.js";
 import Tournament from "./views/TournamentView.js";
 
-import {play_pong} from "./pong.js"
-
 
 async function history_and_router(view_id)
 {
@@ -94,14 +92,25 @@ async function play_game_listener(event)
     if (event.target.id === "play_game")
     {
         event.preventDefault();
+        var game_view;
+        
         if (event.target.className === "1v1")
-            play_pong(null);
-        if (event.target.className === "Tournament1")
-            play_pong(1);
-        if (event.target.className === "Tournament2")
-            play_pong(2);
-        if (event.target.className === "Tournament3")
-            play_pong(3);
+        {
+            game_view = new Game;
+
+            game_view.play_pong(null);
+        }
+        else
+        {
+            game_view = new Tournament;
+
+            if (event.target.className === "Tournament1")
+                game_view.play_pong(1);
+            if (event.target.className === "Tournament2")
+                game_view.play_pong(2);
+            if (event.target.className === "Tournament3")
+                game_view.play_pong(3);
+        }
     } 
 }
 
