@@ -5,9 +5,9 @@ import Tournament from "./views/TournamentView.js";
 
 async function history_and_router(view_id)
 {
-    console.log("History.state before: ", history.state);
+    //console.log("History.state before: ", history.state);
     history.pushState({view : view_id}, null, null);
-    console.log("History.state after: ", history.state);
+    //console.log("History.state after: ", history.state);
     router(null);
 };
 

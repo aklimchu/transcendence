@@ -282,14 +282,25 @@ def pong_push_game(request, username):
             if tournament is not None:
                 return JsonResponse({"ok": False, "error": "Can't push a 2v2 game as part of a tournament", "statusCode": 400}, status=400)
             
-            if len(set[w1, w2, l1, l2]) != 4:
+            if len(set([w1, w2, l1, l2])) != 4:
                 return JsonResponse({"ok": False, "error": "Can't push game with duplicate players", "statusCode": 400}, status=400)
 
-            # TO BE DONE
+            winner1_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=w1))
+            winner2_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=w2))
+            loser1_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=l1))
+            loser2_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=l2))
 
-            return JsonResponse({"ok": True, "message": "2v2", "statusCode": 200}, status=200)
+            pong_game = PongGame.objects.create(
+                game_score = score,
+                game_session = session,
+                game_winner_1 = winner1_object,
+                game_winner_2 = winner2_object,
+                game_loser_1 = loser1_object,
+                game_loser_2 = loser2_object)
+
+            return JsonResponse({"ok": True, "message": "Pong 2v2 game - data successfuly pushed", "statusCode": 200}, status=200)
         
-
+        
         else:
             return JsonResponse({"ok": False, "error": "Incomplete game data", "statusCode": 400}, status=400)
     

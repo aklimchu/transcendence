@@ -99,7 +99,9 @@ export default class extends AbstractView
         var right_select = document.getElementById("right-select");
         game_data.player_left = left_select.options[left_select.selectedIndex].text;
         game_data.player_right = right_select.options[right_select.selectedIndex].text;
-    
+        game_data.player_left2 = null;
+        game_data.player_right2 = null;
+
         // Set canvas
         await this.goToGameView();
     
@@ -118,23 +120,65 @@ export default class extends AbstractView
         game_data.ballSpeed = 7;
         game_data.requestId;
     
-        game_data.leftPaddle =
+        if (game_data.player_left2 === null && game_data.player_right2 === null)
         {
-            x: game_data.grid * 0,
-            y: (game_data.canvas.height - game_data.paddleHeight) / 2,
-            width: game_data.grid,
-            height: game_data.paddleHeight,
-            dy: 0
-        };
-    
-        game_data.rightPaddle =
+            game_data.leftPaddle1 =
+            {
+                x: game_data.grid * 0,
+                y: (game_data.canvas.height - game_data.paddleHeight) / 2,
+                width: game_data.grid,
+                height: game_data.paddleHeight,
+                dy: 0
+            };
+        
+            game_data.rightPaddle1 =
+            {
+                x: game_data.canvas.width - game_data.grid * 1,
+                y: (game_data.canvas.height - game_data.paddleHeight) / 2,
+                width: game_data.grid,
+                height: game_data.paddleHeight,
+                dy: 0
+            };
+        }
+        else
         {
-            x: game_data.canvas.width - game_data.grid * 1,
-            y: (game_data.canvas.height - game_data.paddleHeight) / 2,
-            width: game_data.grid,
-            height: game_data.paddleHeight,
-            dy: 0
-        };
+            game_data.leftPaddle1 =
+            {
+                x: game_data.grid * 0,
+                y: (game_data.canvas.height - game_data.paddleHeight) / 3,
+                width: game_data.grid,
+                height: game_data.paddleHeight,
+                dy: 0
+            };
+        
+            game_data.rightPaddle1 =
+            {
+                x: game_data.canvas.width - game_data.grid * 1,
+                y: (game_data.canvas.height - game_data.paddleHeight) / 3,
+                width: game_data.grid,
+                height: game_data.paddleHeight,
+                dy: 0
+            };
+
+            game_data.leftPaddle2 =
+            {
+                x: game_data.grid * 0,
+                y: (game_data.canvas.height - game_data.paddleHeight) / 3 * 2,
+                width: game_data.grid,
+                height: game_data.paddleHeight,
+                dy: 0
+            };
+        
+            game_data.rightPaddle2 =
+            {
+                x: game_data.canvas.width - game_data.grid * 1,
+                y: (game_data.canvas.height - game_data.paddleHeight) / 3 * 2,
+                width: game_data.grid,
+                height: game_data.paddleHeight,
+                dy: 0
+            };
+        }
+
     
         game_data.ball =
         {
@@ -173,30 +217,31 @@ export default class extends AbstractView
         game_data.context.fillText(game_data.score[0] + '  ' + game_data.score[1], game_data.canvas.width / 2, game_data.canvas.height * 0.2);
     
         // Move paddles
-        game_data.leftPaddle.y += game_data.leftPaddle.dy;
-        game_data.rightPaddle.y += game_data.rightPaddle.dy;
-    
-        // Check paddles out of bounds
-        if (game_data.leftPaddle.y < game_data.grid)
-            game_data.leftPaddle.y = game_data.grid;
-        else if (game_data.leftPaddle.y > game_data.maxPaddleY)
-            game_data.leftPaddle.y = game_data.maxPaddleY;
-    
-        if (game_data.rightPaddle.y < game_data.grid)
-            game_data.rightPaddle.y = game_data.grid;
-        else if (game_data.rightPaddle.y > game_data.maxPaddleY)
-            game_data.rightPaddle.y = game_data.maxPaddleY;
-    
-        // draw paddles
+        game_data.leftPaddle1.y = ((game_data.leftPaddle1.y + game_data.leftPaddle1.dy < game_data.grid) || (game_data.leftPaddle1.y + game_data.leftPaddle1.dy > game_data.maxPaddleY)) ? ((game_data.leftPaddle1.dy > 0) ? game_data.maxPaddleY : game_data.grid) : game_data.leftPaddle1.y + game_data.leftPaddle1.dy;
+        game_data.rightPaddle1.y = ((game_data.rightPaddle1.y + game_data.rightPaddle1.dy < game_data.grid) || (game_data.rightPaddle1.y + game_data.rightPaddle1.dy > game_data.maxPaddleY)) ? ((game_data.rightPaddle1.dy > 0) ? game_data.maxPaddleY : game_data.grid) : game_data.rightPaddle1.y + game_data.rightPaddle1.dy;
+
+        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
+        {
+            game_data.leftPaddle2.y = ((game_data.leftPaddle2.y + game_data.leftPaddle2.dy < game_data.grid) || (game_data.leftPaddle2.y + game_data.leftPaddle2.dy > game_data.maxPaddleY)) ? ((game_data.leftPaddle2.dy > 0) ? game_data.maxPaddleY : game_data.grid) : game_data.leftPaddle2.y + game_data.leftPaddle2.dy;
+            game_data.rightPaddle2.y = ((game_data.rightPaddle2.y + game_data.rightPaddle2.dy < game_data.grid) || (game_data.rightPaddle2.y + game_data.rightPaddle2.dy > game_data.maxPaddleY)) ? ((game_data.rightPaddle2.dy > 0) ? game_data.maxPaddleY : game_data.grid) : game_data.rightPaddle2.y + game_data.rightPaddle2.dy;
+        }  
+
+        // Draw paddles
         game_data.context.fillStyle = 'white';
-        game_data.context.fillRect(game_data.leftPaddle.x, game_data.leftPaddle.y, game_data.leftPaddle.width, game_data.leftPaddle.height);
-        game_data.context.fillRect(game_data.rightPaddle.x, game_data.rightPaddle.y, game_data.rightPaddle.width, game_data.rightPaddle.height);
+        game_data.context.fillRect(game_data.leftPaddle1.x, game_data.leftPaddle1.y, game_data.leftPaddle1.width, game_data.leftPaddle1.height);
+        game_data.context.fillRect(game_data.rightPaddle1.x, game_data.rightPaddle1.y, game_data.rightPaddle1.width, game_data.rightPaddle1.height);
+
+        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
+        {    
+            game_data.context.fillRect(game_data.leftPaddle2.x, game_data.leftPaddle2.y, game_data.leftPaddle2.width, game_data.leftPaddle2.height);
+            game_data.context.fillRect(game_data.rightPaddle2.x, game_data.rightPaddle2.y, game_data.rightPaddle2.width, game_data.rightPaddle2.height);
+        }
     
-        // move ball by its velocity
+        // Move ball
         game_data.ball.x += game_data.ball.dx;
         game_data.ball.y += game_data.ball.dy;
     
-        // prevent ball from going through walls by changing its velocity
+        // Bounce ball from bottom and top walls
         if (game_data.ball.y < game_data.grid)
         {
             game_data.ball.y = game_data.grid;
@@ -208,14 +253,14 @@ export default class extends AbstractView
             game_data.ball.dy *= -1;
         }
     
-        // reset ball if it goes past paddle (but only if we haven't already done so)
+        // Reset ball on score and timeout
         if ( (game_data.ball.x < 0 || game_data.ball.x > game_data.canvas.width) && !game_data.ball.resetting)
         {
             game_data.ball.resetting = true;
             if (game_data.ball.x > game_data.canvas.width)
                 game_data.score[0]++;
             else
-            game_data.score[1]++;
+                game_data.score[1]++;
     
             game_data.ballSpeed = 5;
     
@@ -223,19 +268,20 @@ export default class extends AbstractView
             {
                 window.cancelAnimationFrame(game_data.requestId);
                 var score_str = game_data.score[0].toString() + " - " + game_data.score[1].toString();
-                var winner = (game_data.score[0] > game_data.score[1]) ? game_data.player_left : game_data.player_right;
-                var loser = (game_data.score[0] > game_data.score[1]) ? game_data.player_right : game_data.player_left;
-    
+                var winner1 = (game_data.score[0] > game_data.score[1]) ? game_data.player_left : game_data.player_right;
+                var loser1 = (game_data.score[0] > game_data.score[1]) ? game_data.player_right : game_data.player_left;
+                var winner2 = (game_data.player_left2 !== null && game_data.player_right2 !== null) ? ((game_data.score[0] > game_data.score[1]) ? game_data.player_left2 : game_data.player_right2) : null;
+                var loser2 = (game_data.player_left2 !== null && game_data.player_right2 !== null) ? ((game_data.score[0] > game_data.score[1]) ? game_data.player_right2 : game_data.player_left2) : null;
+
                 try
                 {
-                    await this.push_game(game_data.tournament, winner, null, loser, null, score_str);
+                    await this.push_game(game_data.tournament, winner1, winner2, loser1, loser2, score_str);
                     await this.display_result(game_data.tournament);
                     return;
                 }
                 catch (err) {return;}
             }
     
-            // give some time for the player to recover before launching the ball again
             setTimeout(() => {
                 game_data.ball.resetting = false;
                 game_data.ball.x = game_data.canvas.width / 2;
@@ -244,28 +290,45 @@ export default class extends AbstractView
         }
     
         // check to see if ball collision with paddle. if they do change x velocity
-        if (this.collision(game_data.ball, game_data.leftPaddle))
+        if (this.collision(game_data.ball, game_data.leftPaddle1))
         {
             game_data.ball.dx *= -1;
-            game_data.ball.x = game_data.leftPaddle.x + game_data.leftPaddle.width; // move ball otherwise collision happens next frame
+            game_data.ball.x = game_data.leftPaddle1.x + game_data.leftPaddle1.width;
             game_data.ballSpeed += 1
         }
-        else if (this.collision(game_data.ball, game_data.rightPaddle))
+        else if (this.collision(game_data.ball, game_data.rightPaddle1))
         {
             game_data.ball.dx *= -1;
-            game_data.ball.x = game_data.rightPaddle.x - game_data.ball.width; // move ball otherwise collision happens next frame
+            game_data.ball.x = game_data.rightPaddle1.x - game_data.ball.width;
             game_data.ballSpeed += 1
+        }
+
+        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
+        {
+            if (this.collision(game_data.ball, game_data.leftPaddle2))
+            {
+                game_data.ball.dx *= -1;
+                game_data.ball.x = game_data.leftPaddle2.x + game_data.leftPaddle2.width;
+                game_data.ballSpeed += 1
+            }
+            else if (this.collision(game_data.ball, game_data.rightPaddle2))
+            {
+                game_data.ball.dx *= -1;
+                game_data.ball.x = game_data.rightPaddle2.x - game_data.ball.width;
+                game_data.ballSpeed += 1
+            }
         }
     
-        // ball
+
+        // Draw ball
         game_data.context.fillRect(game_data.ball.x, game_data.ball.y, game_data.ball.width, game_data.ball.height);
     
-        // walls
+        // Draw walls
         game_data.context.fillStyle = 'orange';
         game_data.context.fillRect(0, 0, game_data.canvas.width, game_data.grid);
         game_data.context.fillRect(0, game_data.canvas.height - game_data.grid, game_data.canvas.width, game_data.canvas.height);
     
-        // dotted line
+        // Draw middle line
         for (let i = game_data.grid; i < game_data.canvas.height - game_data.grid; i += game_data.grid * 2)
             game_data.context.fillRect(game_data.canvas.width / 2 - game_data.grid / 2, i, game_data.grid, game_data.grid);
     
@@ -278,14 +341,29 @@ export default class extends AbstractView
     async keydown_listener(e, game_data)
     {
         if (e.key === "ArrowUp")
-            game_data.rightPaddle.dy = -game_data.paddleSpeed;
+            game_data.rightPaddle1.dy = -game_data.paddleSpeed;
         else if (e.key === "ArrowDown")
-            game_data.rightPaddle.dy = game_data.paddleSpeed;
+            game_data.rightPaddle1.dy = game_data.paddleSpeed;
 
         if (e.key === "w")
-            game_data.leftPaddle.dy = -game_data.paddleSpeed;
+            game_data.leftPaddle1.dy = -game_data.paddleSpeed;
         else if (e.key === "s")
-            game_data.leftPaddle.dy = game_data.paddleSpeed;
+            game_data.leftPaddle1.dy = game_data.paddleSpeed;
+
+
+        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
+        {
+            if (e.key === "o")
+                game_data.rightPaddle2.dy = -game_data.paddleSpeed;
+            else if (e.key === "l")
+                game_data.rightPaddle2.dy = game_data.paddleSpeed;
+    
+            if (e.key === "d")
+                game_data.leftPaddle2.dy = -game_data.paddleSpeed;
+            else if (e.key === "c")
+                game_data.leftPaddle2.dy = game_data.paddleSpeed;
+        }
+
 
         if (e.key === "Enter")
         {
@@ -302,10 +380,19 @@ export default class extends AbstractView
     async keyup_listener(e, game_data)
     {
         if (e.key === "ArrowUp" || e.key === "ArrowDown")
-            game_data.rightPaddle.dy = 0;
+            game_data.rightPaddle1.dy = 0;
 
         if (e.key === "w" || e.key === "s")
-            game_data.leftPaddle.dy = 0;
+            game_data.leftPaddle1.dy = 0;
+
+        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
+        {
+            if (e.key === "o" || e.key === "l")
+                game_data.rightPaddle2.dy = 0;
+    
+            if (e.key === "d" || e.key === "c")
+                game_data.leftPaddle2.dy = 0;
+        }
     }
 
 
