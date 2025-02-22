@@ -94,22 +94,36 @@ async function play_game_listener(event)
         event.preventDefault();
         var game_view;
         
-        if (event.target.className === "1v1")
+        if (event.target.className !== "2v2")
         {
-            game_view = new Game;
+            var type_dict = {"1v1": null, "Tournament1": 1, "Tournament2": 2, "Tournament3": 3};
 
-            game_view.play_pong(null);
+            var left_select = document.getElementById("left-select");
+            var right_select = document.getElementById("right-select");
+            var player_left = left_select.options[left_select.selectedIndex].text;
+            var player_right = right_select.options[right_select.selectedIndex].text;
+
+            if (event.target.className === "1v1")
+                game_view = new Game;
+            else
+                game_view = new Tournament;
+
+            game_view.play_pong(player_left, null, player_right, null, type_dict[event.target.className]);
         }
         else
         {
-            game_view = new Tournament;
+            var left_select1 = document.getElementById("left-select1");
+            var left_select2 = document.getElementById("left-select2");
+            var right_select1 = document.getElementById("right-select1");
+            var right_select2 = document.getElementById("right-select2");
+            var player_left1 = left_select1.options[left_select1.selectedIndex].text;
+            var player_left2 = left_select2.options[left_select2.selectedIndex].text;
+            var player_right1 = right_select1.options[right_select1.selectedIndex].text;
+            var player_right2 = right_select2.options[right_select2.selectedIndex].text;
 
-            if (event.target.className === "Tournament1")
-                game_view.play_pong(1);
-            if (event.target.className === "Tournament2")
-                game_view.play_pong(2);
-            if (event.target.className === "Tournament3")
-                game_view.play_pong(3);
+            game_view = new Game;
+
+            game_view.play_pong(player_left1, player_left2, player_right1, player_right2, null);
         }
     } 
 }

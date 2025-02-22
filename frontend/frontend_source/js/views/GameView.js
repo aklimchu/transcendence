@@ -16,7 +16,7 @@ export default class extends AbstractView
         var content = `
         
         <br>
-            <label for="left-select">Choose left player:</label>
+            <label for="left-select"> Choose left player: </label>
             <select name="LeftPlayer" id="left-select">
             <option>${json.data["players"]["p1"]["name"]}</option>
             <option>${json.data["players"]["p2"]["name"]}</option>
@@ -24,7 +24,7 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
 
-            <label for="right-select">Choose right player:</label>
+            <label for="right-select"> Choose right player: </label>
             <select name="RightPlayer" id="right-select">
             <option>${json.data["players"]["p1"]["name"]}</option>
             <option>${json.data["players"]["p2"]["name"]}</option>
@@ -32,7 +32,46 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
         </br>
-        <br> <button id="play_game" class="1v1"> Play pong </button> </br>
+        <br> <button id="play_game" class="1v1"> Play 1v1 pong </button> </br>
+
+        <br></br>
+        
+        <br>
+            <label for="left-select1"> Choose left player 1: </label>
+            <select name="LeftPlayer1" id="left-select1">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+
+            <label for="right-select1"> Choose right player 1: </label>
+            <select name="RightPlayer1" id="right-select1">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+        </br>
+
+        <br>
+            <label for="left-select2"> Choose left player 2: </label>
+            <select name="LeftPlayer2" id="left-select2">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+
+            <label for="right-select2"> Choose right player 2: </label>
+            <select name="RightPlayer2" id="right-select2">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+        </br>
+        <br> <button id="play_game" class="2v2"> Play 2v2 pong </button> </br>
         `;
 
         this.setTitle("Game");
@@ -88,19 +127,15 @@ export default class extends AbstractView
     /*                                                                                                                                              */
     /* -------------------------------------------------------------- Main game function ---------------------------------------------------------- */
     
-    async play_pong(tournament)
+    async play_pong(player_left1, player_left2, player_right1, player_right2, tournament)
     {
         var game_data = {};
     
+        game_data.player_left1 = player_left1;
+        game_data.player_left2 = player_left2;
+        game_data.player_right1 = player_right1;
+        game_data.player_right2 = player_right2;
         game_data.tournament = tournament;
-    
-        // Get players
-        var left_select = document.getElementById("left-select");
-        var right_select = document.getElementById("right-select");
-        game_data.player_left = left_select.options[left_select.selectedIndex].text;
-        game_data.player_right = right_select.options[right_select.selectedIndex].text;
-        game_data.player_left2 = null;
-        game_data.player_right2 = null;
 
         // Set canvas
         await this.goToGameView();
@@ -206,9 +241,6 @@ export default class extends AbstractView
     {
         game_data.canvas.focus();
     
-        if (game_data.end)
-            return;
-    
         game_data.context.clearRect(0, 0, game_data.canvas.width, game_data.canvas.height);
         game_data.context.fillStyle = 'black';
         game_data.context.fillRect(0, 0, game_data.canvas.width, game_data.canvas.height);
@@ -261,32 +293,8 @@ export default class extends AbstractView
                 game_data.score[0]++;
             else
                 game_data.score[1]++;
-    
-            game_data.ballSpeed = 5;
-    
-            if (game_data.score[0] === game_data.max_score || game_data.score[1] === game_data.max_score)
-            {
-                window.cancelAnimationFrame(game_data.requestId);
-                var score_str = game_data.score[0].toString() + " - " + game_data.score[1].toString();
-                var winner1 = (game_data.score[0] > game_data.score[1]) ? game_data.player_left : game_data.player_right;
-                var loser1 = (game_data.score[0] > game_data.score[1]) ? game_data.player_right : game_data.player_left;
-                var winner2 = (game_data.player_left2 !== null && game_data.player_right2 !== null) ? ((game_data.score[0] > game_data.score[1]) ? game_data.player_left2 : game_data.player_right2) : null;
-                var loser2 = (game_data.player_left2 !== null && game_data.player_right2 !== null) ? ((game_data.score[0] > game_data.score[1]) ? game_data.player_right2 : game_data.player_left2) : null;
 
-                try
-                {
-                    await this.push_game(game_data.tournament, winner1, winner2, loser1, loser2, score_str);
-                    await this.display_result(game_data.tournament);
-                    return;
-                }
-                catch (err) {return;}
-            }
-    
-            setTimeout(() => {
-                game_data.ball.resetting = false;
-                game_data.ball.x = game_data.canvas.width / 2;
-                game_data.ball.y = game_data.canvas.height / 2;
-                }, 400);
+            setTimeout(this.resetBall.bind(this, game_data), 400);
         }
     
         // check to see if ball collision with paddle. if they do change x velocity
@@ -332,7 +340,30 @@ export default class extends AbstractView
         for (let i = game_data.grid; i < game_data.canvas.height - game_data.grid; i += game_data.grid * 2)
             game_data.context.fillRect(game_data.canvas.width / 2 - game_data.grid / 2, i, game_data.grid, game_data.grid);
     
-        game_data.requestId = window.requestAnimationFrame(this.pong_loop.bind(this, game_data));
+
+        // If game didnt end, request next frame, otherwise push game and show result
+        if (!game_data.end)
+        {
+            game_data.requestId = window.requestAnimationFrame(this.pong_loop.bind(this, game_data));
+        }
+        else
+        {
+            window.cancelAnimationFrame(game_data.requestId);
+
+            var score_str = game_data.score[0].toString() + " - " + game_data.score[1].toString();
+            var winner1 = (game_data.score[0] > game_data.score[1]) ? game_data.player_left1 : game_data.player_right1;
+            var loser1 = (game_data.score[0] > game_data.score[1]) ? game_data.player_right1 : game_data.player_left1;
+            var winner2 = (game_data.player_left2 !== null && game_data.player_right2 !== null) ? ((game_data.score[0] > game_data.score[1]) ? game_data.player_left2 : game_data.player_right2) : null;
+            var loser2 = (game_data.player_left2 !== null && game_data.player_right2 !== null) ? ((game_data.score[0] > game_data.score[1]) ? game_data.player_right2 : game_data.player_left2) : null;
+
+            try
+            {
+                await this.push_game(game_data.tournament, winner1, winner2, loser1, loser2, score_str);
+                await this.display_result(game_data.tournament);
+                return;
+            }
+            catch (err) {return;}
+        }
     }
 
 
@@ -392,6 +423,22 @@ export default class extends AbstractView
     
             if (e.key === "d" || e.key === "c")
                 game_data.leftPaddle2.dy = 0;
+        }
+    }
+
+
+    /* ----------------------------------------------------------- Reset ball or end function ----------------------------------------------------------- */    
+
+    resetBall(game_data)
+    {
+        if (game_data.score[0] === game_data.max_score || game_data.score[1] === game_data.max_score)
+            game_data.end = true;
+        else
+        {
+            game_data.ball.resetting = false;
+            game_data.ball.x = game_data.canvas.width / 2;
+            game_data.ball.y = game_data.canvas.height / 2;
+            game_data.ballSpeed = 5;
         }
     }
 
