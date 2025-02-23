@@ -16,6 +16,7 @@ export default class extends GameView
         if (json.data["unfinished_tournament"] === null)
         {
             var content = `<button id="create_tournament"> Create NEW tournament </button>`;
+            this.setTitle("Tournament");
             this.unhideNavbar();
             await this.setContent(content);
             return;

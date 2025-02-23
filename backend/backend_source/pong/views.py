@@ -1,23 +1,20 @@
 import json
 from django.http import JsonResponse
 
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate
-
-import os
-from django.core.signing import Signer
-
 from django.contrib.auth.models import User
-from django.db import IntegrityError
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login, logout
+
 from django.core.exceptions import BadRequest
 
 from django.utils.html import escape
+from django.utils import timezone
 
+from django.db import IntegrityError
 from django.db.models import Q
 from .models import *
 
 from functools import wraps
-
 from random import shuffle
 
 #[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
@@ -29,51 +26,13 @@ def pong_auth_wrapper(func):
     @wraps(func)
     def pong_auth_wrapper_sub(request):
 
-        signer = Signer(key = os.environ.get("SECRET_KEY"))
-
-        for key, value in request.COOKIES.items():
-
-            if key != "pong_session":
-                continue
-            try:
-                value = signer.unsign_object(value)
-            except:
-                return JsonResponse({"ok": False, "error": "Bad session cookie", "statusCode": 401}, status=400)
-            if value.get("is_authenticated") == True:
-                return func(request, value.get("username"))
-
-        return JsonResponse({"ok": False, "error": "Not authenticated", "statusCode": 401}, status=401)
+        if request.user.is_authenticated:
+            return func(request, request.user.username)
+        else:
+            return JsonResponse({"ok": False, "error": "Not authenticated", "statusCode": 401}, status=401)
 
     return pong_auth_wrapper_sub
 
-
-@csrf_exempt
-def pong_login(request):
-    try:
-        if request.method != "POST":
-            return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
-        
-        if not request.body:
-            raise BadRequest("Request without body")
-        
-        data = json.loads(request.body)
-        user = authenticate(request, username=data.get("username"), password=data.get("password"))
-
-        if user is not None:
-            response = JsonResponse({"ok": True, "message": "Logged in", "statusCode": 200}, status=200)
-            key = f"pong_session"
-            value = {"username": user.username, "is_authenticated": True}
-            signer = Signer(key = os.environ.get("SECRET_KEY"))
-            value = signer.sign_object(value)
-
-            response.set_cookie(key, value, httponly=True, secure=True, max_age=3600, samesite="Strict")
-            return response
-        else:
-            return JsonResponse({"ok": False, "error": "Invalid credentials", "statusCode": 401}, status=401)
-
-    except Exception as err:
-        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
-    
 
 @csrf_exempt
 def pong_register(request):
@@ -101,9 +60,44 @@ def pong_register(request):
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
 
+@csrf_exempt
+def pong_login(request):
+    try:
+        if request.method != "POST":
+            return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
+        
+        if not request.body:
+            raise BadRequest("Request without body")
+        
+        data = json.loads(request.body)
+        user = authenticate(request, username=data.get("username"), password=data.get("password"))
+
+        if user is not None:
+            login(request, user)
+            return JsonResponse({"ok": True, "message": f"Logged in: {user.username}", "statusCode": 200}, status=200)
+        else:
+            return JsonResponse({"ok": False, "error": "Invalid credentials", "statusCode": 401}, status=401)
+
+    except Exception as err:
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+
+
 @pong_auth_wrapper
-def pong_auth(request, username):
-    return JsonResponse({"ok": True, "message": f"User {username} authenticated", "statusCode": 200}, status=200)
+def pong_logout(request, username):
+    try:
+        if request.method != "POST":
+            return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
+        
+        user = User.objects.get(username=username)
+        user.last_active_at = timezone.now()
+        user.save()
+
+        logout(request)
+        return JsonResponse({"ok": True, "message": f"Logged out: {username}", "statusCode": 200}, status=200)
+        
+    except Exception as err:
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+
 
 
 def get_player_data(player_id):

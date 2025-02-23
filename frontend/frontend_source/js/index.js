@@ -65,9 +65,11 @@ async function sub_view_reference_listener(event)
 
 async function authentication_listener(event)
 {
+    var successful;
+
     if (event.target.id === "login" || event.target.id === "register")
     {
-        var user, pwd, successful;
+        var user, pwd;
 
         user = document.getElementById("auth_user").value,
         pwd = document.getElementById("auth_pwd").value;
@@ -84,7 +86,19 @@ async function authentication_listener(event)
 
         if (successful)
             router(null);
-    }   
+    }
+
+    else if (event.target.id === "logout")
+    {
+        successful = await logout_func();
+        if (successful)
+            router(null);
+        else
+        {
+            var view = new Lobby;
+            return await view.goToError();
+        }
+    }
 }
 
 async function play_game_listener(event)
