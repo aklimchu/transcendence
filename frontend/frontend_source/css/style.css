@@ -27,7 +27,6 @@ body
     width: 5rem;
     height: 100vh;
     background-color: #222222;
-    overflow: scroll;
     opacity: 0;
     display: "none";
     z-index: 1;
