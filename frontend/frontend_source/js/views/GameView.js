@@ -451,7 +451,7 @@ export default class extends AbstractView
         {
             const response = await fetch("pong_api/pong_push_game/", {
                     method: "POST",
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
                     body: JSON.stringify({tournament: tournament, winner1: w1, winner2: w2, loser1: l1, loser2: l2, score: score})});
             if (!response.ok)
                 throw new Error("Failed to push game");

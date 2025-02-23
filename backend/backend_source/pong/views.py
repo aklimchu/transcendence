@@ -87,10 +87,6 @@ def pong_logout(request, username):
     try:
         if request.method != "POST":
             return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
-        
-        user = User.objects.get(username=username)
-        user.last_active_at = timezone.now()
-        user.save()
 
         logout(request)
         return JsonResponse({"ok": True, "message": f"Logged out: {username}", "statusCode": 200}, status=200)
@@ -193,7 +189,6 @@ def pong_session_data(request, username):
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
     
 
-@csrf_exempt
 @pong_auth_wrapper
 def pong_push_game(request, username):
     try:
