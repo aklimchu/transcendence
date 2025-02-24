@@ -152,84 +152,24 @@ export default class extends AbstractView
         game_data.max_score = 5;
     
         game_data.paddleSpeed = 6;
-        game_data.ballSpeed = 7;
         game_data.requestId;
     
+        this.create_ball(game_data, 'ball', 0.5, 0.5, 7);
+
         if (game_data.player_left2 === null && game_data.player_right2 === null)
         {
-            game_data.leftPaddle1 =
-            {
-                x: game_data.grid * 0,
-                y: (game_data.canvas.height - game_data.paddleHeight) / 2,
-                width: game_data.grid,
-                height: game_data.paddleHeight,
-                dy: 0
-            };
-        
-            game_data.rightPaddle1 =
-            {
-                x: game_data.canvas.width - game_data.grid * 1,
-                y: (game_data.canvas.height - game_data.paddleHeight) / 2,
-                width: game_data.grid,
-                height: game_data.paddleHeight,
-                dy: 0
-            };
+            this.create_player(game_data, 'leftPaddle1', 'left', 0.5, 6, 'w', 's');
+            this.create_player(game_data, 'rightPaddle1', 'right', 0.5, 6, 'ArrowUp', 'ArrowDown');
         }
         else
         {
-            game_data.leftPaddle1 =
-            {
-                x: game_data.grid * 0,
-                y: (game_data.canvas.height - game_data.paddleHeight) / 3,
-                width: game_data.grid,
-                height: game_data.paddleHeight,
-                dy: 0
-            };
-        
-            game_data.rightPaddle1 =
-            {
-                x: game_data.canvas.width - game_data.grid * 1,
-                y: (game_data.canvas.height - game_data.paddleHeight) / 3,
-                width: game_data.grid,
-                height: game_data.paddleHeight,
-                dy: 0
-            };
-
-            game_data.leftPaddle2 =
-            {
-                x: game_data.grid * 0,
-                y: (game_data.canvas.height - game_data.paddleHeight) / 3 * 2,
-                width: game_data.grid,
-                height: game_data.paddleHeight,
-                dy: 0
-            };
-        
-            game_data.rightPaddle2 =
-            {
-                x: game_data.canvas.width - game_data.grid * 1,
-                y: (game_data.canvas.height - game_data.paddleHeight) / 3 * 2,
-                width: game_data.grid,
-                height: game_data.paddleHeight,
-                dy: 0
-            };
-        }
-
+            this.create_player(game_data, 'leftPaddle1', 'left', 1/3, 6, 'w', 's');
+            this.create_player(game_data, 'rightPaddle1', 'right', 1/3, 6, 'ArrowUp', 'ArrowDown');
+            this.create_player(game_data, 'leftPaddle2', 'left', 2/3, 6, 'd', 'c');
+            this.create_player(game_data, 'rightPaddle2', 'right', 2/3, 6, 'o', 'l');
+        }    
     
-        game_data.ball =
-        {
-            x: game_data.canvas.width / 2,
-            y: game_data.canvas.height / 2,
-            width: game_data.grid,
-            height: game_data.grid,
-            resetting: false,
-            dx: game_data.ballSpeed,
-            dy: -game_data.ballSpeed
-        };
-    
-    
-        document.addEventListener('keydown', e => this.keydown_listener(e, game_data));
-        document.addEventListener('keyup', e => this.keyup_listener(e, game_data));
-    
+        document.addEventListener('keydown', e => this.pause_listener(e, game_data));    
 
         game_data.requestId = window.requestAnimationFrame(this.pong_loop.bind(this, game_data));
     }
@@ -286,7 +226,7 @@ export default class extends AbstractView
         }
     
         // Reset ball on score and timeout
-        if ( (game_data.ball.x < 0 || game_data.ball.x > game_data.canvas.width) && !game_data.ball.resetting)
+        if ((game_data.ball.x < 0 || game_data.ball.x > game_data.canvas.width) && !game_data.ball.resetting)
         {
             game_data.ball.resetting = true;
             if (game_data.ball.x > game_data.canvas.width)
@@ -298,33 +238,13 @@ export default class extends AbstractView
         }
     
         // check to see if ball collision with paddle. if they do change x velocity
-        if (this.collision(game_data.ball, game_data.leftPaddle1))
-        {
-            game_data.ball.dx *= -1;
-            game_data.ball.x = game_data.leftPaddle1.x + game_data.leftPaddle1.width;
-            game_data.ballSpeed += 1
-        }
-        else if (this.collision(game_data.ball, game_data.rightPaddle1))
-        {
-            game_data.ball.dx *= -1;
-            game_data.ball.x = game_data.rightPaddle1.x - game_data.ball.width;
-            game_data.ballSpeed += 1
-        }
+        this.handle_collision(game_data.ball, game_data.leftPaddle1);
+        this.handle_collision(game_data.ball, game_data.rightPaddle1);
 
         if (game_data.player_left2 !== null && game_data.player_right2 !== null)
         {
-            if (this.collision(game_data.ball, game_data.leftPaddle2))
-            {
-                game_data.ball.dx *= -1;
-                game_data.ball.x = game_data.leftPaddle2.x + game_data.leftPaddle2.width;
-                game_data.ballSpeed += 1
-            }
-            else if (this.collision(game_data.ball, game_data.rightPaddle2))
-            {
-                game_data.ball.dx *= -1;
-                game_data.ball.x = game_data.rightPaddle2.x - game_data.ball.width;
-                game_data.ballSpeed += 1
-            }
+            this.handle_collision(game_data.ball, game_data.leftPaddle2);
+            this.handle_collision(game_data.ball, game_data.rightPaddle2);
         }
     
 
@@ -367,63 +287,82 @@ export default class extends AbstractView
     }
 
 
-    /* ------------------------------------------------------------ Key press listeners ------------------------------------------------------------ */
+    /* -------------------------------------------------------------- Game helpers ---------------------------------------------------------- */
 
-    async keydown_listener(e, game_data)
+    create_ball(game_data, name, x, y, speed)
     {
-        if (e.key === "ArrowUp")
-            game_data.rightPaddle1.dy = -game_data.paddleSpeed;
-        else if (e.key === "ArrowDown")
-            game_data.rightPaddle1.dy = game_data.paddleSpeed;
-
-        if (e.key === "w")
-            game_data.leftPaddle1.dy = -game_data.paddleSpeed;
-        else if (e.key === "s")
-            game_data.leftPaddle1.dy = game_data.paddleSpeed;
-
-
-        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
+        game_data[name] =
         {
-            if (e.key === "o")
-                game_data.rightPaddle2.dy = -game_data.paddleSpeed;
-            else if (e.key === "l")
-                game_data.rightPaddle2.dy = game_data.paddleSpeed;
-    
-            if (e.key === "d")
-                game_data.leftPaddle2.dy = -game_data.paddleSpeed;
-            else if (e.key === "c")
-                game_data.leftPaddle2.dy = game_data.paddleSpeed;
+            x: game_data.canvas.width * x,
+            y: game_data.canvas.height * y,
+            width: game_data.grid,
+            height: game_data.grid,
+            resetting: false,
+            speed: speed,
+            dx: speed,
+            dy: speed,
         }
-
-
-        if (e.key === "Enter")
-        {
-            game_data.paused = !game_data.paused;
-            if (game_data.paused)    
-                window.cancelAnimationFrame(game_data.requestId);
-            else
-                game_data.requestId = window.requestAnimationFrame(this.pong_loop.bind(this, game_data));
-        }
-        if (e.key === "e")
-            game_data.end = true;
     }
 
-    async keyup_listener(e, game_data)
+    create_player(game_data, player, side, start_y, speed, up, down)
     {
-        if (e.key === "ArrowUp" || e.key === "ArrowDown")
-            game_data.rightPaddle1.dy = 0;
-
-        if (e.key === "w" || e.key === "s")
-            game_data.leftPaddle1.dy = 0;
-
-        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
+        game_data[player] =
         {
-            if (e.key === "o" || e.key === "l")
-                game_data.rightPaddle2.dy = 0;
-    
-            if (e.key === "d" || e.key === "c")
-                game_data.leftPaddle2.dy = 0;
+            side: (side === "left" ? "left" : "right"),
+            x: (side === "left" ? game_data.grid * 0 : game_data.canvas.width - game_data.grid),
+            y: (game_data.canvas.height - game_data.paddleHeight) * start_y,
+            width: game_data.grid,
+            height: game_data.paddleHeight,
+            speed: speed,
+            dy: 0
+        };
+
+        this.add_player_listeners(game_data[player], up, down)
+    }
+
+    handle_collision(ball, player)
+    {
+        if ((ball.x < player.x + player.width) && (ball.x + ball.width > player.x) && (ball.y < player.y + player.height) && (ball.y + ball.height > player.y))
+        {
+            ball.dx *= -1;
+            ball.speed += 1
+            ball.x = player.x + (player.side === "left" ? player.width : -player.width);
         }
+    }
+
+
+    /* ------------------------------------------------------------ Key press listeners ------------------------------------------------------------ */
+
+    add_player_listeners(player, up, down)
+    {
+        document.addEventListener('keydown', e => this.player_keydown_listener(e, player, up, down));
+        document.addEventListener('keyup', e => this.player_keyup_listener(e, player, up, down));
+    }
+
+    player_keydown_listener(e, player, up, down)
+    {
+        if (e.key === up)
+            player.dy = -player.speed;
+        else if (e.key === down)
+            player.dy = player.speed;
+    }
+
+    player_keyup_listener(e, player, up, down)
+    {
+        if (e.key === up || e.key === down)
+            player.dy = 0;
+    }
+
+    async pause_listener(e, game_data)
+    {
+        if (e.key === "Enter")
+            {
+                game_data.paused = !game_data.paused;
+                if (game_data.paused)    
+                    window.cancelAnimationFrame(game_data.requestId);
+                else
+                    game_data.requestId = window.requestAnimationFrame(this.pong_loop.bind(this, game_data));
+            }
     }
 
 
@@ -468,12 +407,4 @@ export default class extends AbstractView
     {
         await this.goToResult();
     };
-
-
-    /* -------------------------------------------------------------- Utils --------------------------------------------------------------- */
-
-    collision(a, b)
-    {
-        return (a.x < b.x + b.width) && (a.x + a.width > b.x) && (a.y < b.y + b.height) && (a.y + a.height > b.y);
-    }
 }
