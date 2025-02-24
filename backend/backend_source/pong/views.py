@@ -160,6 +160,7 @@ def get_session_tournaments(session_id):
 
 @pong_auth_wrapper
 def pong_session_data(request, username):
+
     try:
         if request.method != "GET":
             return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
@@ -188,6 +189,32 @@ def pong_session_data(request, username):
     except Exception as err:
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
     
+@pong_auth_wrapper
+def pong_stats_data(request, username):
+
+    print("Stats")
+    try:
+        if request.method != "GET":
+            return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
+
+        users = User.objects.all()
+
+        user_names = []
+        for u in users:
+            user_names.append(u.username)
+            
+        total_games = PongGame.objects.all().count()
+    
+
+        data = {
+            "total_games": total_games,
+            "user_names": user_names
+        }
+
+        return JsonResponse({"ok": True, "message": "Session data successfuly retrieved", "data": data, "statusCode": 200}, status=200)
+    
+    except Exception as err:
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
 @pong_auth_wrapper
 def pong_push_game(request, username):

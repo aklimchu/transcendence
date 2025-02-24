@@ -1,3 +1,4 @@
+import Stats from "./views/StatsView.js";
 import Lobby from "./views/LobbyView.js";
 import Game from "./views/GameView.js";
 import Tournament from "./views/TournamentView.js";
@@ -15,6 +16,7 @@ async function history_and_router(view_id)
 async function router(path)
 {
     const view_obj_arr = [
+        {id: "stats_view", view: Stats},
         {id: "lobby_view", view: Lobby},
         {id: "game_view", view: Game},
         {id: "tournament_view", view: Tournament},
