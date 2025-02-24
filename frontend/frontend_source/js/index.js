@@ -1,6 +1,7 @@
 import Lobby from "./views/LobbyView.js";
 import Game from "./views/GameView.js";
 import Tournament from "./views/TournamentView.js";
+import Snek from "./views/SnekView.js"
 
 
 async function history_and_router(view_id)
@@ -16,7 +17,8 @@ async function router(path)
     const view_obj_arr = [
         {id: "lobby_view", view: Lobby},
         {id: "game_view", view: Game},
-        {id: "tournament_view", view: Tournament}
+        {id: "tournament_view", view: Tournament},
+        {id: "snek_view", view: Snek}
     ];
 
     var view_match_map, match, view;
@@ -140,6 +142,19 @@ async function play_game_listener(event)
             game_view.play_pong(player_left1, player_left2, player_right1, player_right2, null);
         }
     } 
+
+    if (event.target.id === "play_snek")
+    {
+        event.preventDefault();
+        var game_view = new Snek;
+
+        var left_select = document.getElementById("left-select");
+        var right_select = document.getElementById("right-select");
+        var player_left = left_select.options[left_select.selectedIndex].text;
+        var player_right = right_select.options[right_select.selectedIndex].text;
+
+        game_view.play_snek(player_left, null, player_right, null, null);
+    }
 }
 
 async function create_tournament_listener(event)
