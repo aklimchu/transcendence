@@ -35,8 +35,9 @@ export default class extends AbstractView
 	console.log(json)
 
 	var content = `
-	<p> Statistics View </p>
+	<p>Statistics View </p>
 	<p>Total games played: ${json.data["total_games"]}</p>
+	<p>Registered users: ${json.data["user_names"]}</p>
 	`;
 
 	this.setTitle("Statistics");

@@ -197,11 +197,18 @@ def pong_stats_data(request, username):
         if request.method != "GET":
             return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
 
+        users = User.objects.all()
+
+        user_names = []
+        for u in users:
+            user_names.append(u.username)
+            
         total_games = PongGame.objects.all().count()
     
 
         data = {
-            "total_games": total_games
+            "total_games": total_games,
+            "user_names": user_names
         }
 
         return JsonResponse({"ok": True, "message": "Session data successfuly retrieved", "data": data, "statusCode": 200}, status=200)
