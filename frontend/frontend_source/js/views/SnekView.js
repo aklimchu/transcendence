@@ -36,43 +36,7 @@ export default class extends AbstractView
 
         `;
 
-        this.setTitle("Snake Game");
-        this.unhideNavbar();
-        await this.setContent(content);
-    }
-
-    async goToResult()
-    {
-        try {var json = await this.fetchSessionData();}
-        catch(err) {return;}
-
-        var game = json.data["games"][0];
-
-        var l1, l2, r1, r2, score_str, score_arr;
-
-        score_str = game["score"];
-        score_arr = score_str.split(" - ");
-
-        l1 = (score_arr[0] > score_arr[1]) ? game["winner_1"] : game["loser_1"];
-        l2 = (score_arr[0] > score_arr[1]) ? game["winner_2"] : game["loser_2"];
-        r1 = (score_arr[0] > score_arr[1]) ? game["loser_1"] : game["winner_1"];
-        r2 = (score_arr[0] > score_arr[1]) ? game["loser_2"] : game["winner_2"];
-
-        l1 = (l1 === null) ? "" : l1;
-        l2 = (l2 === null) ? "" : l2;
-        r1 = (r1 === null) ? "" : r1;
-        r2 = (r2 === null) ? "" : r2;
-
-        var content = `
-        
-        <button id="game_view" sub-view-reference> Go back </button>
-
-        <br> Game completed! </br>
-    
-        ${l1}   ${l2}   ${score_str}    ${r1}   ${r2}
-        `;
-
-        this.setTitle("Game");
+        this.setTitle("Snek Game");
         this.unhideNavbar();
         await this.setContent(content);
     }
@@ -107,8 +71,8 @@ export default class extends AbstractView
         game_data.paused = false;
         game_data.grid = 15;
 
-        game_data.p1 = this.create_player('#24a7a1', game_data.grid * 6, game_data.grid * 6, 0, 1);
-        game_data.p2 = this.create_player('#ff9810', game_data.grid * 43, game_data.grid * 27, 0, -1);
+        this.create_player(game_data, 'p1', '#24a7a1', 4, 20, 1, 0);
+        this.create_player(game_data, 'p2', '#ff9810', 55, 20, -1, 0);
 
         this.getPlayableCells(game_data);
         this.drawBackground(game_data);
@@ -137,7 +101,23 @@ export default class extends AbstractView
         if (!game_data.p1.dead && !game_data.p2.dead)
             game_data.timeout = setTimeout(() => {window.requestAnimationFrame(this.snek_loop.bind(this, game_data))}, 100);
         else
+        {
+            console.log("p1: " + game_data.p1.dead);
+            console.log("p2: " + game_data.p2.dead);
+
             clearTimeout(game_data.timeout);
+
+            if (game_data.p1.dead !== game_data.p2.dead)
+            {
+                console.log("push game");
+            }
+            else
+            {
+                // render game restart info on canvas
+                await new Promise(r => setTimeout(r, 1000));
+                this.play_snek(game_data.player_left1, game_data.player_left2, game_data.player_right1, game_data.player_right2, game_data.tournament);
+            }
+        }
     }
 
     handle_player(game_data, player)
@@ -164,9 +144,9 @@ export default class extends AbstractView
 
     /* -------------------------------------------------------------- Game helpers ---------------------------------------------------------- */
 
-    create_player(color, x, y, dx, dy)
+    create_player(game_data, player, color, x, y, dx, dy)
     {
-        return {color: color, dead: false, x: x, y: y, dx: dx, dy: dy};
+        game_data[player] = {color: color, dead: false, x: (x * game_data.grid), y: (y * game_data.grid), dx: dx, dy: dy};
     }
 
     draw_player_start_pos(game_data, player)
@@ -181,12 +161,8 @@ export default class extends AbstractView
     {
         game_data.playableCells = new Set();
         for (let i = 0; i < game_data.canvas.width / game_data.grid; i++)
-        {
             for (let j = 0; j < game_data.canvas.height / game_data.grid; j++)
-            {
                 game_data.playableCells.add(`${i * game_data.grid}x${j * game_data.grid}y`);
-            };
-        };
     };
 
     drawBackground(game_data)
