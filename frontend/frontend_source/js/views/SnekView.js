@@ -65,19 +65,16 @@ export default class extends GameView
 
         game_data.grid = 15;
         game_data.paused = false;
+        game_data.visited_cells = new Set();
         game_data.canvas = document.getElementById('pong');
         game_data.context = game_data.canvas.getContext('2d');
         game_data.cols = game_data.canvas.width / game_data.grid;
         game_data.rows = game_data.canvas.height / game_data.grid;
 
-        this.create_player(game_data, player_left1, 'left', '#24a7a1', 20, 10, 1, 0, 'w', 's', 'a', 'd', 'r');
-        this.create_player(game_data, player_left2, 'right', '#ff9810', 20, 50, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l");
+        this.create_player(game_data, player_left1, 'left', '#24a7a1', 20, 4, 1, 0, 'w', 's', 'a', 'd', 'r');
+        this.create_player(game_data, player_right1, 'right', '#ff9810', 20, 55, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l");
 
-        this.get_cells(game_data);
-
-        this.draw_background(game_data);
-
-        game_data.players.forEach(this.draw_start.bind(null, game_data));
+        this.draw_initial_frame.bind(this, game_data)();
     
         document.addEventListener('keydown', e => this.pause_listener(e, game_data));
 
@@ -89,6 +86,7 @@ export default class extends GameView
 
     async snek_loop(game_data)
     {
+
         game_data.canvas.focus();
     
         if (!game_data.paused)
@@ -96,24 +94,26 @@ export default class extends GameView
 
         if (game_data.players.filter(player => player.dead === true).length === 0)
             game_data.timeout = setTimeout(() => {window.requestAnimationFrame(this.snek_loop.bind(this, game_data))}, 100);
-        //else
-        //{
-        //    //console.log("p1: " + game_data.p1.dead);
-        //    //console.log("p2: " + game_data.p2.dead);
-//
-        //    clearTimeout(game_data.timeout);
-//
-        //    if (game_data.p1.dead !== game_data.p2.dead)
-        //    {
-        //        console.log("push game");
-        //    }
-        //    else
-        //    {
-        //        // render game restart info on canvas
-        //        await new Promise(r => setTimeout(r, 1000));
-        //        this.play_snek(game_data.player_left1, game_data.player_left2, game_data.player_right1, game_data.player_right2, game_data.tournament);
-        //    }
-        //}
+        else
+        {
+            //game_data.players.map(player => {console.log(`${player.name} ${player.dead} x: ${player.x} y: ${player.y}`)});
+
+            var left_dead = game_data.players.filter(player => player.dead === true && player.side === 'left').length;
+            var right_dead = game_data.players.filter(player => player.dead === true && player.side === 'right').length;
+
+            //console.log(`left dead: ${left_dead} right dead: ${right_dead}`);
+
+            if (left_dead !== right_dead)
+                console.log('push game')
+            else
+            {
+                await new Promise(r => setTimeout(r, 400));
+
+                this.reset_game(game_data);
+
+                game_data.timeout = setTimeout(() => {window.requestAnimationFrame(this.snek_loop.bind(this, game_data))}, 100);
+            }
+        }
     }
 
     handle_player(game_data, player)
@@ -137,13 +137,13 @@ export default class extends GameView
 
     move_to_cell(game_data, player)
     {
+        var current_cell = `${player.x}-${player.y}`
+
         if (player.x < 0 || player.x >= game_data.cols || player.y < 0 || player.y >= game_data.rows)
             return false;
-        if (game_data.cells[player.y][player.x] !== 0)
+        if (game_data.visited_cells.has(current_cell))
             return false;
-
-        game_data.cells[player.y][player.x] = 1;
-
+        game_data.visited_cells.add(current_cell);
         return true;
     }
 
@@ -160,12 +160,22 @@ export default class extends GameView
             x: x,
             y: y,
             dx: dx,
-            dy: dy
+            dy: dy,
+            start_x: x,
+            start_y: y,
+            start_dx: dx,
+            start_dy: dy
         };
 
-        this.add_player_listeners(player, game_data, up, down, left, right, jump);
+        this.add_player_listeners(player, up, down, left, right, jump);
 
         game_data.players.push(player);
+    }
+
+    draw_initial_frame(game_data)
+    {
+        this.draw_background(game_data);
+        game_data.players.forEach(this.draw_start.bind(null, game_data));
     }
 
     draw_start(game_data, player)
@@ -178,17 +188,13 @@ export default class extends GameView
         game_data.context.strokeRect(player.x * grd, player.y * grd, game_data.grid, game_data.grid);
     };
 
-    get_cells(game_data)
-    {
-        game_data.cells = Array(game_data.rows).fill().map(() => Array(game_data.cols).fill(0));
-    };
-
     draw_background(game_data)
     {
         var ctx = game_data.context;
         var cnv = game_data.canvas;
 
         ctx.fillStyle = 'black';
+        ctx.clearRect(0, 0, cnv.width, cnv.height);
         ctx.fillRect(0, 0, cnv.width, cnv.height);
 
         ctx.strokeStyle = '#562b35';
@@ -211,15 +217,32 @@ export default class extends GameView
         }
     };
 
+    reset_game(game_data)
+    {
+        game_data.visited_cells = new Set();
+
+        game_data.players.forEach(this.reset_player);
+
+        this.draw_initial_frame.bind(this, game_data)();
+    }
+
+    reset_player(player)
+    {
+        player.x = player.start_x;
+        player.y = player.start_y;
+        player.dx = player.start_dx;
+        player.dy = player.start_dy;
+        player.dead = false;
+    }
 
     /* ------------------------------------------------------------ Key press listeners ------------------------------------------------------------ */
 
-    add_player_listeners(player, game_data, up, down, left, right, jump)
+    add_player_listeners(player, up, down, left, right, jump)
     {
-        document.addEventListener('keydown', e => this.player_keydown_listener(e, game_data, player, up, down, left, right, jump));
+        document.addEventListener('keydown', e => this.player_keydown_listener(e, player, up, down, left, right, jump));
     }
 
-    player_keydown_listener(e, game_data, player, up, down, left, right, jump)
+    player_keydown_listener(e, player, up, down, left, right, jump)
     {
         if (e.key === up && player.dy !== 1)
         {        
