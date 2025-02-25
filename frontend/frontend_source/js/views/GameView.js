@@ -129,44 +129,42 @@ export default class extends AbstractView
     
     async play_pong(player_left1, player_left2, player_right1, player_right2, tournament)
     {
-        var game_data = {};
-    
-        game_data.player_left1 = player_left1;
-        game_data.player_left2 = player_left2;
-        game_data.player_right1 = player_right1;
-        game_data.player_right2 = player_right2;
-        game_data.tournament = tournament;
-
         // Set canvas
         await this.goToGameView();
-    
-        game_data.canvas = document.getElementById('pong');
-        game_data.context = game_data.canvas.getContext('2d');
-        game_data.grid = 15;
-        game_data.paddleHeight = game_data.grid * 5;
-        game_data.maxPaddleY = game_data.canvas.height - game_data.grid - game_data.paddleHeight;
-    
+
+        var game_data = {};
+
+        game_data.requestId;
         game_data.paused = false;
         game_data.end = false;
         game_data.score = [0,0];
         game_data.max_score = 5;
     
-        game_data.paddleSpeed = 6;
-        game_data.requestId;
-    
-        this.create_ball(game_data, 'ball', 0.5, 0.5, 7);
+        game_data.balls = [];
+        game_data.players = [];
+        game_data.tournament = tournament;
 
-        if (game_data.player_left2 === null && game_data.player_right2 === null)
+        game_data.grid = 15;
+        game_data.paddleHeight = game_data.grid * 5;
+        game_data.canvas = document.getElementById('pong');
+        game_data.context = game_data.canvas.getContext('2d');
+        game_data.max_y = game_data.canvas.height - game_data.grid - game_data.paddleHeight;
+    
+    
+        this.create_ball(game_data, 'ball1', 0.5, 0.5, 7, 'left');
+        //this.create_ball(game_data, 'ball2', 0.5, 0.5, 7, 'right');
+
+        if (player_left2 === null && player_right2 === null)
         {
-            this.create_player(game_data, 'leftPaddle1', 'left', 0.5, 6, 'w', 's');
-            this.create_player(game_data, 'rightPaddle1', 'right', 0.5, 6, 'ArrowUp', 'ArrowDown');
+            this.create_player(game_data, player_left1, 'left', 0.5, 6, 'w', 's');
+            this.create_player(game_data, player_right1, 'right', 0.5, 6, 'ArrowUp', 'ArrowDown');   
         }
         else
         {
-            this.create_player(game_data, 'leftPaddle1', 'left', 1/3, 6, 'w', 's');
-            this.create_player(game_data, 'rightPaddle1', 'right', 1/3, 6, 'ArrowUp', 'ArrowDown');
-            this.create_player(game_data, 'leftPaddle2', 'left', 2/3, 6, 'd', 'c');
-            this.create_player(game_data, 'rightPaddle2', 'right', 2/3, 6, 'o', 'l');
+            this.create_player(game_data, player_left1, 'left', 1/3, 6, 'w', 's');
+            this.create_player(game_data, player_right1, 'right', 1/3, 6, 'ArrowUp', 'ArrowDown');
+            this.create_player(game_data, player_left2, 'left', 2/3, 6, 'd', 'c');
+            this.create_player(game_data, player_right2, 'right', 2/3, 6, 'o', 'l');
         }    
     
         document.addEventListener('keydown', e => this.pause_listener(e, game_data));    
@@ -181,75 +179,30 @@ export default class extends AbstractView
     {
         game_data.canvas.focus();
     
+        // move players
+        game_data.players.forEach(this.move_player.bind(null, game_data));
+
+        // move balls
+        game_data.balls.forEach(this.move_ball.bind(this, game_data));
+
+        // check collisions
+        game_data.players.forEach(this.handle_players_collisions.bind(this, game_data));
+    
+        // Draw background
         game_data.context.clearRect(0, 0, game_data.canvas.width, game_data.canvas.height);
         game_data.context.fillStyle = 'black';
         game_data.context.fillRect(0, 0, game_data.canvas.width, game_data.canvas.height);
         
         game_data.context.textAlign = 'center', game_data.context.font = '50px "Press Start 2P", Arial, sans-serif', game_data.context.fillStyle = 'white';
         game_data.context.fillText(game_data.score[0] + '  ' + game_data.score[1], game_data.canvas.width / 2, game_data.canvas.height * 0.2);
-    
-        // Move paddles
-        game_data.leftPaddle1.y = ((game_data.leftPaddle1.y + game_data.leftPaddle1.dy < game_data.grid) || (game_data.leftPaddle1.y + game_data.leftPaddle1.dy > game_data.maxPaddleY)) ? ((game_data.leftPaddle1.dy > 0) ? game_data.maxPaddleY : game_data.grid) : game_data.leftPaddle1.y + game_data.leftPaddle1.dy;
-        game_data.rightPaddle1.y = ((game_data.rightPaddle1.y + game_data.rightPaddle1.dy < game_data.grid) || (game_data.rightPaddle1.y + game_data.rightPaddle1.dy > game_data.maxPaddleY)) ? ((game_data.rightPaddle1.dy > 0) ? game_data.maxPaddleY : game_data.grid) : game_data.rightPaddle1.y + game_data.rightPaddle1.dy;
 
-        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
-        {
-            game_data.leftPaddle2.y = ((game_data.leftPaddle2.y + game_data.leftPaddle2.dy < game_data.grid) || (game_data.leftPaddle2.y + game_data.leftPaddle2.dy > game_data.maxPaddleY)) ? ((game_data.leftPaddle2.dy > 0) ? game_data.maxPaddleY : game_data.grid) : game_data.leftPaddle2.y + game_data.leftPaddle2.dy;
-            game_data.rightPaddle2.y = ((game_data.rightPaddle2.y + game_data.rightPaddle2.dy < game_data.grid) || (game_data.rightPaddle2.y + game_data.rightPaddle2.dy > game_data.maxPaddleY)) ? ((game_data.rightPaddle2.dy > 0) ? game_data.maxPaddleY : game_data.grid) : game_data.rightPaddle2.y + game_data.rightPaddle2.dy;
-        }  
 
-        // Draw paddles
-        game_data.context.fillStyle = 'white';
-        game_data.context.fillRect(game_data.leftPaddle1.x, game_data.leftPaddle1.y, game_data.leftPaddle1.width, game_data.leftPaddle1.height);
-        game_data.context.fillRect(game_data.rightPaddle1.x, game_data.rightPaddle1.y, game_data.rightPaddle1.width, game_data.rightPaddle1.height);
+        // draw players
+        game_data.players.forEach(this.drawObject.bind(null, game_data));
 
-        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
-        {    
-            game_data.context.fillRect(game_data.leftPaddle2.x, game_data.leftPaddle2.y, game_data.leftPaddle2.width, game_data.leftPaddle2.height);
-            game_data.context.fillRect(game_data.rightPaddle2.x, game_data.rightPaddle2.y, game_data.rightPaddle2.width, game_data.rightPaddle2.height);
-        }
-    
-        // Move ball
-        game_data.ball.x += game_data.ball.dx;
-        game_data.ball.y += game_data.ball.dy;
-    
-        // Bounce ball from bottom and top walls
-        if (game_data.ball.y < game_data.grid)
-        {
-            game_data.ball.y = game_data.grid;
-            game_data.ball.dy *= -1;
-        }
-        else if (game_data.ball.y + game_data.grid > game_data.canvas.height - game_data.grid)
-        {
-            game_data.ball.y = game_data.canvas.height - game_data.grid * 2;
-            game_data.ball.dy *= -1;
-        }
-    
-        // Reset ball on score and timeout
-        if ((game_data.ball.x < 0 || game_data.ball.x > game_data.canvas.width) && !game_data.ball.resetting)
-        {
-            game_data.ball.resetting = true;
-            if (game_data.ball.x > game_data.canvas.width)
-                game_data.score[0]++;
-            else
-                game_data.score[1]++;
 
-            setTimeout(this.resetBall.bind(this, game_data), 400);
-        }
-    
-        // check to see if ball collision with paddle. if they do change x velocity
-        this.handle_collision(game_data.ball, game_data.leftPaddle1);
-        this.handle_collision(game_data.ball, game_data.rightPaddle1);
-
-        if (game_data.player_left2 !== null && game_data.player_right2 !== null)
-        {
-            this.handle_collision(game_data.ball, game_data.leftPaddle2);
-            this.handle_collision(game_data.ball, game_data.rightPaddle2);
-        }
-    
-
-        // Draw ball
-        game_data.context.fillRect(game_data.ball.x, game_data.ball.y, game_data.ball.width, game_data.ball.height);
+        // draw balls
+        game_data.balls.forEach(this.drawObject.bind(null, game_data));
     
         // Draw walls
         game_data.context.fillStyle = 'orange';
@@ -270,15 +223,13 @@ export default class extends AbstractView
         {
             window.cancelAnimationFrame(game_data.requestId);
 
+            var winners = this.get_winners(game_data);
+            var loosers = this.get_loosers(game_data);
             var score_str = game_data.score[0].toString() + " - " + game_data.score[1].toString();
-            var winner1 = (game_data.score[0] > game_data.score[1]) ? game_data.player_left1 : game_data.player_right1;
-            var loser1 = (game_data.score[0] > game_data.score[1]) ? game_data.player_right1 : game_data.player_left1;
-            var winner2 = (game_data.player_left2 !== null && game_data.player_right2 !== null) ? ((game_data.score[0] > game_data.score[1]) ? game_data.player_left2 : game_data.player_right2) : null;
-            var loser2 = (game_data.player_left2 !== null && game_data.player_right2 !== null) ? ((game_data.score[0] > game_data.score[1]) ? game_data.player_right2 : game_data.player_left2) : null;
 
             try
             {
-                await this.push_game(game_data.tournament, winner1, winner2, loser1, loser2, score_str);
+                await this.push_game(game_data.tournament, winners[0], winners[1], loosers[0], loosers[1], score_str);
                 await this.display_result(game_data.tournament);
                 return;
             }
@@ -289,25 +240,29 @@ export default class extends AbstractView
 
     /* -------------------------------------------------------------- Game helpers ---------------------------------------------------------- */
 
-    create_ball(game_data, name, x, y, speed)
+    create_ball(game_data, name, x, y, speed, left)
     {
-        game_data[name] =
+        var ball =
         {
+            name : name,
             x: game_data.canvas.width * x,
             y: game_data.canvas.height * y,
             width: game_data.grid,
             height: game_data.grid,
             resetting: false,
             speed: speed,
-            dx: speed,
+            dx: (left === 'left' ? speed : -speed),
             dy: speed,
         }
+
+        game_data.balls.push(ball);
     }
 
-    create_player(game_data, player, side, start_y, speed, up, down)
+    create_player(game_data, name, side, start_y, speed, up, down)
     {
-        game_data[player] =
+        var player =
         {
+            name: name,
             side: (side === "left" ? "left" : "right"),
             x: (side === "left" ? game_data.grid * 0 : game_data.canvas.width - game_data.grid),
             y: (game_data.canvas.height - game_data.paddleHeight) * start_y,
@@ -317,10 +272,49 @@ export default class extends AbstractView
             dy: 0
         };
 
-        this.add_player_listeners(game_data[player], up, down)
+        this.add_player_listeners(player, up, down);
+
+        game_data.players.push(player);
     }
 
-    handle_collision(ball, player)
+    move_player(game_data, player)
+    {
+        if ((player.y + player.dy < game_data.grid) || (player.y + player.dy > game_data.max_y))
+        {
+            if (player.dy > 0)
+                player.y = game_data.max_y;
+            else
+                player.y = game_data.grid;
+        }
+        else
+            player.y = player.y + player.dy;
+    }
+
+    move_ball(game_data, ball)
+    {
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+    
+        if (ball.y < game_data.grid || ball.y + game_data.grid > game_data.canvas.height - game_data.grid)
+        {
+            ball.y = (ball.y < game_data.grid ? game_data.grid : game_data.canvas.height - game_data.grid * 2);
+            ball.dy *= -1;
+        }
+    
+        if ((ball.x < 0 || ball.x > game_data.canvas.width) && !ball.resetting)
+        {
+            ball.resetting = true;
+            ball.x > game_data.canvas.width ? game_data.score[0]++ : game_data.score[1]++;
+            setTimeout(this.resetBall.bind(this, ball, game_data), 400);
+        }
+    }
+
+    handle_players_collisions(game_data, player)
+    {
+        game_data.balls.forEach(this.handle_collision.bind(null, player));
+    }
+
+    handle_collision(player, ball)
     {
         if ((ball.x < player.x + player.width) && (ball.x + ball.width > player.x) && (ball.y < player.y + player.height) && (ball.y + ball.height > player.y))
         {
@@ -328,6 +322,12 @@ export default class extends AbstractView
             ball.speed += 1
             ball.x = player.x + (player.side === "left" ? player.width : -player.width);
         }
+    }
+
+    drawObject(game_data, object)
+    {
+        game_data.context.fillStyle = 'white';
+        game_data.context.fillRect(object.x, object.y, object.width, object.height);
     }
 
 
@@ -368,21 +368,41 @@ export default class extends AbstractView
 
     /* ----------------------------------------------------------- Reset ball or end function ----------------------------------------------------------- */    
 
-    resetBall(game_data)
+    resetBall(ball, game_data)
     {
-        if (game_data.score[0] === game_data.max_score || game_data.score[1] === game_data.max_score)
+        if (game_data.score[0] >= game_data.max_score || game_data.score[1] >= game_data.max_score)
             game_data.end = true;
         else
         {
-            game_data.ball.resetting = false;
-            game_data.ball.x = game_data.canvas.width / 2;
-            game_data.ball.y = game_data.canvas.height / 2;
-            game_data.ballSpeed = 5;
+            ball.resetting = false;
+            ball.x = game_data.canvas.width / 2;
+            ball.y = game_data.canvas.height / 2;
+            ball.speed = 5;
         }
     }
 
 
     /* ---------------------------------------------------------- Post game handling functions ---------------------------------------------------------- */
+
+    get_winners(game_data)
+    {
+        var winning_side = (game_data.score[0] > game_data.score[1] ? 'left' : 'right');
+        var winners = game_data.players.filter(player => player.side === winning_side).map(player => player.name);
+        if (winners.length === 1)
+            winners.push(null);
+
+        return winners;
+    }
+
+    get_loosers(game_data)
+    {
+        var losing_side = (game_data.score[0] > game_data.score[1] ? 'right' : 'left');
+        var loosers = game_data.players.filter(player => player.side === losing_side).map(player => player.name);
+        if (loosers.length === 1)
+            loosers.push(null);
+
+        return loosers;
+    }
 
     async push_game(tournament, w1, w2, l1, l2, score)
     {
