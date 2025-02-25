@@ -126,7 +126,7 @@ export default class extends AbstractView
     /*                                   ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝      ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝                               */                                                           
     /*                                                                                                                                              */
     /* -------------------------------------------------------------- Main game function ---------------------------------------------------------- */
-    
+
     async play_pong(player_left1, player_left2, player_right1, player_right2, tournament)
     {
         // Set canvas
@@ -134,7 +134,6 @@ export default class extends AbstractView
 
         var game_data = {};
 
-        game_data.requestId;
         game_data.paused = false;
         game_data.end = false;
         game_data.score = [0,0];
@@ -167,9 +166,9 @@ export default class extends AbstractView
             this.create_player(game_data, player_right2, 'right', 2/3, 6, 'o', 'l');
         }    
     
-        document.addEventListener('keydown', e => this.pause_listener(e, game_data));    
+        document.addEventListener('keydown', e => this.pause_down_listener(e, game_data));
 
-        game_data.requestId = window.requestAnimationFrame(this.pong_loop.bind(this, game_data));
+        return await new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.pong_loop.bind(this, game_data));
     }
 
 
@@ -178,63 +177,27 @@ export default class extends AbstractView
     async pong_loop(game_data)
     {
         game_data.canvas.focus();
-    
-        // move players
-        game_data.players.forEach(this.move_player.bind(null, game_data));
 
-        // move balls
-        game_data.balls.forEach(this.move_ball.bind(this, game_data));
-
-        // check collisions
-        game_data.players.forEach(this.handle_players_collisions.bind(this, game_data));
-    
-        // Draw background
-        game_data.context.clearRect(0, 0, game_data.canvas.width, game_data.canvas.height);
-        game_data.context.fillStyle = 'black';
-        game_data.context.fillRect(0, 0, game_data.canvas.width, game_data.canvas.height);
-        
-        game_data.context.textAlign = 'center', game_data.context.font = '50px "Press Start 2P", Arial, sans-serif', game_data.context.fillStyle = 'white';
-        game_data.context.fillText(game_data.score[0] + '  ' + game_data.score[1], game_data.canvas.width / 2, game_data.canvas.height * 0.2);
-
-
-        // draw players
-        game_data.players.forEach(this.drawObject.bind(null, game_data));
-
-
-        // draw balls
-        game_data.balls.forEach(this.drawObject.bind(null, game_data));
-    
-        // Draw walls
-        game_data.context.fillStyle = 'orange';
-        game_data.context.fillRect(0, 0, game_data.canvas.width, game_data.grid);
-        game_data.context.fillRect(0, game_data.canvas.height - game_data.grid, game_data.canvas.width, game_data.canvas.height);
-    
-        // Draw middle line
-        for (let i = game_data.grid; i < game_data.canvas.height - game_data.grid; i += game_data.grid * 2)
-            game_data.context.fillRect(game_data.canvas.width / 2 - game_data.grid / 2, i, game_data.grid, game_data.grid);
-    
-
-        // If game didnt end, request next frame, otherwise push game and show result
-        if (!game_data.end)
+        if (!game_data.paused)
         {
-            game_data.requestId = window.requestAnimationFrame(this.pong_loop.bind(this, game_data));
+            // move players
+            game_data.players.forEach(this.move_player.bind(null, game_data));
+
+            // move balls
+            game_data.balls.forEach(this.move_ball.bind(this, game_data));
+
+            // check collisions
+            game_data.players.forEach(this.handle_players_collisions.bind(this, game_data));
+
+            // draw frame    
+            this.draw_frame(game_data);
         }
+
+        // end or new frame
+        if (game_data.end)
+            return this.handle_game_end.bind(this, game_data)();
         else
-        {
-            window.cancelAnimationFrame(game_data.requestId);
-
-            var winners = this.get_winners(game_data);
-            var loosers = this.get_loosers(game_data);
-            var score_str = game_data.score[0].toString() + " - " + game_data.score[1].toString();
-
-            try
-            {
-                await this.push_game(game_data.tournament, winners[0], winners[1], loosers[0], loosers[1], score_str);
-                await this.display_result(game_data.tournament);
-                return;
-            }
-            catch (err) {return;}
-        }
+            return new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.pong_loop.bind(this, game_data));
     }
 
 
@@ -316,15 +279,54 @@ export default class extends AbstractView
 
     handle_collision(player, ball)
     {
+        if (ball.resetting)
+            return;
+
         if ((ball.x < player.x + player.width) && (ball.x + ball.width > player.x) && (ball.y < player.y + player.height) && (ball.y + ball.height > player.y))
         {
             ball.dx *= -1;
-            ball.speed += 1
             ball.x = player.x + (player.side === "left" ? player.width : -player.width);
         }
     }
 
-    drawObject(game_data, object)
+
+    /* ---------------------------------------------------------------- Draw helpers ---------------------------------------------------------------- */    
+
+    draw_frame(game_data)
+    {
+        // draw background
+        this.draw_background(game_data);
+
+        // draw players
+        game_data.players.forEach(this.draw_object.bind(null, game_data));
+
+        // draw balls
+        game_data.balls.forEach(this.draw_object.bind(null, game_data));
+    }
+
+    draw_background(game_data)
+    {
+        var ctx = game_data.context;
+        var cnv = game_data.canvas;
+
+        // reset background
+        ctx.fillStyle = 'black';
+        ctx.clearRect(0, 0, cnv.width, cnv.height);
+        ctx.fillRect(0, 0, cnv.width, cnv.height);
+
+        // draw walls and middle line
+        ctx.fillStyle = 'orange';
+        ctx.fillRect(0, 0, cnv.width, game_data.grid);
+        ctx.fillRect(0, cnv.height - game_data.grid, cnv.width, cnv.height);
+        for (let i = game_data.grid; i < cnv.height - game_data.grid; i += game_data.grid * 2)
+            ctx.fillRect(cnv.width / 2 - game_data.grid / 2, i, game_data.grid, game_data.grid);
+
+        // draw score
+        ctx.textAlign = 'center', ctx.font = '50px "Press Start 2P", Arial, sans-serif', ctx.fillStyle = 'white';
+        ctx.fillText(game_data.score[0] + '  ' + game_data.score[1], cnv.width / 2, cnv.height * 0.2);
+    }
+
+    draw_object(game_data, object)
     {
         game_data.context.fillStyle = 'white';
         game_data.context.fillRect(object.x, object.y, object.width, object.height);
@@ -353,16 +355,12 @@ export default class extends AbstractView
             player.dy = 0;
     }
 
-    async pause_listener(e, game_data)
+    pause_down_listener(e, game_data)
     {
         if (e.key === "Enter")
-            {
-                game_data.paused = !game_data.paused;
-                if (game_data.paused)    
-                    window.cancelAnimationFrame(game_data.requestId);
-                else
-                    game_data.requestId = window.requestAnimationFrame(this.pong_loop.bind(this, game_data));
-            }
+        {
+            game_data.paused = !game_data.paused;
+        }
     }
 
 
@@ -377,12 +375,26 @@ export default class extends AbstractView
             ball.resetting = false;
             ball.x = game_data.canvas.width / 2;
             ball.y = game_data.canvas.height / 2;
-            ball.speed = 5;
         }
     }
 
 
     /* ---------------------------------------------------------- Post game handling functions ---------------------------------------------------------- */
+
+    async handle_game_end(game_data)
+    {
+        try
+        {
+            var winners = this.get_winners(game_data);
+            var loosers = this.get_loosers(game_data);
+            var score_str = game_data.score[0].toString() + " - " + game_data.score[1].toString();
+
+            await this.push_game(game_data.tournament, winners[0], winners[1], loosers[0], loosers[1], score_str);
+            await this.display_result(game_data.tournament);
+            return Promise.resolve();
+        }
+        catch (err) {return;}
+    }
 
     get_winners(game_data)
     {
