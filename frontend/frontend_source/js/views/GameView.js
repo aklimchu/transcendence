@@ -166,7 +166,7 @@ export default class extends AbstractView
             this.create_player(game_data, player_right2, 'right', 2/3, 6, 'o', 'l');
         }    
     
-        document.addEventListener('keydown', e => this.pause_down_listener(e, game_data));
+        document.addEventListener('keydown', e => this.pause_listener(e, game_data));
 
         return await new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.pong_loop.bind(this, game_data));
     }
@@ -355,7 +355,7 @@ export default class extends AbstractView
             player.dy = 0;
     }
 
-    pause_down_listener(e, game_data)
+    pause_listener(e, game_data)
     {
         if (e.key === "Enter")
         {

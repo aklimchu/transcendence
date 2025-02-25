@@ -1,7 +1,7 @@
 
-import AbstractView from "./AbstractView.js";
+import GameView from "./GameView.js";
 
-export default class extends AbstractView
+export default class extends GameView
 {
     constructor(params)
     {
@@ -55,35 +55,31 @@ export default class extends AbstractView
     
     async play_snek(player_left1, player_left2, player_right1, player_right2, tournament)
     {
-        var game_data = {};
-    
-        game_data.player_left1 = player_left1;
-        game_data.player_left2 = player_left2;
-        game_data.player_right1 = player_right1;
-        game_data.player_right2 = player_right2;
-        game_data.tournament = tournament;
-
         // Set canvas
         await this.goToGameView();
+
+        var game_data = {};
     
+        game_data.players = [];
+        game_data.tournament = tournament;
+
+        game_data.grid = 15;
+        game_data.paused = false;
         game_data.canvas = document.getElementById('pong');
         game_data.context = game_data.canvas.getContext('2d');
-        game_data.paused = false;
-        game_data.grid = 15;
+        game_data.cols = game_data.canvas.width / game_data.grid;
+        game_data.rows = game_data.canvas.height / game_data.grid;
 
-        this.create_player(game_data, 'p1', '#24a7a1', 4, 20, 1, 0);
-        this.create_player(game_data, 'p2', '#ff9810', 55, 20, -1, 0);
+        this.create_player(game_data, player_left1, 'left', '#24a7a1', 20, 10, 1, 0, 'w', 's', 'a', 'd', 'r');
+        this.create_player(game_data, player_left2, 'right', '#ff9810', 20, 50, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l");
 
-        this.getPlayableCells(game_data);
-        this.drawBackground(game_data);
+        this.get_cells(game_data);
 
+        this.draw_background(game_data);
 
-        this.draw_player_start_pos(game_data, "p1");
-        this.draw_player_start_pos(game_data, "p2");
+        game_data.players.forEach(this.draw_start.bind(null, game_data));
     
         document.addEventListener('keydown', e => this.pause_listener(e, game_data));
-        document.addEventListener('keydown', e => this.player_keydown_listener(e, game_data, 'p1', 'w', 's', 'a', 'd', 'r'));
-        document.addEventListener('keydown', e => this.player_keydown_listener(e, game_data, 'p2', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l"));
 
         game_data.timeout = setTimeout(() => {window.requestAnimationFrame(this.snek_loop.bind(this, game_data))}, 100);
     }
@@ -95,146 +91,164 @@ export default class extends AbstractView
     {
         game_data.canvas.focus();
     
-        this.handle_player(game_data, "p1");
-        this.handle_player(game_data, "p2");
+        if (!game_data.paused)
+            game_data.players.forEach(this.handle_player.bind(this, game_data));
 
-        if (!game_data.p1.dead && !game_data.p2.dead)
+        if (game_data.players.filter(player => player.dead === true).length === 0)
             game_data.timeout = setTimeout(() => {window.requestAnimationFrame(this.snek_loop.bind(this, game_data))}, 100);
-        else
-        {
-            console.log("p1: " + game_data.p1.dead);
-            console.log("p2: " + game_data.p2.dead);
-
-            clearTimeout(game_data.timeout);
-
-            if (game_data.p1.dead !== game_data.p2.dead)
-            {
-                console.log("push game");
-            }
-            else
-            {
-                // render game restart info on canvas
-                await new Promise(r => setTimeout(r, 1000));
-                this.play_snek(game_data.player_left1, game_data.player_left2, game_data.player_right1, game_data.player_right2, game_data.tournament);
-            }
-        }
+        //else
+        //{
+        //    //console.log("p1: " + game_data.p1.dead);
+        //    //console.log("p2: " + game_data.p2.dead);
+//
+        //    clearTimeout(game_data.timeout);
+//
+        //    if (game_data.p1.dead !== game_data.p2.dead)
+        //    {
+        //        console.log("push game");
+        //    }
+        //    else
+        //    {
+        //        // render game restart info on canvas
+        //        await new Promise(r => setTimeout(r, 1000));
+        //        this.play_snek(game_data.player_left1, game_data.player_left2, game_data.player_right1, game_data.player_right2, game_data.tournament);
+        //    }
+        //}
     }
 
     handle_player(game_data, player)
     {
-        // Check if dead
-        if (!game_data.playableCells.has(`${game_data[player].x}x${game_data[player].y}y`) && game_data[player].dead === false)  
-            game_data[player].dead = true;
-
-        game_data.playableCells.delete(`${game_data[player].x}x${game_data[player].y}y`);
+        if (!this.move_to_cell(game_data, player))
+            player.dead = true;
         
-        if (!game_data[player].dead)
+        if (!player.dead)
         {
             // Draw
-            game_data.context.fillStyle = game_data[player].color;
-            game_data.context.fillRect(game_data[player].x, game_data[player].y, game_data.grid, game_data.grid);
+            game_data.context.fillStyle = player.color;
+            game_data.context.fillRect(player.x * game_data.grid, player.y * game_data.grid, game_data.grid, game_data.grid);
             game_data.context.strokeStyle = 'black';
-            game_data.context.strokeRect(game_data[player].x, game_data[player].y, game_data.grid, game_data.grid);
+            game_data.context.strokeRect(player.x * game_data.grid, player.y * game_data.grid, game_data.grid, game_data.grid);
 
             // Move
-            game_data[player].x += game_data[player].dx * game_data.grid;
-            game_data[player].y += game_data[player].dy * game_data.grid;
+            player.x += player.dx;
+            player.y += player.dy;
         };
+    }
+
+    move_to_cell(game_data, player)
+    {
+        if (player.x < 0 || player.x >= game_data.cols || player.y < 0 || player.y >= game_data.rows)
+            return false;
+        if (game_data.cells[player.y][player.x] !== 0)
+            return false;
+
+        game_data.cells[player.y][player.x] = 1;
+
+        return true;
     }
 
     /* -------------------------------------------------------------- Game helpers ---------------------------------------------------------- */
 
-    create_player(game_data, player, color, x, y, dx, dy)
+    create_player(game_data, name, side, color, y, x, dx, dy, up, down, left, right, jump)
     {
-        game_data[player] = {color: color, dead: false, x: (x * game_data.grid), y: (y * game_data.grid), dx: dx, dy: dy};
+        var player = 
+        {
+            name: name,
+            color: color,
+            side: (side === "left" ? "left" : "right"),
+            dead: false,
+            x: x,
+            y: y,
+            dx: dx,
+            dy: dy
+        };
+
+        this.add_player_listeners(player, game_data, up, down, left, right, jump);
+
+        game_data.players.push(player);
     }
 
-    draw_player_start_pos(game_data, player)
+    draw_start(game_data, player)
     {
-        game_data.context.fillStyle = game_data[player].color;
-        game_data.context.fillRect(game_data[player].x, game_data[player].y, game_data.grid, game_data.grid);
+        var grd = game_data.grid;
+
+        game_data.context.fillStyle = player.color;
+        game_data.context.fillRect(player.x * grd, player.y * grd, game_data.grid, game_data.grid);
         game_data.context.strokeStyle = 'black';
-        game_data.context.strokeRect(game_data[player].x, game_data[player].y, game_data.grid, game_data.grid);
+        game_data.context.strokeRect(player.x * grd, player.y * grd, game_data.grid, game_data.grid);
     };
 
-    getPlayableCells(game_data)
+    get_cells(game_data)
     {
-        game_data.playableCells = new Set();
-        for (let i = 0; i < game_data.canvas.width / game_data.grid; i++)
-            for (let j = 0; j < game_data.canvas.height / game_data.grid; j++)
-                game_data.playableCells.add(`${i * game_data.grid}x${j * game_data.grid}y`);
+        game_data.cells = Array(game_data.rows).fill().map(() => Array(game_data.cols).fill(0));
     };
 
-    drawBackground(game_data)
+    draw_background(game_data)
     {
-        game_data.context.fillStyle = 'black';
-        game_data.context.fillRect(0, 0, game_data.canvas.width, game_data.canvas.height);
+        var ctx = game_data.context;
+        var cnv = game_data.canvas;
 
-        game_data.context.strokeStyle = '#562b35';
-        game_data.context.lineWidth = 0.75;
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, cnv.width, cnv.height);
 
-        for (let col = 0; col <= game_data.canvas.width / game_data.grid; col++)
+        ctx.strokeStyle = '#562b35';
+        ctx.lineWidth = 0.75;
+
+        for (var col = 0; col <= cnv.width / game_data.grid; col++)
         {
-            game_data.context.beginPath();
-            game_data.context.moveTo(col * game_data.grid, 0);
-            game_data.context.lineTo(col * game_data.grid, game_data.canvas.height);
-            game_data.context.stroke();
+            ctx.beginPath();
+            ctx.moveTo(col * game_data.grid, 0);
+            ctx.lineTo(col * game_data.grid, cnv.height);
+            ctx.stroke();
         }
 
-        for (let row = 0; row <= game_data.canvas.height / game_data.grid; row++)
+        for (var row = 0; row <= cnv.height / game_data.grid; row++)
         {
-            game_data.context.beginPath();
-            game_data.context.moveTo(0, row * game_data.grid);
-            game_data.context.lineTo(game_data.canvas.width, row * game_data.grid);
-            game_data.context.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, row * game_data.grid);
+            ctx.lineTo(cnv.width, row * game_data.grid);
+            ctx.stroke();
         }
     };
 
 
     /* ------------------------------------------------------------ Key press listeners ------------------------------------------------------------ */
 
+    add_player_listeners(player, game_data, up, down, left, right, jump)
+    {
+        document.addEventListener('keydown', e => this.player_keydown_listener(e, game_data, player, up, down, left, right, jump));
+    }
+
     player_keydown_listener(e, game_data, player, up, down, left, right, jump)
     {
-        if (e.key === up && game_data[player].dy !== 1)
+        if (e.key === up && player.dy !== 1)
         {        
-            game_data[player].dy = -1;
-            game_data[player].dx = 0;
+            player.dy = -1;
+            player.dx = 0;
         }    
-        else if (e.key === down && game_data[player].dy !== -1)
+        else if (e.key === down && player.dy !== -1)
         {    
-            game_data[player].dy = 1;
-            game_data[player].dx = 0;
+            player.dy = 1;
+            player.dx = 0;
         }
-        else if (e.key === left && game_data[player].dx !== 1)
+        else if (e.key === left && player.dx !== 1)
         {
-            game_data[player].dx = -1;
-            game_data[player].dy = 0;
+            player.dx = -1;
+            player.dy = 0;
         }
-        else if (e.key === right && game_data[player].dx !== -1)
+        else if (e.key === right && player.dx !== -1)
         {
-            game_data[player].dx = 1;
-            game_data[player].dy = 0;
+            player.dx = 1;
+            player.dy = 0;
         }
 
         if (e.key === jump)
         {
-            if (game_data[player].dx !== 0)
-                game_data[player].x += game_data.grid * (game_data[player].dx > 0 ? 5 : -5);
+            if (player.dx !== 0)
+                player.x += (player.dx > 0 ? 5 : -5);
             else
-                game_data[player].y += game_data.grid * (game_data[player].dy > 0 ? 5 : -5);
+                player.y += (player.dy > 0 ? 5 : -5);
         }
 
-    }
-
-    async pause_listener(e, game_data)
-    {
-        if (e.key === "Enter")
-        {
-            game_data.paused = !game_data.paused;
-            if (game_data.paused)
-                clearTimeout(game_data.timeout);
-            else
-                game_data.timeout = setTimeout(() => {window.requestAnimationFrame(this.snek_loop.bind(this, game_data))}, 100);
-        }
     }
 }
