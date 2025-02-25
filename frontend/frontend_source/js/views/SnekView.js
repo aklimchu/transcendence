@@ -78,7 +78,8 @@ export default class extends GameView
     
         document.addEventListener('keydown', e => this.pause_listener(e, game_data));
 
-        game_data.timeout = setTimeout(() => {window.requestAnimationFrame(this.snek_loop.bind(this, game_data))}, 100);
+        await new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.snek_loop.bind(this, game_data));
+        console.log('---------- END ----------');
     }
 
 
@@ -93,7 +94,10 @@ export default class extends GameView
             game_data.players.forEach(this.handle_player.bind(this, game_data));
 
         if (game_data.players.filter(player => player.dead === true).length === 0)
-            game_data.timeout = setTimeout(() => {window.requestAnimationFrame(this.snek_loop.bind(this, game_data))}, 100);
+        {
+            await new Promise(r => setTimeout(r, 100));
+            return new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.snek_loop.bind(this, game_data));
+        }
         else
         {
             //game_data.players.map(player => {console.log(`${player.name} ${player.dead} x: ${player.x} y: ${player.y}`)});
@@ -104,14 +108,17 @@ export default class extends GameView
             //console.log(`left dead: ${left_dead} right dead: ${right_dead}`);
 
             if (left_dead !== right_dead)
+            {
                 console.log('push game')
+                return Promise.resolve();
+            }
             else
             {
                 await new Promise(r => setTimeout(r, 400));
 
                 this.reset_game(game_data);
 
-                game_data.timeout = setTimeout(() => {window.requestAnimationFrame(this.snek_loop.bind(this, game_data))}, 100);
+                return new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.snek_loop.bind(this, game_data));
             }
         }
     }
