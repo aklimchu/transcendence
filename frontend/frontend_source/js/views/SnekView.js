@@ -59,6 +59,9 @@ export default class extends GameView
         await this.goToGameView();
 
         var game_data = {};
+
+        game_data.fps = 10;
+        game_data.delay = 1000 / game_data.fps;
     
         game_data.players = [];
         game_data.tournament = tournament;
@@ -95,7 +98,7 @@ export default class extends GameView
 
         if (game_data.players.filter(player => player.dead === true).length === 0)
         {
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, game_data.delay));
             return new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.snek_loop.bind(this, game_data));
         }
         else

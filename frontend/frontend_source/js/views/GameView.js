@@ -134,6 +134,9 @@ export default class extends AbstractView
 
         var game_data = {};
 
+        game_data.fps = 100;
+        game_data.delay = 1000 / game_data.fps;
+
         game_data.paused = false;
         game_data.end = false;
         game_data.score = [0,0];
@@ -197,7 +200,10 @@ export default class extends AbstractView
         if (game_data.end)
             return this.handle_game_end.bind(this, game_data)();
         else
+        {
+            await new Promise(r => setTimeout(r, game_data.delay));
             return new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.pong_loop.bind(this, game_data));
+        }
     }
 
 
