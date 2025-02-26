@@ -32,7 +32,46 @@ export default class extends GameView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
         </br>
-        <br> <button id="play_snek"> Play 1v1 snake </button> </br>
+        <br> <button id="play_snek" class="1v1"> Play 1v1 snake </button> </br>
+
+        <br></br>
+        
+        <br>
+            <label for="left-select1"> Choose left player 1: </label>
+            <select name="LeftPlayer1" id="left-select1">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+
+            <label for="right-select1"> Choose right player 1: </label>
+            <select name="RightPlayer1" id="right-select1">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+        </br>
+
+        <br>
+            <label for="left-select2"> Choose left player 2: </label>
+            <select name="LeftPlayer2" id="left-select2">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+
+            <label for="right-select2"> Choose right player 2: </label>
+            <select name="RightPlayer2" id="right-select2">
+            <option>${json.data["players"]["p1"]["name"]}</option>
+            <option>${json.data["players"]["p2"]["name"]}</option>
+            <option>${json.data["players"]["p3"]["name"]}</option>
+            <option>${json.data["players"]["p4"]["name"]}</option>
+            </select>
+        </br>
+        <br> <button id="play_snek" class="2v2"> Play 2v2 snek </button> </br>
 
         `;
 
@@ -64,6 +103,7 @@ export default class extends GameView
         game_data.delay = 1000 / game_data.fps;
     
         game_data.players = [];
+        game_data.score = [0,0];
         game_data.tournament = tournament;
 
         game_data.grid = 15;
@@ -74,8 +114,18 @@ export default class extends GameView
         game_data.cols = game_data.canvas.width / game_data.grid;
         game_data.rows = game_data.canvas.height / game_data.grid;
 
-        this.create_player(game_data, player_left1, 'left', '#24a7a1', 20, 4, 1, 0, 'w', 's', 'a', 'd', 'r');
-        this.create_player(game_data, player_right1, 'right', '#ff9810', 20, 55, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l");
+        if (player_left2 === null && player_right2 === null)
+        {
+            this.create_player(game_data, player_left1, 'left', '#24a7a1', 20, 4, 1, 0, 'w', 's', 'a', 'd', 'r');
+            this.create_player(game_data, player_right1, 'right', '#ff9810', 20, 55, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l");
+        }
+        else
+        {
+            this.create_player(game_data, player_left1, 'left', '#24a7a1', 10, 4, 1, 0, 'w', 's', 'a', 'd', 'r');
+            this.create_player(game_data, player_right1, 'right', '#ff9810', 10, 55, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l");
+            this.create_player(game_data, player_left2, 'left', '#24a7a1', 30, 4, 1, 0, '1', '2', '3', '4', '5');
+            this.create_player(game_data, player_right2, 'right', '#ff9810', 30, 55, -1, 0, '6', '7', '8', '9', "0");
+        }
 
         this.draw_initial_frame.bind(this, game_data)();
     
@@ -103,24 +153,17 @@ export default class extends GameView
         }
         else
         {
-            //game_data.players.map(player => {console.log(`${player.name} ${player.dead} x: ${player.x} y: ${player.y}`)});
+            game_data.score[0] = game_data.players.filter(player => player.dead === false && player.side === 'left').length; // no. left alive
+            game_data.score[1] = game_data.players.filter(player => player.dead === false && player.side === 'right').length; // no. right alive
 
-            var left_dead = game_data.players.filter(player => player.dead === true && player.side === 'left').length;
-            var right_dead = game_data.players.filter(player => player.dead === true && player.side === 'right').length;
-
-            //console.log(`left dead: ${left_dead} right dead: ${right_dead}`);
-
-            if (left_dead !== right_dead)
+            if (game_data.score[0] !== game_data.score[1])
             {
-                console.log('push game')
-                return Promise.resolve();
+                return this.handle_game_end.bind(this, game_data)();
             }
             else
             {
                 await new Promise(r => setTimeout(r, 400));
-
                 this.reset_game(game_data);
-
                 return new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.snek_loop.bind(this, game_data));
             }
         }
