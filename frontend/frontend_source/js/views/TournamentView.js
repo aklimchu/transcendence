@@ -43,7 +43,7 @@ export default class extends GameView
                 <option>${json.data["unfinished_tournament"]["semi_one_p2"]}</option>
                 </select>
 
-            <br> <button id="play_game" class="Tournament1"> Play pong </button> </br>
+            <br> <button id="play_pong" class="Tournament1"> Play pong </button> </br>
             `
         }
         else
@@ -74,7 +74,7 @@ export default class extends GameView
                 <option>${json.data["unfinished_tournament"]["semi_two_p2"]}</option>
                 </select>
 
-            <br> <button id="play_game" class="Tournament2"> Play pong </button> </br>
+            <br> <button id="play_pong" class="Tournament2"> Play pong </button> </br>
             `
         }
         else
@@ -105,7 +105,7 @@ export default class extends GameView
                 <option>${json.data["unfinished_tournament"]["semi2_winner"]}</option>
                 </select>
 
-            <br> <button id="play_game" class="Tournament3"> Play pong </button> </br>
+            <br> <button id="play_pong" class="Tournament3"> Play pong </button> </br>
             `
         }
         else
