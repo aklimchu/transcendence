@@ -32,7 +32,7 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
         </br>
-        <br> <button id="play_pong" class="1v1"> Play 1v1 pong </button> <button id="play_snek" class="1v1"> Play 1v1 Snek </button> </br>
+        <br> <button id="play_game" class="pong 1v1 T0"> Play 1v1 pong </button> <button id="play_game" class="snek 1v1 T0"> Play 1v1 Snek </button> </br>
 
         <br></br>
         
@@ -71,7 +71,7 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
         </br>
-        <br> <button id="play_pong" class="2v2"> Play 2v2 pong </button> <button id="play_snek" class="2v2"> Play 2v2 Snek </button> </br>
+        <br> <button id="play_game" class="pong 2v2 T0"> Play 2v2 pong </button> <button id="play_game" class="snek 2v2 T0"> Play 2v2 Snek </button> </br>
         `;
 
         this.setTitle("Game");
@@ -133,6 +133,8 @@ export default class extends AbstractView
         await this.goToGameView();
 
         var game_data = {};
+
+        game_data.game_type = 'pong';
 
         game_data.fps = 100;
         game_data.delay = 1000 / game_data.fps;
@@ -396,6 +398,8 @@ export default class extends AbstractView
 
         var game_data = {};
 
+        game_data.game_type = 'snek';
+
         game_data.fps = 10;
         game_data.delay = 1000 / game_data.fps;
     
@@ -647,7 +651,7 @@ export default class extends AbstractView
            var loosers = this.get_loosers(game_data);
            var score_str = game_data.score[0].toString() + " - " + game_data.score[1].toString();
 
-           await this.push_game(game_data.tournament, winners[0], winners[1], loosers[0], loosers[1], score_str);
+           await this.push_game(game_data.game_type, game_data.tournament, winners[0], winners[1], loosers[0], loosers[1], score_str);
            await this.display_result(game_data.tournament);
            return Promise.resolve();
        }
@@ -674,14 +678,14 @@ export default class extends AbstractView
         return loosers;
     }
  
-    async push_game(tournament, w1, w2, l1, l2, score)
+    async push_game(game_type, tournament, w1, w2, l1, l2, score)
     {
         try
         {
             const response = await fetch("pong_api/pong_push_game/", {
                     method: "POST",
                     headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
-                    body: JSON.stringify({tournament: tournament, winner1: w1, winner2: w2, loser1: l1, loser2: l2, score: score})});
+                    body: JSON.stringify({game_type: game_type, tournament: tournament, winner1: w1, winner2: w2, loser1: l1, loser2: l2, score: score})});
             if (!response.ok)
                 throw new Error("Failed to push game");
         }

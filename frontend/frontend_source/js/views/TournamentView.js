@@ -15,7 +15,8 @@ export default class extends GameView
 
         if (json.data["unfinished_tournament"] === null)
         {
-            var content = `<button id="create_tournament"> Create NEW tournament </button>`;
+            var content = `<button id="create_tournament" class='pong'> Create Pong tournament </button>
+                           <button id="create_tournament" class='snek'> Create Snek tournament </button>`;
             this.setTitle("Tournament");
             this.unhideNavbar();
             await this.setContent(content);
@@ -23,7 +24,12 @@ export default class extends GameView
         }
 
 
-        var semi1_div_content, semi2_div_content, final_div_content;
+        var semi1_div_content, semi2_div_content, final_div_content, game_type;
+
+        if (json.data["unfinished_tournament"]["tournament_type"] === 'pong')
+            game_type = 'pong';
+        else
+            game_type = 'snek';
 
 
         // --------------------------------------- semi1_div_content --------------------------------------- 
@@ -43,7 +49,7 @@ export default class extends GameView
                 <option>${json.data["unfinished_tournament"]["semi_one_p2"]}</option>
                 </select>
 
-            <br> <button id="play_pong" class="Tournament1"> Play pong </button> </br>
+            <br> <button id="play_game" class="${game_type} 1v1 T1"> Play ${game_type} </button> </br>
             `
         }
         else
@@ -74,7 +80,7 @@ export default class extends GameView
                 <option>${json.data["unfinished_tournament"]["semi_two_p2"]}</option>
                 </select>
 
-            <br> <button id="play_pong" class="Tournament2"> Play pong </button> </br>
+            <br> <button id="play_game" class="${game_type} 1v1 T2"> Play ${game_type} </button> </br>
             `
         }
         else
@@ -105,7 +111,7 @@ export default class extends GameView
                 <option>${json.data["unfinished_tournament"]["semi2_winner"]}</option>
                 </select>
 
-            <br> <button id="play_pong" class="Tournament3"> Play pong </button> </br>
+            <br> <button id="play_game" class="${game_type} 1v1 T3"> Play ${game_type} </button> </br>
             `
         }
         else
