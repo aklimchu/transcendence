@@ -86,7 +86,7 @@ export default class
 
     async goToError()
     {
-        var content = `Something went terribly worng!`
+        var content = `Something went terribly wrong!`
 
         this.hideNavbar();
         await this.setContent(content);

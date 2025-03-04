@@ -16,7 +16,7 @@ export default class extends AbstractView
         var content = `
         
         <br>
-            <label for="left-select"> Choose left player: </label>
+            <label for="left-select"> Pick left player: </label>
             <select name="LeftPlayer" id="left-select">
             <option>${json.data["players"]["p1"]["name"]}</option>
             <option>${json.data["players"]["p2"]["name"]}</option>
@@ -24,7 +24,7 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
 
-            <label for="right-select"> Choose right player: </label>
+            <label for="right-select"> Pick right player: </label>
             <select name="RightPlayer" id="right-select">
             <option>${json.data["players"]["p1"]["name"]}</option>
             <option>${json.data["players"]["p2"]["name"]}</option>
@@ -37,7 +37,7 @@ export default class extends AbstractView
         <br></br>
         
         <br>
-            <label for="left-select1"> Choose left player 1: </label>
+            <label for="left-select1"> Pick left player 1: </label>
             <select name="LeftPlayer1" id="left-select1">
             <option>${json.data["players"]["p1"]["name"]}</option>
             <option>${json.data["players"]["p2"]["name"]}</option>
@@ -45,7 +45,7 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
 
-            <label for="right-select1"> Choose right player 1: </label>
+            <label for="right-select1"> Pick right player 1: </label>
             <select name="RightPlayer1" id="right-select1">
             <option>${json.data["players"]["p1"]["name"]}</option>
             <option>${json.data["players"]["p2"]["name"]}</option>
@@ -55,7 +55,7 @@ export default class extends AbstractView
         </br>
 
         <br>
-            <label for="left-select2"> Choose left player 2: </label>
+            <label for="left-select2"> Pick left player 2: </label>
             <select name="LeftPlayer2" id="left-select2">
             <option>${json.data["players"]["p1"]["name"]}</option>
             <option>${json.data["players"]["p2"]["name"]}</option>
@@ -63,7 +63,7 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
 
-            <label for="right-select2"> Choose right player 2: </label>
+            <label for="right-select2"> Pick right player 2: </label>
             <select name="RightPlayer2" id="right-select2">
             <option>${json.data["players"]["p1"]["name"]}</option>
             <option>${json.data["players"]["p2"]["name"]}</option>
