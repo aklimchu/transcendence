@@ -114,6 +114,7 @@ def get_session_games(session_id):
 
     for game in q_games:
         game_data = {
+            "game_type": game.game_type,
             "score": game.game_score,
             "winner_1": game.game_winner_1.player_name if game.game_winner_1 is not None else None,
             "winner_2": game.game_winner_2.player_name if game.game_winner_2 is not None else None,
@@ -134,6 +135,7 @@ def get_session_tournaments(session_id):
 
         for t in session_tournaments:
             t_data = {
+                "tournament_type": t.tournament_type,
                 "semi1_score": t.tournament_game_1.game_score if t.tournament_game_1 is not None else None,
                 "semi1_winner": t.tournament_game_1.game_winner_1.player_name if t.tournament_game_1 is not None else None,
                 "semi1_loser": t.tournament_game_1.game_loser_1.player_name if t.tournament_game_1 is not None else None,
@@ -146,6 +148,7 @@ def get_session_tournaments(session_id):
             }
             
             if t.tournament_game_3 is None:
+                t_data["tournament_type"] = t.tournament_type
                 t_data["semi_one_p1"] = t.semi_one_p1.player_name
                 t_data["semi_one_p2"] = t.semi_one_p2.player_name
                 t_data["semi_two_p1"] = t.semi_two_p1.player_name
@@ -229,6 +232,7 @@ def pong_push_game(request, username):
         session = user.pongsession
         
         data = json.loads(request.body)
+        game_type = data.get("game_type")
         tournament = data.get("tournament")
         w1 = data.get("winner1")
         w2 = data.get("winner2")
@@ -237,6 +241,9 @@ def pong_push_game(request, username):
         score = data.get("score")
         pong_game = None
         tournament_index = None
+
+        if game_type not in ['pong', 'snek']:
+            return JsonResponse({"ok": False, "error": "Incorrect game type", "statusCode": 400}, status=400)
 
         if ((w1 is None) != (w2 is None)) and ((l1 is None) != (l2 is None)) and score:
 
@@ -257,6 +264,10 @@ def pong_push_game(request, username):
                 tournament_object = PongTournament.objects.get(Q(tournament_session=session.id) & Q(tournament_game_3=None))
                 tournament_games = [tournament_object.tournament_game_1, tournament_object.tournament_game_2,tournament_object.tournament_game_3]
 
+                # Check if tournament and game types match
+                if tournament_object.tournament_type != game_type:
+                    return JsonResponse({"ok": False, "error": "Tournament and game types don't match", "statusCode": 400}, status=400)
+
                 # Check semifinals are completed before final
                 if tournament_index == 2 and None in tournament_games[:2]:
                     return JsonResponse({"ok": False, "error": "Can't push final before semifinals", "statusCode": 400}, status=400)
@@ -274,6 +285,7 @@ def pong_push_game(request, username):
                     return JsonResponse({"ok": False, "error": "Can't overwrite tournament game", "statusCode": 400}, status=400)
 
             pong_game = PongGame.objects.create(
+                game_type = game_type,
                 game_score = score,
                 game_session = session,
                 game_winner_1 = winner_object,
@@ -328,12 +340,18 @@ def pong_push_game(request, username):
 @pong_auth_wrapper
 def pong_create_tournament(request, username):
     try:
-        if request.method != "GET":
+        if request.method != "POST":
             return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
-        
+
+        if not request.body:
+            raise BadRequest("Request without body")
+
         user = User.objects.get(username=username)
         session = user.pongsession
         
+        data = json.loads(request.body)
+        tournament_type = data.get("tournament_type")
+
         unfinished_tournaments = PongTournament.objects.filter(Q(tournament_session=session.id) & Q(tournament_game_3=None))
 
         if (unfinished_tournaments.count() > 0):
@@ -345,12 +363,14 @@ def pong_create_tournament(request, username):
 
         PongTournament.objects.create(
             tournament_session=session,
+            tournament_type=tournament_type,
             semi_one_p1 = session_players_list[0],
             semi_one_p2 = session_players_list[1],
             semi_two_p1 = session_players_list[2],
             semi_two_p2 = session_players_list[3]
         )
 
+        request.method = 'GET'
         return pong_session_data(request)
 
     except Exception as err:
