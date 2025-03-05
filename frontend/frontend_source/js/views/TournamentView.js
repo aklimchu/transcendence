@@ -15,8 +15,8 @@ export default class extends GameView
 
         if (json.data["unfinished_tournament"] === null)
         {
-            var content = `<button id="create_tournament" class='pong'> Create Pong tournament </button>
-                           <button id="create_tournament" class='snek'> Create Snek tournament </button>`;
+            var content = `<button type="button" id="create_tournament" class='pong'> Create Pong tournament </button>
+                           <button type="button" id="create_tournament" class='snek'> Create Snek tournament </button>`;
             this.setTitle("Tournament");
             this.unhideNavbar();
             await this.setContent(content);
@@ -49,7 +49,7 @@ export default class extends GameView
                 <option>${json.data["unfinished_tournament"]["semi_one_p2"]}</option>
                 </select>
 
-            <br> <button id="play_game" class="${game_type} 1v1 T1"> Play ${game_type} </button> </br>
+            <br> <button type="button" id="play_game" class="${game_type} 1v1 T1"> Play ${game_type} </button> </br>
             `
         }
         else
@@ -80,7 +80,7 @@ export default class extends GameView
                 <option>${json.data["unfinished_tournament"]["semi_two_p2"]}</option>
                 </select>
 
-            <br> <button id="play_game" class="${game_type} 1v1 T2"> Play ${game_type} </button> </br>
+            <br> <button type="button" id="play_game" class="${game_type} 1v1 T2"> Play ${game_type} </button> </br>
             `
         }
         else
@@ -111,7 +111,7 @@ export default class extends GameView
                 <option>${json.data["unfinished_tournament"]["semi2_winner"]}</option>
                 </select>
 
-            <br> <button id="play_game" class="${game_type} 1v1 T3"> Play ${game_type} </button> </br>
+            <br> <button type="button" id="play_game" class="${game_type} 1v1 T3"> Play ${game_type} </button> </br>
             `
         }
         else
@@ -152,7 +152,7 @@ export default class extends GameView
 
         var content = `
 
-        <button id="tournament_view" sub-view-reference> Go back </button>
+        <button type="button" id="tournament_view" sub-view-reference> Go back </button>
 
         <br> Tournament completed! </br>
 

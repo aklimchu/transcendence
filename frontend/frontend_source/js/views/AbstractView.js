@@ -69,25 +69,24 @@ export default class
         var content = `
         
         <div class="container mt-5">
-            <div class="card shadow-sm p-4 mx-auto" style="max-width: 400px;">
+            <div class="card shadow-sm p-4 mx-auto" style="max-width: 400px; background-color: orange;">
                 <h3 class="text-center">Login or Register</h3>
                 <form>
                     <div class="mb-3">
                         <label for="auth_user" class="form-label">Username</label>
-                        <input id="auth_user" type="text" class="form-control" placeholder="Enter username" maxlength="42" required>
+                        <input id="auth_user" type="text" class="form-control" placeholder="Enter username" required>
                     </div>
                     <div class="mb-3">
                         <label for="auth_pwd" class="form-label">Password</label>
-                        <input id="auth_pwd" type="password" class="form-control" placeholder="Enter password" maxlength="42" required>
+                        <input id="auth_pwd" type="password" class="form-control" placeholder="Enter password" required>
                     </div>
                     <div class="d-grid gap-2">
-                        <button id="login" class="btn btn-primary">Login</button>
-                        <button id="register" class="btn btn-secondary">Register</button>
+                        <button type="button" id="login" class="btn" style="background-color: teal; color: white;">Login</button>
+                        <button type="button" id="register" class="btn btn-secondary">Register</button>
                     </div>
                 </form>
             </div>
         </div>
-
         `
 
         history.replaceState({view : "lobby_view"}, null, null);

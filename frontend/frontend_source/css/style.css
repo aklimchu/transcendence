@@ -124,8 +124,6 @@ a
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    
-    z-index: -1;
     text-align: center;
     -webkit-transition: opacity .4s ease-in-out;
     -moz-transition: opacity .4s ease-in-out;

@@ -32,7 +32,7 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
         </br>
-        <br> <button id="play_game" class="pong 1v1 T0"> Play 1v1 pong </button> <button id="play_game" class="snek 1v1 T0"> Play 1v1 Snek </button> </br>
+        <br> <button type="button" id="play_game" class="pong 1v1 T0"> Play 1v1 pong </button> <button id="play_game" class="snek 1v1 T0"> Play 1v1 Snek </button> </br>
 
         <br></br>
         
@@ -71,7 +71,7 @@ export default class extends AbstractView
             <option>${json.data["players"]["p4"]["name"]}</option>
             </select>
         </br>
-        <br> <button id="play_game" class="pong 2v2 T0"> Play 2v2 pong </button> <button id="play_game" class="snek 2v2 T0"> Play 2v2 Snek </button> </br>
+        <br> <button type="button" id="play_game" class="pong 2v2 T0"> Play 2v2 pong </button> <button id="play_game" class="snek 2v2 T0"> Play 2v2 Snek </button> </br>
         `;
 
         this.setTitle("Game");
@@ -103,7 +103,7 @@ export default class extends AbstractView
 
         var content = `
         
-        <button id="game_view" sub-view-reference> Go back </button>
+        <button type="button" id="game_view" sub-view-reference> Go back </button>
 
         <br> Game completed! </br>
     
