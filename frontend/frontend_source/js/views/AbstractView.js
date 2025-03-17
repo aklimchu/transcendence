@@ -68,13 +68,24 @@ export default class
     {
         var content = `
         
-        <div class="auth-form">
-            <h3> Login or register </h3>
-            <form>
-            <br> <input id="auth_user" type="text" title="username" placeholder="username" maxlength="42" required/> </br>
-            <br> <input id="auth_pwd" type="password" title="username" placeholder="password" maxlength="42" required/> </br>
-            </form>
-            <br> <button id="login"> Login </button> <button id="register"> Register </button> </br>
+        <div class="container mt-5">
+            <div class="card shadow-sm p-4 mx-auto" style="max-width: 400px; background-color: orange;">
+                <h3 class="text-center">Login or Register</h3>
+                <form>
+                    <div class="mb-3">
+                        <label for="auth_user" class="form-label">Username</label>
+                        <input id="auth_user" type="text" class="form-control" placeholder="Enter username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="auth_pwd" class="form-label">Password</label>
+                        <input id="auth_pwd" type="password" class="form-control" placeholder="Enter password" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" id="login" class="btn" style="background-color: teal; color: white;">Login</button>
+                        <button type="button" id="register" class="btn btn-secondary">Register</button>
+                    </div>
+                </form>
+            </div>
         </div>
         `
 
@@ -86,7 +97,7 @@ export default class
 
     async goToError()
     {
-        var content = `Something went terribly worng!`
+        var content = `Something went terribly wrong!`
 
         this.hideNavbar();
         await this.setContent(content);

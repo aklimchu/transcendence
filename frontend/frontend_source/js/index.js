@@ -2,6 +2,7 @@ import Lobby from "./views/LobbyView.js";
 import Game from "./views/GameView.js";
 import Tournament from "./views/TournamentView.js";
 import Settings from "./views/SettingsView.js";
+import Stats from "./views/StatsView.js";
 
 async function history_and_router(view_id)
 {
@@ -17,7 +18,8 @@ async function router(path)
         {id: "lobby_view", view: Lobby},
         {id: "game_view", view: Game},
         {id: "tournament_view", view: Tournament},
-        {id: "settings_view", view: Settings}
+        {id: "settings_view", view: Settings},
+        {id: "stats_view", view: Stats}
     ];
 
     var view_match_map, match, view;
@@ -106,40 +108,33 @@ async function play_game_listener(event)
 {
     if (event.target.id === "play_game")
     {
+        var classes_arr = Array.from(event.target.classList)
+        var game_class = {type_count: 0, mode_count: 0, t_count: 0, unknown: false};
+
+        classes_arr.reduce(check_game_class, game_class);
+
+        console.log(game_class);
+
+        if (game_class.unknown ||
+            game_class.type_count !== 1 ||
+            game_class.mode_count !== 1 ||
+            game_class.t_count !== 1 ||
+            (game_class.mode==='2v2' && game_class.t !== null))
+            return console.log('Incorrect game classes!');
+
+
         event.preventDefault();
-        var game_view;
+        var game_view = (game_class.t === null) ? new Game : new Tournament;
         
-        if (event.target.className !== "2v2")
-        {
-            var type_dict = {"1v1": null, "Tournament1": 1, "Tournament2": 2, "Tournament3": 3};
+        var player_left1 = game_class.mode === "1v1" ? get_player_name('left-select') : get_player_name('left-select1');
+        var player_right1 = game_class.mode === "1v1" ? get_player_name('right-select') : get_player_name('right-select1');
+        var player_left2 = game_class.mode === "1v1" ? null : get_player_name('left-select2');
+        var player_right2 = game_class.mode === "1v1" ? null : get_player_name('right-select2');
 
-            var left_select = document.getElementById("left-select");
-            var right_select = document.getElementById("right-select");
-            var player_left = left_select.options[left_select.selectedIndex].text;
-            var player_right = right_select.options[right_select.selectedIndex].text;
-
-            if (event.target.className === "1v1")
-                game_view = new Game;
-            else
-                game_view = new Tournament;
-
-            game_view.play_pong(player_left, null, player_right, null, type_dict[event.target.className]);
-        }
+        if (game_class.type === 'pong')
+            game_view.play_pong(player_left1, player_left2, player_right1, player_right2, game_class.t);
         else
-        {
-            var left_select1 = document.getElementById("left-select1");
-            var left_select2 = document.getElementById("left-select2");
-            var right_select1 = document.getElementById("right-select1");
-            var right_select2 = document.getElementById("right-select2");
-            var player_left1 = left_select1.options[left_select1.selectedIndex].text;
-            var player_left2 = left_select2.options[left_select2.selectedIndex].text;
-            var player_right1 = right_select1.options[right_select1.selectedIndex].text;
-            var player_right2 = right_select2.options[right_select2.selectedIndex].text;
-
-            game_view = new Game;
-
-            game_view.play_pong(player_left1, player_left2, player_right1, player_right2, null);
-        }
+            game_view.play_snek(player_left1, player_left2, player_right1, player_right2, game_class.t);
     } 
 }
 
@@ -147,16 +142,24 @@ async function create_tournament_listener(event)
 {
     if (event.target.id === "create_tournament")
     {
+        var classes_arr = Array.from(event.target.classList)
+
+        if (classes_arr.length != 1 || (classes_arr[0] != 'pong' && classes_arr[0] != 'snek'))
+            return console.log('Incorrect tournament classes!');
+
         try
         {
-            var response = await fetch("pong_api/pong_create_tournament/", {method: "GET"});
+            const response = await fetch("pong_api/pong_create_tournament/", {
+                method: "POST",
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+                body: JSON.stringify({tournament_type: classes_arr[0]})});
             if (!response.ok)   
                 throw new Error("Failed to create tournament");
         }
         catch (err)
         {
             console.error(err.message);
-            return document.querySelector("#app").innerHTML = `Something went terribly worng!`;
+            return document.querySelector("#content").innerHTML = `Something went terribly worng!`;
         }
         router("tournament_view");
     }
@@ -174,3 +177,34 @@ function content_loaded_listener()
 }
 
 document.addEventListener("DOMContentLoaded", content_loaded_listener());
+
+
+function check_game_class(accumulator, item)
+{
+    if (item === "pong" || item === "snek")
+    {
+        accumulator.type_count += 1;
+        accumulator.type = item;
+    }
+    else if (item === "1v1" || item === "2v2")
+    {
+        accumulator.mode_count += 1;
+        accumulator.mode = item;
+    }
+    else if (item === "T0" || item === "T1" || item === "T2"|| item === "T3")
+    {
+        accumulator.t_count += 1;
+        accumulator.t = (item === 'T0' ? null : (item === 'T1' ? 1 : (item === 'T2' ? 2 : 3)));
+    }
+    else
+        accumulator.unknown = true;
+
+    return accumulator;
+}
+
+
+function get_player_name(id)
+{
+    var player_select = document.getElementById(id);
+    return player_select.options[player_select.selectedIndex].text;
+}

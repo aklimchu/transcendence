@@ -45,6 +45,7 @@ class PongPlayer(models.Model):
         constraints = [models.UniqueConstraint(fields=['player_session', 'player_name'], name='Unique player names for each session')]
 
 class PongGame(models.Model):
+    game_type = models.CharField(max_length=4, blank=False, null=False)
     game_score = models.CharField(null=True, blank=True)
     game_session = models.ForeignKey(PongSession, on_delete=models.CASCADE)
     game_winner_1 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_winner_1")
@@ -53,6 +54,7 @@ class PongGame(models.Model):
     game_loser_2 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_loser_2")
 
 class PongTournament(models.Model):
+    tournament_type = models.CharField(max_length=4, blank=False, null=False)
     tournament_session = models.ForeignKey(PongSession, on_delete=models.CASCADE)
     semi_one_p1 = models.ForeignKey(PongPlayer, null=False, blank=False, on_delete=models.CASCADE, related_name="semi_one_p1")
     semi_one_p2 = models.ForeignKey(PongPlayer, null=False, blank=False, on_delete=models.CASCADE, related_name="semi_one_p2")
