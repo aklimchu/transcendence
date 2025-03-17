@@ -209,3 +209,115 @@ a
     left:36.25%;
     bottom:50%;
 }
+
+/* ----------------------------- Settings View Style ----------------------------- */
+
+.settings-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    /* background-color: red; */
+    /* gap: 30px; */
+    padding: 20px;
+}
+
+.settings-container {
+    flex: 1;
+    max-width: 500px;
+    padding: 20px;
+    background-color: #d6d6d6;
+    /* border-radius: 10px; */
+    /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); */
+}
+
+#settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#settings-form label {
+    font-weight: bold;
+}
+
+#settings-form select,
+#settings-form input {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    /* border-radius: 6px; */
+}
+
+.player-settings-container {
+    width: 560px;
+    height: 716px;
+    padding: 20px;
+    background-color: #d6d6d6;
+    /* border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); */
+}
+
+.player-settings {
+    display: flex;
+    flex-wrap: wrap;
+    height: 300px;
+    gap: 20px;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, flex-direction 0.3s ease-in-out;
+}
+
+.player-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 250px;
+    height: 250px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    /* background-color: red; */
+    color: black;
+    /* border-radius: 10px; */
+    border: 3px solid #009579;
+    cursor: pointer;
+    position: relative;
+}
+
+.player-box:hover {
+    /* background-color: white; */
+    flex-direction: column;
+    height: auto;
+    padding: 20px;
+    align-items: flex-start;
+    transition: background-color 0.3s ease-in-out, flex-direction 0.3s ease-in-out; 
+}
+
+.player-box:hover .player-config {
+    display: block;
+}
+
+.player1:hover { background-color: #ff6666; } /* Red */
+.player2:hover { background-color: #66b3ff; } /* Blue */
+.player3:hover { background-color: #66ff66; } /* Green */
+.player4:hover { background-color: #ffcc66; } /* Orange */
+
+.player-config {
+    display: none;
+}
+
+.player-config label {
+    font-weight: bold;
+    display: block;
+    margin-top: 8px;
+}
+
+.player-config input {
+    width: 100%;
+    padding: 6px;
+    font-size: 14px;
+}
+
+h2 {
+    text-align: center; /* Centers text horizontally */
+    margin-bottom: 30px;
+}

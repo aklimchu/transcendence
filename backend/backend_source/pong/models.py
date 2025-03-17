@@ -17,6 +17,7 @@ class PongSession(models.Model):
         return self.user.username
 
 # On signal create PongSession for User
+# change it so that active players can be created in setting tab and their names can be changed
 @receiver(post_save, sender=User)
 def create_pong_session(sender, instance, created, **kwargs):
     if created:
@@ -25,6 +26,15 @@ def create_pong_session(sender, instance, created, **kwargs):
         session.active_player_2 = PongPlayer.objects.create(player_session = session, player_name = "Player 2")
         session.active_player_3 = PongPlayer.objects.create(player_session = session, player_name = "Player 3")
         session.active_player_4 = PongPlayer.objects.create(player_session = session, player_name = "Player 4")
+    instance.pongsession.save()
+
+class change_player_names(sender, instance, created, **kwargs):
+    if created:
+        # session = PongSession.objects.create(user=instance)
+        session.active_player_1 = PongPlayer.objects.change(player_session = session, player_name = kwargs)
+        # session.active_player_2 = PongPlayer.objects.change(player_session = session, player_name = "Player 2")
+        # session.active_player_3 = PongPlayer.objects.change(player_session = session, player_name = "Player 3")
+        # session.active_player_4 = PongPlayer.objects.change(player_session = session, player_name = "Player 4")
     instance.pongsession.save()
 
 
