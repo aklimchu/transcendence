@@ -23,6 +23,26 @@ body::before {
     z-index: -1;
 }
 
+#error-alert {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding-right: 40px;
+}
+
+#error-message {
+    margin-right: 10px;
+}
+
+.btn-close {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-8%);
+}
+
+
 /* ----------------------------- Navbar Style ----------------------------- */
 
 .navbar

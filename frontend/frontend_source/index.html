@@ -1,21 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Pong</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons (Optional) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-
 <body>
     <nav id="navbar" class="navbar">
     <ul class="navbar_nav">
-
         <li class="nav_item">
             <a id="lobby_view" class="nav_link" view-reference>
             <object>
@@ -28,7 +23,6 @@
             </object>
             </a>
         </li>
-
         <li class="nav_item">
             <a id="game_view" class="nav_link" view-reference>
             <object>
@@ -41,7 +35,6 @@
             </object>
             </a>
         </li>
-
         <li class="nav_item">
             <a id="tournament_view" class="nav_link" view-reference>
             <object>
@@ -54,7 +47,6 @@
             </object>
             </a>
         </li>
-
         <li class="nav_item">
             <a id="settings_view" class="nav_link" view-reference>
             <object>
@@ -79,7 +71,6 @@
             </object>
             </a>
         </li>
-
         <li class="nav_item">
             <a id="logout" class="nav_link">
             <object>
@@ -92,18 +83,16 @@
             </object>
             </a>
         </li>
-
     </ul>
     </nav>
-
+    <div id="error-alert" class="alert alert-danger alert-dismissible fade" role="alert" style="display: none;">
+        <span id="error-message">Error</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>    
     <div id="content"></div>
-
     <main></main>
-
     <script type="module" src="/js/index.js"></script>
     <script src="/js/auth.js"></script>
-    <!-- Bootstrap Bundle (includes Popper.js for dropdowns, tooltips, etc.) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>
