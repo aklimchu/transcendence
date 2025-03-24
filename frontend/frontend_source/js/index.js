@@ -106,37 +106,37 @@ async function authentication_listener(event)
 
 async function play_game_listener(event)
 {
-    if (event.target.id === "play_game")
-    {
-        var classes_arr = Array.from(event.target.classList)
-        var game_class = {type_count: 0, mode_count: 0, t_count: 0, unknown: false};
+    const button = event.target.closest(".play_game_btn");
+    if (!button) return;
+    const all_classes = Array.from(button.classList);
+    const game_classes = all_classes.filter(cls =>
+        ["pong", "snek", "1v1", "2v2", "T0", "T1", "T2", "T3"].includes(cls)
+    );
+    const game_class = { type_count: 0, mode_count: 0, t_count: 0, unknown: false };
+    game_classes.reduce(check_game_class, game_class);
 
-        classes_arr.reduce(check_game_class, game_class);
+    if (game_class.unknown ||
+        game_class.type_count !== 1 ||
+        game_class.mode_count !== 1 ||
+        game_class.t_count !== 1 ||
+        (game_class.mode === '2v2' && game_class.t !== null)) {
+        return console.log('❌ Incorrect game classes!');
+    }
 
-        console.log(game_class);
+    const game_view = (game_class.t === null) ? new Game : new Tournament;
 
-        if (game_class.unknown ||
-            game_class.type_count !== 1 ||
-            game_class.mode_count !== 1 ||
-            game_class.t_count !== 1 ||
-            (game_class.mode==='2v2' && game_class.t !== null))
-            return console.log('Incorrect game classes!');
+    const player_left1 = game_class.mode === "1v1" ? get_player_name('left-select') : get_player_name('left-select1');
+    const player_right1 = game_class.mode === "1v1" ? get_player_name('right-select') : get_player_name('right-select1');
+    const player_left2 = game_class.mode === "1v1" ? null : get_player_name('left-select2');
+    const player_right2 = game_class.mode === "1v1" ? null : get_player_name('right-select2');
 
-
-        event.preventDefault();
-        var game_view = (game_class.t === null) ? new Game : new Tournament;
-        
-        var player_left1 = game_class.mode === "1v1" ? get_player_name('left-select') : get_player_name('left-select1');
-        var player_right1 = game_class.mode === "1v1" ? get_player_name('right-select') : get_player_name('right-select1');
-        var player_left2 = game_class.mode === "1v1" ? null : get_player_name('left-select2');
-        var player_right2 = game_class.mode === "1v1" ? null : get_player_name('right-select2');
-
-        if (game_class.type === 'pong')
-            game_view.play_pong(player_left1, player_left2, player_right1, player_right2, game_class.t);
-        else
-            game_view.play_snek(player_left1, player_left2, player_right1, player_right2, game_class.t);
-    } 
+    if (game_class.type === 'pong')
+        game_view.play_pong(player_left1, player_left2, player_right1, player_right2, game_class.t);
+    else
+        game_view.play_snek(player_left1, player_left2, player_right1, player_right2, game_class.t);
 }
+
+
 
 async function create_tournament_listener(event)
 {
@@ -167,16 +167,21 @@ async function create_tournament_listener(event)
 
 function content_loaded_listener()
 {
-    document.body.addEventListener("click", e => view_reference_listener(e));
-    document.body.addEventListener("click", e => sub_view_reference_listener(e));
-    document.body.addEventListener("click", e => authentication_listener(e));
-    document.body.addEventListener("click", e => play_game_listener(e));
-    document.body.addEventListener("click", e => create_tournament_listener(e));
-    
+    document.body.addEventListener("click", e => {
+        console.log("🖱 Click detected:", e.target);
+
+        view_reference_listener(e);
+        sub_view_reference_listener(e);
+        authentication_listener(e);
+        play_game_listener(e);
+        create_tournament_listener(e);
+    });
+
     router(null);
 }
 
-document.addEventListener("DOMContentLoaded", content_loaded_listener());
+
+document.addEventListener("DOMContentLoaded", content_loaded_listener);
 
 
 function check_game_class(accumulator, item)
@@ -198,7 +203,6 @@ function check_game_class(accumulator, item)
     }
     else
         accumulator.unknown = true;
-
     return accumulator;
 }
 

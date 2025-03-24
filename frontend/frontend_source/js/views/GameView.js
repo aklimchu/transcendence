@@ -14,64 +14,85 @@ export default class extends AbstractView
         catch (err) {return;}
 
         var content = `
-        
-        <br>
-            <label for="left-select"> Pick left player: </label>
-            <select name="LeftPlayer" id="left-select">
-            <option>${json.data["players"]["p1"]["name"]}</option>
-            <option>${json.data["players"]["p2"]["name"]}</option>
-            <option>${json.data["players"]["p3"]["name"]}</option>
-            <option>${json.data["players"]["p4"]["name"]}</option>
-            </select>
+            <div class="container-fluid py-4">
+                <div class="row" style="height: 50vh; border-bottom: 2px solid #f5c211;">
+                    <div class="col d-flex flex-column justify-content-center align-items-center">
+                        <h4>1 vs 1</h4>
+                        <div class="mb-3">
+                            <label for="left-select">Pick left player:</label>
+                            <select name="LeftPlayer" id="left-select" class="form-select">
+                                <option>${json.data["players"]["p1"]["name"]}</option>
+                                <option>${json.data["players"]["p2"]["name"]}</option>
+                                <option>${json.data["players"]["p3"]["name"]}</option>
+                                <option>${json.data["players"]["p4"]["name"]}</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="right-select">Pick right player:</label>
+                            <select name="RightPlayer" id="right-select" class="form-select">
+                                <option>${json.data["players"]["p1"]["name"]}</option>
+                                <option>${json.data["players"]["p2"]["name"]}</option>
+                                <option>${json.data["players"]["p3"]["name"]}</option>
+                                <option>${json.data["players"]["p4"]["name"]}</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <button type="button" class="btn btn-warning play_game_btn pong 1v1 T0">Play Pong</button>
+                            <button type="button" class="btn btn-secondary play_game_btn snek 1v1 T0">Play Snek</button>
+                        </div>
+                    </div>
+                </div>
 
-            <label for="right-select"> Pick right player: </label>
-            <select name="RightPlayer" id="right-select">
-            <option>${json.data["players"]["p1"]["name"]}</option>
-            <option>${json.data["players"]["p2"]["name"]}</option>
-            <option>${json.data["players"]["p3"]["name"]}</option>
-            <option>${json.data["players"]["p4"]["name"]}</option>
-            </select>
-        </br>
-        <br> <button type="button" id="play_game" class="pong 1v1 T0"> Play 1v1 pong </button> <button id="play_game" class="snek 1v1 T0"> Play 1v1 Snek </button> </br>
-
-        <br></br>
-        
-        <br>
-            <label for="left-select1"> Pick left player 1: </label>
-            <select name="LeftPlayer1" id="left-select1">
-            <option>${json.data["players"]["p1"]["name"]}</option>
-            <option>${json.data["players"]["p2"]["name"]}</option>
-            <option>${json.data["players"]["p3"]["name"]}</option>
-            <option>${json.data["players"]["p4"]["name"]}</option>
-            </select>
-
-            <label for="right-select1"> Pick right player 1: </label>
-            <select name="RightPlayer1" id="right-select1">
-            <option>${json.data["players"]["p1"]["name"]}</option>
-            <option>${json.data["players"]["p2"]["name"]}</option>
-            <option>${json.data["players"]["p3"]["name"]}</option>
-            <option>${json.data["players"]["p4"]["name"]}</option>
-            </select>
-        </br>
-
-        <br>
-            <label for="left-select2"> Pick left player 2: </label>
-            <select name="LeftPlayer2" id="left-select2">
-            <option>${json.data["players"]["p1"]["name"]}</option>
-            <option>${json.data["players"]["p2"]["name"]}</option>
-            <option>${json.data["players"]["p3"]["name"]}</option>
-            <option>${json.data["players"]["p4"]["name"]}</option>
-            </select>
-
-            <label for="right-select2"> Pick right player 2: </label>
-            <select name="RightPlayer2" id="right-select2">
-            <option>${json.data["players"]["p1"]["name"]}</option>
-            <option>${json.data["players"]["p2"]["name"]}</option>
-            <option>${json.data["players"]["p3"]["name"]}</option>
-            <option>${json.data["players"]["p4"]["name"]}</option>
-            </select>
-        </br>
-        <br> <button type="button" id="play_game" class="pong 2v2 T0"> Play 2v2 pong </button> <button id="play_game" class="snek 2v2 T0"> Play 2v2 Snek </button> </br>
+                <div class="row" style="height: 50vh;">
+                    <div class="col d-flex flex-column justify-content-center align-items-center">
+                        <h4>2 vs 2</h4>
+                        <div class="row mb-2">
+                            <div class="col">
+                                <label for="left-select1">Pick left player 1:</label>
+                                <select name="LeftPlayer1" id="left-select1" class="form-select">
+                                    <option>${json.data["players"]["p1"]["name"]}</option>
+                                    <option>${json.data["players"]["p2"]["name"]}</option>
+                                    <option>${json.data["players"]["p3"]["name"]}</option>
+                                    <option>${json.data["players"]["p4"]["name"]}</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label for="right-select1">Pick right player 1:</label>
+                                <select name="RightPlayer1" id="right-select1" class="form-select">
+                                    <option>${json.data["players"]["p1"]["name"]}</option>
+                                    <option>${json.data["players"]["p2"]["name"]}</option>
+                                    <option>${json.data["players"]["p3"]["name"]}</option>
+                                    <option>${json.data["players"]["p4"]["name"]}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col">
+                                <label for="left-select2">Pick left player 2:</label>
+                                <select name="LeftPlayer2" id="left-select2" class="form-select">
+                                    <option>${json.data["players"]["p1"]["name"]}</option>
+                                    <option>${json.data["players"]["p2"]["name"]}</option>
+                                    <option>${json.data["players"]["p3"]["name"]}</option>
+                                    <option>${json.data["players"]["p4"]["name"]}</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label for="right-select2">Pick right player 2:</label>
+                                <select name="RightPlayer2" id="right-select2" class="form-select">
+                                    <option>${json.data["players"]["p1"]["name"]}</option>
+                                    <option>${json.data["players"]["p2"]["name"]}</option>
+                                    <option>${json.data["players"]["p3"]["name"]}</option>
+                                    <option>${json.data["players"]["p4"]["name"]}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <button type="button" class="btn btn-warning play_game_btn pong 2v2 T0">Play Pong</button>
+                            <button type="button" class="btn btn-secondary play_game_btn snek 2v2 T0">Play Snek</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
 
         this.setTitle("Game");

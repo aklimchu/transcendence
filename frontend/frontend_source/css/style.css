@@ -152,6 +152,23 @@ a
     transition: opacity .4s ease-in-out;
 }
 
+.section-divider {
+    border-top: 2px solid #f5c211;
+    margin: 40px 0;
+}
+
+#content label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+#content select {
+    max-width: 220px;
+}
+
+#content .btn {
+    min-width: 180px;
+}
 
 /* ----------------------------- Lobby View Style ----------------------------- */
 
