@@ -32,7 +32,7 @@ body::before {
 }
 
 #error-message {
-    margin-right: 10px;
+    margin-right: 20px;
 }
 
 .btn-close {
@@ -152,10 +152,54 @@ a
     transition: opacity .4s ease-in-out;
 }
 
-.section-divider {
-    border-top: 2px solid #f5c211;
-    margin: 40px 0;
+
+.teal-container {
+    position: relative;
+    height: 30vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
+.teal-box {
+    background-color: teal;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.hover-overlay {
+    position: absolute;
+    top: 10;
+    left: 0;
+    width: 50%;
+    height: 50%;
+    background-color: orange;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 96px;
+    border: 8px solid white;
+    color: teal;
+    font-size: 2rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px white;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.teal-container:hover .hover-overlay {
+    opacity: 0;
+}
+
+.teal-container:hover .teal-box {
+    opacity: 1;
+}
+
 
 #content label {
     font-weight: bold;

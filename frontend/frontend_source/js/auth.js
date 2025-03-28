@@ -83,25 +83,25 @@ function showErrorMessage(message, index) {
     const errorMessage = document.getElementById("error-message");
     errorMessage.innerHTML = message;
     alertBox.style.display = "block";
-    if (index !=2)
+    if (index != 2)
     {
         alertBox.style.backgroundColor = "red";
         alertBox.style.color = "orange";
         alertBox.style.borderRadius = "15px";
         alertBox.style.boxShadow = "0px 0px 20px white";
-        alertBox.style.position = "fixed";
+        alertBox.style.position = "flex";
         alertBox.style.zIndex = 1000;
         alertBox.style.display = "flex";
         alertBox.style.justifyContent = "center";
         alertBox.style.alignItems = "center";
         alertBox.style.textAlign = "center"; 
         if (index == 0)
-            alertBox.style.top = "620px";  //register
+            alertBox.style.top = "512px";  //register
         else if (index == 1)
-            alertBox.style.top = "560px";  //login
+            alertBox.style.top = "448px";  //login
         alertBox.style.width = "280px";
         alertBox.style.height = "60px";
-        alertBox.style.left = "42.8%";
+        alertBox.style.left = "31.7%";
         alertBox.style.cursor = "pointer";
         alertBox.style.fontSize = "20px";
     }

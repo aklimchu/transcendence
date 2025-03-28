@@ -8,16 +8,15 @@ export default class extends AbstractView
         super(params);
     }
 
-    async goToView()
-    {
-        try {var json = await this.fetchSessionData();}
-        catch (err) {return;}
-
+    async goToView() {
+        try { var json = await this.fetchSessionData(); }
+        catch (err) { return; }
+    
         var content = `
             <div class="container-fluid py-4">
-                <div class="row" style="height: 50vh; border-bottom: 2px solid #f5c211;">
-                    <div class="col d-flex flex-column justify-content-center align-items-center">
-                        <h4>1 vs 1</h4>
+                <div class="row teal-container" style="height: 45vh;">
+                    <div class="hover-overlay">1v1 Mode</div>
+                    <div class="col teal-box d-flex flex-column justify-content-center align-items-center">
                         <div class="mb-3">
                             <label for="left-select">Pick left player:</label>
                             <select name="LeftPlayer" id="left-select" class="form-select">
@@ -42,10 +41,10 @@ export default class extends AbstractView
                         </div>
                     </div>
                 </div>
-
-                <div class="row" style="height: 50vh;">
-                    <div class="col d-flex flex-column justify-content-center align-items-center">
-                        <h4>2 vs 2</h4>
+    
+                <div class="row teal-container" style="height: 52vh;">
+                    <div class="hover-overlay">2v2 Mode</div>
+                    <div class="col teal-box d-flex flex-column justify-content-center align-items-center">
                         <div class="row mb-2">
                             <div class="col">
                                 <label for="left-select1">Pick left player 1:</label>
@@ -94,11 +93,12 @@ export default class extends AbstractView
                 </div>
             </div>
         `;
-
+    
         this.setTitle("Game");
         this.unhideNavbar();
         await this.setContent(content);
     }
+    
 
     async goToResult()
     {
