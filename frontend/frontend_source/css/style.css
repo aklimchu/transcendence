@@ -24,11 +24,11 @@ body::before {
 }
 
 #error-alert {
-    display: flex;
     justify-content: space-between;
     align-items: center;
-    position: relative;
+    position: fixed;
     padding-right: 40px;
+    z-index: 1000;
 }
 
 #error-message {
@@ -55,9 +55,7 @@ body::before {
     opacity: 0;
     display: "none";
     z-index: 1;
-
     transition: width 600ms ease;
-
     -webkit-transition: opacity 600ms ease;
     -moz-transition: opacity 600ms ease;
     -ms-transition: opacity 600ms ease;

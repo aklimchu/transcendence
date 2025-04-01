@@ -1,6 +1,6 @@
 
 
-async function register_func(user, pwd)
+export async function register_func(user, pwd)
 {
     try
     {
@@ -21,7 +21,7 @@ async function register_func(user, pwd)
 };
 
 
-async function login_func(user, pwd)
+export async function login_func(user, pwd)
 {
     try
     {
@@ -61,7 +61,7 @@ function getCookie(name)
 }
 
 
-async function logout_func()
+export async function logout_func()
 {
     try
     {
@@ -83,31 +83,36 @@ function showErrorMessage(message, index) {
     const errorMessage = document.getElementById("error-message");
     errorMessage.innerHTML = message;
     alertBox.style.display = "block";
-    if (index != 2)
-    {
+    if (index !== 2) {
         alertBox.style.backgroundColor = "red";
         alertBox.style.color = "orange";
         alertBox.style.borderRadius = "15px";
         alertBox.style.boxShadow = "0px 0px 20px white";
-        alertBox.style.position = "flex";
         alertBox.style.zIndex = 1000;
         alertBox.style.display = "flex";
         alertBox.style.justifyContent = "center";
         alertBox.style.alignItems = "center";
-        alertBox.style.textAlign = "center"; 
-        if (index == 0)
-            alertBox.style.top = "512px";  //register
-        else if (index == 1)
-            alertBox.style.top = "448px";  //login
+        alertBox.style.textAlign = "center";
+        let verticalPosition;
+        if (index === 0)
+            verticalPosition = "74%";
+        else if (index === 1)
+            verticalPosition = "65%";
+        else
+            verticalPosition = "50%";
+        alertBox.style.top = verticalPosition;
+        alertBox.style.left = "50%";
+        alertBox.style.transform = "translateX(-50%)";
         alertBox.style.width = "280px";
         alertBox.style.height = "60px";
-        alertBox.style.left = "31.7%";
         alertBox.style.cursor = "pointer";
         alertBox.style.fontSize = "20px";
     }
-        alertBox.classList.add("show");
+    alertBox.classList.add("show");
     setTimeout(() => {
         alertBox.classList.remove("show");
         alertBox.style.display = "none";
-    }, 2000);
+    }, 3000);
 }
+
+

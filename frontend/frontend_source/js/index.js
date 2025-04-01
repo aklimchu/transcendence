@@ -3,6 +3,8 @@ import Game from "./views/GameView.js";
 import Tournament from "./views/TournamentView.js";
 import Settings from "./views/SettingsView.js";
 import Stats from "./views/StatsView.js";
+import { login_func, register_func, logout_func } from './auth.js';
+
 
 async function history_and_router(view_id)
 {
