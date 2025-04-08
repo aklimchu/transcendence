@@ -4,6 +4,7 @@ import Tournament from "./views/TournamentView.js";
 import Settings from "./views/SettingsView.js";
 import Stats from "./views/StatsView.js";
 import { login_func, register_func, logout_func } from './auth.js';
+import { getCookie } from './auth.js';
 
 
 async function history_and_router(view_id)
@@ -106,8 +107,7 @@ async function authentication_listener(event)
     }
 }
 
-async function play_game_listener(event)
-{
+async function play_game_listener(event) {
     const button = event.target.closest(".play_game_btn");
     if (!button) return;
     const all_classes = Array.from(button.classList);
@@ -116,7 +116,6 @@ async function play_game_listener(event)
     );
     const game_class = { type_count: 0, mode_count: 0, t_count: 0, unknown: false };
     game_classes.reduce(check_game_class, game_class);
-
     if (game_class.unknown ||
         game_class.type_count !== 1 ||
         game_class.mode_count !== 1 ||
@@ -124,48 +123,41 @@ async function play_game_listener(event)
         (game_class.mode === '2v2' && game_class.t !== null)) {
         return console.log('❌ Incorrect game classes!');
     }
-
     const game_view = (game_class.t === null) ? new Game : new Tournament;
-
-    const player_left1 = game_class.mode === "1v1" ? get_player_name('left-select') : get_player_name('left-select1');
-    const player_right1 = game_class.mode === "1v1" ? get_player_name('right-select') : get_player_name('right-select1');
+    const player_left1 = game_class.mode === "1v1" ? get_player_name(button.dataset.left) : get_player_name('left-select1');
+    const player_right1 = game_class.mode === "1v1" ? get_player_name(button.dataset.right) : get_player_name('right-select1');
     const player_left2 = game_class.mode === "1v1" ? null : get_player_name('left-select2');
     const player_right2 = game_class.mode === "1v1" ? null : get_player_name('right-select2');
-
     if (game_class.type === 'pong')
         game_view.play_pong(player_left1, player_left2, player_right1, player_right2, game_class.t);
     else
         game_view.play_snek(player_left1, player_left2, player_right1, player_right2, game_class.t);
 }
 
-
-
-async function create_tournament_listener(event)
-{
-    if (event.target.id === "create_tournament")
-    {
-        var classes_arr = Array.from(event.target.classList)
-
-        if (classes_arr.length != 1 || (classes_arr[0] != 'pong' && classes_arr[0] != 'snek'))
-            return console.log('Incorrect tournament classes!');
-
-        try
-        {
+async function create_tournament_listener(event) {
+    if (event.target.id === "create_pong_tournament" || event.target.id === "create_snek_tournament") {
+        let tournamentType = event.target.classList.contains("pong") ? "pong" :
+                             event.target.classList.contains("snek") ? "snek" : null;
+        console.log("Tournament Type:", tournamentType);
+        if (!tournamentType) {
+            console.log('Incorrect tournament classes!', event.target.classList);
+            return;
+        }
+        try {
             const response = await fetch("pong_api/pong_create_tournament/", {
                 method: "POST",
-                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
-                body: JSON.stringify({tournament_type: classes_arr[0]})});
-            if (!response.ok)   
-                throw new Error("Failed to create tournament");
-        }
-        catch (err)
-        {
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ tournament_type: tournamentType })
+            });
+            if (!response.ok) throw new Error("Failed to create tournament");
+        } catch (err) {
             console.error(err.message);
-            return document.querySelector("#content").innerHTML = `Something went terribly worng!`;
+            return document.querySelector("#content").innerHTML = `Something went terribly wrong!`;
         }
         router("tournament_view");
     }
 }
+
 
 function content_loaded_listener()
 {
@@ -209,8 +201,11 @@ function check_game_class(accumulator, item)
 }
 
 
-function get_player_name(id)
-{
+function get_player_name(id) {
     var player_select = document.getElementById(id);
+    if (!player_select) {
+        console.error(`❌ get_player_name: No element found with id '${id}'`);
+        return null;
+    }
     return player_select.options[player_select.selectedIndex].text;
 }

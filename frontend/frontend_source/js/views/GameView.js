@@ -1,5 +1,6 @@
-
+ 
 import AbstractView from "./AbstractView.js";
+import { getCookie } from '../auth.js';
 
 export default class extends AbstractView
 {
