@@ -1,4 +1,3 @@
-
 import GameView from "./GameView.js";
 
 export default class extends GameView
@@ -13,8 +12,7 @@ export default class extends GameView
             var json = await this.fetchSessionData();
         } catch (err) {
             return;
-        }
-    
+        }    
         if (json.data["unfinished_tournament"] === null) {
         var content = `
         <div class="container text-center mt-5">
@@ -30,13 +28,12 @@ export default class extends GameView
             await this.setContent(content);
             return;
         }
-    
+
         var semi1_div_content, semi2_div_content, final_div_content, game_type;
         if (json.data["unfinished_tournament"]["tournament_type"] === 'pong')
             game_type = 'pong';
         else
             game_type = 'snek';
-        
     
         // --------------------------------------- Semifinal 1 ---------------------------------------
         console.log(json.data["unfinished_tournament"]);
@@ -50,13 +47,11 @@ export default class extends GameView
                             <option>${json.data["unfinished_tournament"]["semi_one_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_one_p2"]}</option>
                         </select>
-    
                         <label for="semi1-right" class="form-label mt-2">Right Player</label>
                         <select id="semi1-right" class="form-select">
                             <option>${json.data["unfinished_tournament"]["semi_one_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_one_p2"]}</option>
                         </select>
-    
                         <button type="button" class="play_game_btn btn btn-warning mt-3 ${game_type} 1v1 T1" data-left="semi1-left" data-right="semi1-right">
                             Play ${game_type}
                         </button>
@@ -85,13 +80,11 @@ export default class extends GameView
                             <option>${json.data["unfinished_tournament"]["semi_two_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_two_p2"]}</option>
                         </select>
-    
                         <label for="semi2-right" class="form-label mt-2">Right Player</label>
                         <select id="semi2-right" class="form-select">
                             <option>${json.data["unfinished_tournament"]["semi_two_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_two_p2"]}</option>
                         </select>
-    
                         <button type="button" id="play_game" class="btn btn-warning mt-3 ${game_type} 1v1 T2">Play ${game_type}</button>
                     </div>
                 </div>`;
@@ -118,13 +111,11 @@ export default class extends GameView
                             <option>${json.data["unfinished_tournament"]["semi1_winner"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi2_winner"]}</option>
                         </select>
-    
                         <label for="final-right" class="form-label mt-2">Right Player</label>
                         <select id="final-right" class="form-select">
                             <option>${json.data["unfinished_tournament"]["semi1_winner"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi2_winner"]}</option>
                         </select>
-    
                         <button type="button" id="play_game" class="btn btn-danger mt-3 ${game_type} 1v1 T3">Play ${game_type}</button>
                     </div>
                 </div>`;
@@ -149,12 +140,10 @@ export default class extends GameView
                     <div class="col-md-8">${final_div_content}</div>
                 </div>
             </div>`;
-    
         this.setTitle("Tournament");
         this.unhideNavbar();
         await this.setContent(content);
     }
-    
 
     async goToResult()
     {
@@ -162,25 +151,20 @@ export default class extends GameView
         catch (err) {return;}
 
         var content = `
-
         <button type="button" id="tournament_view" sub-view-reference> Go back </button>
-
         <br> Tournament completed! </br>
-
         <div id="tournament_semi1_div">
             Semifinal 1
             <br>winner: ${json.data["finished_tournaments"][0]["semi1_winner"]}</br>
             loser: ${json.data["finished_tournaments"][0]["semi1_loser"]}
             <br>score: ${json.data["finished_tournaments"][0]["semi1_score"]}</br>
         </div>
-
         <div id="tournament_semi2_div">
             Semifinal 2
             <br>winner: ${json.data["finished_tournaments"][0]["semi2_winner"]}</br>
             loser: ${json.data["finished_tournaments"][0]["semi2_loser"]}
             <br>score: ${json.data["finished_tournaments"][0]["semi2_score"]}</br>
         </div>
-
         <div id="tournament_final_div">
             Final
             <br>winner: ${json.data["finished_tournaments"][0]["final_winner"]}</br>
@@ -188,7 +172,6 @@ export default class extends GameView
             <br>score: ${json.data["finished_tournaments"][0]["final_score"]}</br>
         </div>
         `;
-
 
         this.setTitle("Tournament");
         this.unhideNavbar();

@@ -6,7 +6,6 @@ import Stats from "./views/StatsView.js";
 import { login_func, register_func, logout_func } from './auth.js';
 import { getCookie } from './auth.js';
 
-
 async function history_and_router(view_id)
 {
     //console.log("History.state before: ", history.state);
@@ -24,21 +23,15 @@ async function router(path)
         {id: "settings_view", view: Settings},
         {id: "stats_view", view: Stats}
     ];
-
     var view_match_map, match, view;
-
     if (path === null)
         view_match_map = view_obj_arr.map(view_obj => {return {view_obj: view_obj, is_match: history.state !== null && history.state.view === view_obj.id};});
     else
         view_match_map = view_obj_arr.map(view_obj => {return {view_obj: view_obj, is_match: path === view_obj.id};});
-
     match = view_match_map.find(potential_match => potential_match.is_match);
-
     if (!match)
         match = {view_obj: view_obj_arr[0], is_match: true};
-
     view = new match.view_obj.view();
-
     await view.goToView();
 };
 
@@ -72,11 +65,9 @@ async function sub_view_reference_listener(event)
 async function authentication_listener(event)
 {
     var successful;
-
     if (event.target.id === "login" || event.target.id === "register")
     {
         var user, pwd;
-
         user = document.getElementById("auth_user").value,
         pwd = document.getElementById("auth_pwd").value;
 
@@ -93,7 +84,6 @@ async function authentication_listener(event)
         if (successful)
             router(null);
     }
-
     else if (event.target.id === "logout")
     {
         successful = await logout_func();
@@ -163,14 +153,12 @@ function content_loaded_listener()
 {
     document.body.addEventListener("click", e => {
         console.log("🖱 Click detected:", e.target);
-
         view_reference_listener(e);
         sub_view_reference_listener(e);
         authentication_listener(e);
         play_game_listener(e);
         create_tournament_listener(e);
     });
-
     router(null);
 }
 

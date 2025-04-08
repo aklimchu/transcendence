@@ -94,12 +94,10 @@ export default class extends AbstractView
                 </div>
             </div>
         `;
-    
         this.setTitle("Game");
         this.unhideNavbar();
         await this.setContent(content);
     }
-    
 
     async goToResult()
     {
