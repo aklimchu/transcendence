@@ -155,12 +155,12 @@ export default class extends GameView
         catch (err) {return;}
 
         var content = `
-            <div class="container my-4">
+            <div class="container my-3">
                 <button type="button" id="tournament_view" class="btn btn-secondary mb-4" sub-view-reference>
                     Go back
                 </button>
-                <h3 class="text-center mb-4">Tournament Completed!</h3>
-                <div class="card mb-3">
+                <h3 class="text-center mb-2">Tournament Completed!</h3>
+                <div class="card mb-2">
                     <div class="card-header">Semifinal 1</div>
                     <div class="card-body">
                         <p><strong>Winner:</strong> ${json.data["finished_tournaments"][0]["semi1_winner"]}</p>
@@ -168,7 +168,7 @@ export default class extends GameView
                         <p><strong>Score:</strong> ${json.data["finished_tournaments"][0]["semi1_score"]}</p>
                     </div>
                 </div>
-                <div class="card mb-3">
+                <div class="card mb-2">
                     <div class="card-header">Semifinal 2</div>
                     <div class="card-body">
                         <p><strong>Winner:</strong> ${json.data["finished_tournaments"][0]["semi2_winner"]}</p>
