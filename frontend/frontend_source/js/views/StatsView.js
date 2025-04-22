@@ -35,10 +35,17 @@ export default class extends AbstractView
 	console.log(json)
 
 	var content = `
-	<p>Statistics View </p>
-	<p>Total games played: ${json.data["total_games"]}</p>
-	<p>Registered users: ${json.data["user_names"]}</p>
-	`;
+    <div class="container mb-5">
+        <div class="stats-card">
+        <div class="card-body text-center">
+            <h4 class="text-teal card-title mb-3">📊 Statistics</h4>
+            <p class="card-text"><span class="fw-bold text-teal">Total games played:</span> ${json.data["total_games"]}</p>
+            <p class="card-text"><span class="fw-bold text-teal">Registered users:</span> ${json.data["user_names"]}</p>
+        </div>
+        </div>
+    </div>
+    `;
+
 
 	this.setTitle("Statistics");
 	this.unhideNavbar();

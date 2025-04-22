@@ -186,12 +186,11 @@ a
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 96px;
-    border: 8px solid white;
+    border-radius: 36px;
+    border: 6px solid white;
     color: teal;
     font-size: 2rem;
     font-weight: bold;
-    text-shadow: 2px 2px 4px white;
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
 }
@@ -242,67 +241,37 @@ a
 
 /* ----------------------------- Lobby View Style ----------------------------- */
 
-#lobby_p1_div
-{
-    display:grid;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    background-color:red;
-    border-radius: 15px;
-    box-shadow: 0px 4px 10px gray;
-    height:380px;
-    width:140px;
-    margin:0;
-    transform: translate(-16%, 0%);
+.lobby-card-title {
+    color: teal;
 }
 
-#lobby_p2_div
-{
-    height:380px;
-    width:140px;
-    background-color:green;
-    border-radius: 15px;
-    box-shadow: 0px 4px 10px gray;
-    position:relative;
-    left: 100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transform: translate(-76%, 0%);
+.lobby-card1 {
+    border: 3px solid white;
+    background-color: orange;
+    border-radius: 10px;
+    box-shadow: 3px 6px 6px red;
 }
 
-#lobby_p3_div
-{
-    height:380px;
-    width:140px;
-    background-color:yellow;
-    border-radius: 15px;
-    box-shadow: 0px 4px 10px gray;
-    position:relative;
-    display: flex;
-    left: 250px;
-    justify-content: center;
-    align-items: center;
-    transform: translate(-172%, 0%);
+.lobby-card2 {
+    border: 3px solid white;
+    background-color: orange;
+    border-radius: 10px;
+    box-shadow: 3px 6px 6px yellow;
 }
 
-#lobby_p4_div
-{
-    height:380px;
-    width:140px;
-    background-color:blue;
-    border-radius: 15px;
-    box-shadow: 0px 4px 10px teal;
-    position:relative;
-    left:320px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transform: translate(-211%, 0%);
+.lobby-card3 {
+    border: 3px solid white;
+    background-color:orange;
+    border-radius: 10px;
+    box-shadow: 3px 6px 6px green;
 }
 
-
+.lobby-card4 {
+    border: 3px solid white;
+    background-color:orange;
+    border-radius: 10px;
+    box-shadow: 3px 6px 6px blue;
+}
 
 /* ----------------------------- Tournament View Style ----------------------------- */
 
@@ -332,6 +301,18 @@ a
 
 .card-header {
     color: orange !important;
+}
+
+/* ----------------------------- Statistics View Style ----------------------------- */
+
+.stats-card {
+    border: 3px solid white;
+    background-color: orange;
+    border-radius: 10px;
+}
+
+.text-teal {
+    color: teal !important;
 }
 
 /* ----------------------------- Settings View Style ----------------------------- */
