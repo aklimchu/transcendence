@@ -46,7 +46,6 @@ export default class extends AbstractView
     </div>
     `;
 
-
 	this.setTitle("Statistics");
 	this.unhideNavbar();
 	await this.setContent(content);
