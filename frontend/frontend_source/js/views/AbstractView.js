@@ -69,7 +69,7 @@ export default class
         var content = `
         
         <div class="container mt-5">
-            <div class="card shadow-sm p-4 mx-auto" style="max-width: 400px; background-color: orange;">
+            <div class="first-card p-4 mx-auto" style="max-width: 400px;">
                 <h3 class="text-center">Login or Register</h3>
                 <form>
                     <div class="mb-3">

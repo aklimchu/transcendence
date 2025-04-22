@@ -23,6 +23,12 @@ body::before {
     z-index: -1;
 }
 
+.first-card {
+    border-radius: 12px;
+    box-shadow: 3px 6px 6px white;
+    background-color: orange;
+}
+
 #error-alert {
     justify-content: space-between;
     align-items: center;
@@ -212,6 +218,28 @@ a
     min-width: 180px;
 }
 
+.game-card {
+    background-color: orange !important;
+    box-shadow: 0 0 20px white !important;
+    border-radius: 24px;
+}
+
+.go-back-btn {
+    box-shadow: 0 0 20px white !important;
+    border-radius: 24px;
+}
+
+.game-status-card {
+    color: orange;
+    background-color: teal !important;
+    box-shadow: 0 0 20px white !important;
+    border-radius: 24px;
+}
+
+.side-text-color {
+    color: teal;
+}
+
 /* ----------------------------- Lobby View Style ----------------------------- */
 
 #lobby_p1_div
@@ -299,9 +327,12 @@ a
 
 .card {
     background-color: teal !important;
-    box-shadow: 0 0 20px orange !important;
+    box-shadow: 0 0 20px white !important;
 }
 
+.card-header {
+    color: orange !important;
+}
 
 /* ----------------------------- Settings View Style ----------------------------- */
 

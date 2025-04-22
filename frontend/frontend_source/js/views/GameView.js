@@ -37,8 +37,8 @@ export default class extends AbstractView
                             </select>
                         </div>
                         <div class="d-flex gap-3">
-                            <button type="button" class="btn btn-warning play_game_btn pong 1v1 T0">Play Pong</button>
-                            <button type="button" class="btn btn-secondary play_game_btn snek 1v1 T0">Play Snek</button>
+                            <button type="button" class="btn btn-warning play_game_btn pong 1v1 T0" data-left="left-select" data-right="right-select">Play Pong</button>
+                            <button type="button" class="btn btn-secondary play_game_btn snek 1v1 T0" data-left="left-select" data-right="right-select">Play Snek</button>
                         </div>
                     </div>
                 </div>
@@ -122,14 +122,32 @@ export default class extends AbstractView
         r2 = (r2 === null) ? "" : r2;
 
         var content = `
-        
-        <button type="button" id="game_view" sub-view-reference> Go back </button>
-
-        <br> Game completed! </br>
-    
-        ${l1}   ${l2}   ${score_str}    ${r1}   ${r2}
+            <div class="container my-6">
+                <button type="button" id="game_view" class="go-back-btn btn btn-secondary mb-4" sub-view-reference>
+                    Go back
+                </button>
+                <h3 class="game-status-card p-3 text-center mb-4">Game Completed!</h3>
+                <div class="game-card p-4 fs-5">
+                    <div class="game-card-body">
+                        <div class="row text-center">
+                            <div class="col">
+                                <h5 class="side-text-color">Left Side</h5>
+                                <p>${l1}</p>
+                                ${l2 ? `<p>${l2}</p>` : ""}
+                            </div>
+                            <div class="col align-self-center">
+                                <h4>${score_str}</h4>
+                            </div>
+                            <div class="col">
+                                <h5 class="side-text-color">Right Side</h5>
+                                <p>${r1}</p>
+                                ${r2 ? `<p>${r2}</p>` : ""}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
-
         this.setTitle("Game");
         this.unhideNavbar();
         await this.setContent(content);
