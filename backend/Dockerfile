@@ -1,7 +1,10 @@
 FROM python:3.13-slim-bullseye
 
-ENV PYTHONDONTWRITEBYTECODE 1 #Python writes no .pyc files to disc
-ENV PYTHONUNBUFFERED 1 #Python does not buffer stdout and stderr
+#Python writes no .pyc files to disc
+ENV PYTHONDONTWRITEBYTECODE 1
+
+#Python does not buffer stdout and stderr
+ENV PYTHONUNBUFFERED 1 
 
 RUN apt update && apt install netcat libpq-dev -y
 

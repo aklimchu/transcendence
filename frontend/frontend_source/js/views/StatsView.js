@@ -4,7 +4,7 @@ export default class extends AbstractView
 {
     constructor(params)
     {
-	super(params);
+    super(params);
     }
 
     async fetchStatsData()
@@ -29,26 +29,26 @@ export default class extends AbstractView
 
     async goToView()
     {
-	try {var json = await this.fetchStatsData();}
-	catch (err) {return;}
+    try {var json = await this.fetchStatsData();}
+    catch (err) {return;}
 
-	console.log(json)
+    console.log(json)
 
-	var content = `
+    var content = `
     <div class="container mb-5">
         <div class="stats-card">
-        <div class="card-body text-center">
-            <h4 class="text-teal card-title mb-3">📊 Statistics</h4>
-            <p class="card-text"><span class="fw-bold text-teal">Total games played:</span> ${json.data["total_games"]}</p>
-            <p class="card-text"><span class="fw-bold text-teal">Registered users:</span> ${json.data["user_names"]}</p>
-        </div>
+            <div class="card-body text-center" style="padding: 20px;">
+                <h4 class="text-teal card-title mb-3">📊 Statistics</h4>
+                <p class="card-text"><span class="fw-bold text-teal">Total games played:</span> ${json.data["total_games"]}</p>
+                <p class="card-text"><span class="fw-bold text-teal">Registered users:</span> ${json.data["user_names"]}</p>
+            </div>
         </div>
     </div>
     `;
 
-	this.setTitle("Statistics");
-	this.unhideNavbar();
-	await this.setContent(content);
+    this.setTitle("Statistics");
+    this.unhideNavbar();
+    await this.setContent(content);
     }
 }
 

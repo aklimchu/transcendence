@@ -28,7 +28,7 @@ def create_pong_session(sender, instance, created, **kwargs):
         session.active_player_4 = PongPlayer.objects.create(player_session = session, player_name = "Player 4")
     instance.pongsession.save()
 
-class change_player_names(sender, instance, created, **kwargs):
+def change_player_names(sender, instance, created, **kwargs):
     if created:
         # session = PongSession.objects.create(user=instance)
         session.active_player_1 = PongPlayer.objects.change(player_session = session, player_name = kwargs)
