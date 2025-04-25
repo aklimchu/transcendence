@@ -331,15 +331,15 @@ a
 }
 
 .settings-container {
-    background-color: #f4a52f;
-    padding: 30px;
+    background-color: orange;
+    padding: 10px;
     border-radius: 20px;
     box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.3);
     border: 4px solid white;
 }
 
 #save_settings {
-    background-color: #1a7779;
+    background-color: teal;
     color: white;
     font-weight: bold;
     font-size: 1.5rem;
@@ -371,10 +371,10 @@ a
 
 .player-settings-container {
     width: 490px;
-    background-color: #f4a52f;
+    background-color: orange;
     padding: 30px;
     border-radius: 20px;
-    box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 6px 6px 20px gray;
     border: 4px solid white;
 }
 
@@ -391,7 +391,7 @@ a
     justify-content: center;
     width: 200px;
     height: 200px;
-    border: 3px solid #009579;
+    border: 3px solid teal;
     border-radius: 18px;
     font-weight: bold;
     font-size: 1.1rem;
@@ -404,7 +404,7 @@ a
 .player-box:hover {
     transform: scale(1.03);
     padding: 20px;
-    background-color: #fff;
+    background-color: white;
 }
 
 .player-box:hover .player-config {
@@ -440,5 +440,5 @@ a
 .head{
     text-align: center;
     margin-bottom: 30px;
-    color: #1a7779;
+    color: teal;
 }
