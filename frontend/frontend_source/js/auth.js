@@ -86,7 +86,7 @@ function showErrorMessage(message, index) {
     if (index !== 2) {
         alertBox.style.backgroundColor = "red";
         alertBox.style.color = "orange";
-        alertBox.style.borderRadius = "15px";
+        alertBox.style.borderRadius = "14px";
         alertBox.style.boxShadow = "0px 0px 20px white";
         alertBox.style.zIndex = 1000;
         alertBox.style.display = "flex";
@@ -95,15 +95,15 @@ function showErrorMessage(message, index) {
         alertBox.style.textAlign = "center";
         let verticalPosition;
         if (index === 0)
-            verticalPosition = "74%";
+            verticalPosition = "62.5%";
         else if (index === 1)
-            verticalPosition = "65%";
+            verticalPosition = "58%";
         else
             verticalPosition = "50%";
         alertBox.style.top = verticalPosition;
         alertBox.style.left = "50%";
         alertBox.style.transform = "translateX(-50%)";
-        alertBox.style.width = "280px";
+        alertBox.style.width = "282px";
         alertBox.style.height = "60px";
         alertBox.style.cursor = "pointer";
         alertBox.style.fontSize = "20px";
