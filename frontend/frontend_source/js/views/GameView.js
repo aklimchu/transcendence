@@ -14,8 +14,8 @@ export default class extends AbstractView
         catch (err) { return; }
     
         var content = `
-            <div class="container-fluid py-4">
-                <div class="row teal-container" style="height: 45vh;">
+        <div class="container-fluid py-4">
+                <div class="row teal-container">
                     <div class="hover-overlay">1v1 Mode</div>
                     <div class="col teal-box d-flex flex-column justify-content-center align-items-center">
                         <div class="mb-3">
@@ -43,7 +43,7 @@ export default class extends AbstractView
                     </div>
                 </div>
     
-                <div class="row teal-container" style="height: 52vh;">
+                <div class="row teal-container">
                     <div class="hover-overlay">2v2 Mode</div>
                     <div class="col teal-box d-flex flex-column justify-content-center align-items-center">
                         <div class="row mb-2">

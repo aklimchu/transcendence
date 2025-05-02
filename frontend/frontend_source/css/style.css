@@ -159,7 +159,9 @@ a
 
 .teal-container {
     position: relative;
-    height: 30vh;
+    /*height: 30vh;*/
+    height: 45%;
+    width: 30rem;
     display: flex;
     justify-content: center;
     align-items: center;
