@@ -97,8 +97,13 @@ export default class
 
     async goToError()
     {
-        var content = `Something went terribly wrong!`
-
+        var content = `
+        <div class="container my-5">
+            <div class="alert alert-danger text-center fs-5" role="alert" style="background-color: red; color: white; box-shadow: 0px 0px 5px white;">
+                <strong>Error:</strong> Something went terribly wrong!!
+            </div>
+            </div>
+        `;
         this.hideNavbar();
         await this.setContent(content);
     }

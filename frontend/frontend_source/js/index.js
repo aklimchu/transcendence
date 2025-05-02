@@ -142,7 +142,13 @@ async function create_tournament_listener(event) {
             if (!response.ok) throw new Error("Failed to create tournament");
         } catch (err) {
             console.error(err.message);
-            return document.querySelector("#content").innerHTML = `Something went terribly wrong!`;
+            return document.querySelector("#content").innerHTML = `
+            <div class="container my-5">
+            <div class="alert alert-danger text-center fs-5" role="alert" style="background-color: red; color: white; box-shadow: 0px 0px 5px white;">
+                <strong>Error:</strong> Something went terribly wrong!!
+            </div>
+            </div>
+            `;
         }
         router("tournament_view");
     }
