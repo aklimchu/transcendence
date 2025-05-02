@@ -155,39 +155,49 @@ export default class extends GameView
         catch (err) {return;}
 
         var content = `
-            <div class="container my-3">
-                <button type="button" id="tournament_view" class="btn btn-secondary mb-4" sub-view-reference>
-                    Go back
-                </button>
-                <h3 class="text-center mb-2">Tournament Completed!</h3>
-                <div class="card mb-2">
-                    <div class="card-header">Semifinal 1</div>
-                    <div class="card-body">
-                        <p><span class="fw-bold">Winner:</span> ${json.data["finished_tournaments"][0]["semi1_winner"]}</p>
-                        <p><span class="fw-bold">Loser:</span> ${json.data["finished_tournaments"][0]["semi1_loser"]}</p>
-                        <p><span class="fw-bold">Score:</span> ${json.data["finished_tournaments"][0]["semi1_score"]}</p>
+        <div class="container my-3">
+            <button type="button" id="tournament_view" class="btn btn-secondary mb-4" sub-view-reference>
+                Go back
+            </button>
+            <h3 class="text-center mb-4">Tournament Completed!</h3>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card mb-3 p-4 fs-5">
+                        <div class="card-header">Semifinal 1</div>
+                        <div class="card-body">
+                            <p><span class="fw-bold">Winner:</span> ${json.data["finished_tournaments"][0]["semi1_winner"]}</p>
+                            <p><span class="fw-bold">Loser:</span> ${json.data["finished_tournaments"][0]["semi1_loser"]}</p>
+                            <p><span class="fw-bold">Score:</span> ${json.data["finished_tournaments"][0]["semi1_score"]}</p>
+                        </div>
                     </div>
                 </div>
-                <div class="card mb-2">
-                    <div class="card-header">Semifinal 2</div>
-                    <div class="card-body">
-                        <p><span class="fw-bold">Winner:</span> ${json.data["finished_tournaments"][0]["semi2_winner"]}</p>
-                        <p><span class="fw-bold">Loser:</span> ${json.data["finished_tournaments"][0]["semi2_loser"]}</p>
-                        <p><span class="fw-bold">Score:</span> ${json.data["finished_tournaments"][0]["semi2_score"]}</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header">Final</div>
-                    <div class="card-body">
-                        <p><span class="fw-bold">Winner:</span> ${json.data["finished_tournaments"][0]["final_winner"]}</p>
-                        <p><span class="fw-bold">Loser:</span> ${json.data["finished_tournaments"][0]["final_loser"]}</p>
-                        <p><span class="fw-bold">Score:</span> ${json.data["finished_tournaments"][0]["final_score"]}</p>
+                <div class="col-md-6">
+                    <div class="card mb-3 p-4 fs-5">
+                        <div class="card-header">Semifinal 2</div>
+                        <div class="card-body">
+                            <p><span class="fw-bold">Winner:</span> ${json.data["finished_tournaments"][0]["semi2_winner"]}</p>
+                            <p><span class="fw-bold">Loser:</span> ${json.data["finished_tournaments"][0]["semi2_loser"]}</p>
+                            <p><span class="fw-bold">Score:</span> ${json.data["finished_tournaments"][0]["semi2_score"]}</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card p-4 fs-5">
+                        <div class="card-header">Final</div>
+                        <div class="card-body">
+                            <p><span class="fw-bold">Winner:</span> ${json.data["finished_tournaments"][0]["final_winner"]}</p>
+                            <p><span class="fw-bold">Loser:</span> ${json.data["finished_tournaments"][0]["final_loser"]}</p>
+                            <p><span class="fw-bold">Score:</span> ${json.data["finished_tournaments"][0]["final_score"]}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         `;
-
-
         this.setTitle("Tournament");
         this.unhideNavbar();
         await this.setContent(content);
