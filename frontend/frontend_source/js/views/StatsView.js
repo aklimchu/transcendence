@@ -38,9 +38,9 @@ export default class extends AbstractView
     <div class="container mb-5">
         <div class="stats-card">
             <div class="card-body text-center" style="padding: 20px;">
-                <h4 class="text-teal card-title mb-3">📊 Statistics</h4>
-                <p class="card-text"><span class="fw-bold text-teal">Total games played:</span> ${json.data["total_games"]}</p>
-                <p class="card-text"><span class="fw-bold text-teal">Registered users:</span> ${json.data["user_names"]}</p>
+                <h4 class="card-title mb-3" style="color: #005252;">📊 Statistics</h4>
+                <p class="card-text"><span class="fw-bold" style="color: #005252;">Total games played:</span> ${json.data["total_games"]}</p>
+                <p class="card-text"><span class="fw-bold" style="color: #005252;">Registered users:</span> ${json.data["user_names"]}</p>
             </div>
         </div>
     </div>

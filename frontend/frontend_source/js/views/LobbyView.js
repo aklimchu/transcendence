@@ -20,8 +20,8 @@ export default class extends AbstractView
                 <div class="lobby-card1 h-100 text-center">
                         <div class="lobby-card-body">
                             <h4 class="lobby-card-title mt-1">${json.data["players"]["p1"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold">Victories:</span> ${json.data["players"]["p1"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold">Defeats:</span> ${json.data["players"]["p1"]["lost"]}</p>
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold" style="color: #157045;">Victories: ${json.data["players"]["p1"]["won"]}</span></p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold" style="color: #931024;">Defeats: ${json.data["players"]["p1"]["lost"]}</span></p>
                         </div>
                     </div>
                 </div>
@@ -29,8 +29,8 @@ export default class extends AbstractView
                     <div class="lobby-card2 h-100 text-center">
                         <div class="lobby-card-body">
                             <h4 class="lobby-card-title mt-1">${json.data["players"]["p2"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold">Victories:</span> ${json.data["players"]["p2"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold">Defeats:</span> ${json.data["players"]["p2"]["lost"]}</p>
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold" style="color: #157045;">Victories: ${json.data["players"]["p2"]["won"]}</span></p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold" style="color: #931024;">Defeats: ${json.data["players"]["p2"]["lost"]}</span></p>
                         </div>
                     </div>
                 </div>
@@ -38,8 +38,8 @@ export default class extends AbstractView
                     <div class="lobby-card3 h-100 text-center">
                         <div class="lobby-card-body">
                             <h4 class="lobby-card-title mt-1">${json.data["players"]["p3"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold">Victories:</span> ${json.data["players"]["p3"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold">Defeats:</span> ${json.data["players"]["p3"]["lost"]}</p>
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold" style="color: #157045;">Victories: ${json.data["players"]["p3"]["won"]}</span></p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold" style="color: #931024;">Defeats: ${json.data["players"]["p3"]["lost"]}</span></p>
                         </div>
                     </div>
                 </div>
@@ -47,8 +47,8 @@ export default class extends AbstractView
                     <div class="lobby-card4 h-100 text-center">
                         <div class="lobby-card-body">
                             <h4 class="lobby-card-title mt-1">${json.data["players"]["p4"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold">Victories:</span> ${json.data["players"]["p4"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold">Defeats:</span> ${json.data["players"]["p4"]["lost"]}</p>
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold" style="color: #157045;">Victories: ${json.data["players"]["p4"]["won"]}</span></p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold" style="color: #931024;">Defeats: ${json.data["players"]["p4"]["lost"]}</span></p>
                         </div>
                     </div>
                 </div>

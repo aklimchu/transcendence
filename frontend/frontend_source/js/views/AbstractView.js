@@ -81,8 +81,8 @@ export default class
                         <input id="auth_pwd" type="password" class="form-control" placeholder="Enter password" required>
                     </div>
                     <div class="d-grid gap-2">
-                        <button type="button" id="login" class="btn" style="background-color: teal; color: white;">Login</button>
-                        <button type="button" id="register" class="btn btn-secondary">Register</button>
+                        <button type="button" id="login" class="btn" style="background-color: #006461; color: white;">Login</button>
+                        <button type="button" id="register" class="btn btn-secondary" style="background-color: #535A5F;">Register</button>
                     </div>
                 </form>
             </div>

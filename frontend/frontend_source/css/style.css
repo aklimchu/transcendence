@@ -6,7 +6,7 @@
     font-family: 'Quicksand', sans-serif;
     --text-secondary: #ececec;
     --transition-speed: 600ms;
-    color: black;
+    color: #000000;
 }
 
 body::before {
@@ -25,8 +25,8 @@ body::before {
 
 .first-card {
     border-radius: 12px;
-    box-shadow: 3px 6px 6px white;
-    background-color: orange;
+    box-shadow: 3px 3px 6px #ffffff;
+    background-color: #ffa500;
 }
 
 #error-alert {
@@ -116,7 +116,7 @@ body::before {
 .nav_link:hover
 {
     filter: grayscale(0%) opacity(1);
-    background: teal;
+    background: #006666;
     color: var(--text-secondary);
 }
 
@@ -184,13 +184,13 @@ a
     left: 0;
     width: 50%;
     height: 50%;
-    background-color: orange;
+    background-color: #ffa500;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 36px;
-    border: 6px solid white;
-    color: teal;
+    border: 3px solid white;
+    color: #005252;
     font-size: 2rem;
     font-weight: bold;
     opacity: 1;
@@ -221,19 +221,19 @@ a
 
 .game-card {
     background-color: orange !important;
-    box-shadow: 0 0 20px white !important;
+    box-shadow: 0px 0px 5px white !important;
     border-radius: 24px;
 }
 
 .go-back-btn {
-    box-shadow: 0 0 20px white !important;
+    box-shadow: 0px 0px 5px white !important;
     border-radius: 24px;
 }
 
 .game-status-card {
     color: orange;
-    background-color: teal !important;
-    box-shadow: 0 0 20px white !important;
+    background-color: #005252 !important;
+    box-shadow: 0px 0px 5px white !important;
     border-radius: 24px;
 }
 
@@ -244,35 +244,35 @@ a
 /* ----------------------------- Lobby View Style ----------------------------- */
 
 .lobby-card-title {
-    color: teal;
+    color: #002E2E;
 }
 
 .lobby-card1 {
-    border: 3px solid white;
-    background-color: orange;
+    border: 2px solid white;
+    background-color: #ffa500;
     border-radius: 10px;
-    box-shadow: 3px 6px 6px red;
+    /* box-shadow: 0px 0px 10px white !important; */
 }
 
 .lobby-card2 {
-    border: 3px solid white;
+    border: 2px solid white;
     background-color: orange;
     border-radius: 10px;
-    box-shadow: 3px 6px 6px yellow;
+    /* box-shadow: 0px 0px 10px white !important; */
 }
 
 .lobby-card3 {
-    border: 3px solid white;
+    border: 2px solid white;
     background-color:orange;
     border-radius: 10px;
-    box-shadow: 3px 6px 6px green;
+    /* box-shadow: 0px 0px 10px white !important; */
 }
 
 .lobby-card4 {
-    border: 3px solid white;
+    border: 2px solid white;
     background-color:orange;
     border-radius: 10px;
-    box-shadow: 3px 6px 6px blue;
+    /* box-shadow: 0px 0px 10px white !important; */
 }
 
 /* ----------------------------- Tournament View Style ----------------------------- */
@@ -297,13 +297,13 @@ a
 }
 
 .card {
-    background-color: teal !important;
+    background-color: #008080 !important;
     box-shadow: 0 0 20px white !important;
 }
 
 .card-header {
-    color: orange !important;
-    background-color: #1a7779 !important;
+    color: black !important;
+    background-color: #ffa500 !important;
     box-shadow: 0px 0px 5px white !important;
 }
 
@@ -316,7 +316,7 @@ a
 }
 
 .text-teal {
-    color: teal !important;
+    color: #008080 !important;
 }
 
 /* ----------------------------- Settings View Style ----------------------------- */
@@ -343,7 +343,7 @@ a
 }
 
 #save_settings {
-    background-color: teal;
+    background-color: #005252;
     color: white;
     font-weight: bold;
     font-size: 1.5rem;
@@ -359,7 +359,7 @@ a
 
 #settings-form label {
     font-weight: bold;
-    color: #1a7779;
+    color: #005252;
     font-size: 1rem;
 }
 
@@ -395,7 +395,7 @@ a
     justify-content: center;
     width: 200px;
     height: 200px;
-    border: 3px solid teal;
+    border: 3px solid #005252;
     border-radius: 18px;
     font-weight: bold;
     font-size: 1.1rem;
@@ -444,5 +444,5 @@ a
 .head{
     text-align: center;
     margin-bottom: 30px;
-    color: teal;
+    color: #005252;
 }
