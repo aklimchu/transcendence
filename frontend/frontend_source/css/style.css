@@ -313,6 +313,13 @@ a
     border: 3px solid white;
     background-color: orange;
     border-radius: 10px;
+    height: 80vh;
+    padding: 1rem;
+}
+
+.stats-container {
+    padding: 7rem;
+    min-width: 850px;
 }
 
 .text-teal {
