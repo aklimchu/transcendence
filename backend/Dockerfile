@@ -11,7 +11,7 @@ RUN apt update && apt install netcat libpq-dev -y
 COPY backend_source backend_source
 WORKDIR /backend_source
 
-RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
+RUN pip3 install --upgrade pip && pip3 install -r requirements.txt && pip install djangorestframework
 
 
 COPY entrypoint.sh /bin/entrypoint.sh

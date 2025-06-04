@@ -17,6 +17,14 @@ from .models import *
 from functools import wraps
 from random import shuffle
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from .serializers import SettingsSerializer
+
+from rest_framework.permissions import IsAuthenticated
+
 #[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
 #[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
 
@@ -373,5 +381,74 @@ def pong_create_tournament(request, username):
         request.method = 'GET'
         return pong_session_data(request)
 
+    except Exception as err:
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+
+# New settings view
+@pong_auth_wrapper
+def pong_update_settings(request, username):
+    try:
+        if request.method != "POST":
+            return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
+        if not request.body:
+            raise BadRequest("Request without body")
+        
+        user = User.objects.get(username=username)
+        session = user.pongsession
+        settings = user.gamesettings  # Assumes GameSettings is linked to User via OneToOneField
+        
+        data = json.loads(request.body)
+        
+        # Validate game settings
+        valid_game_settings = {
+            'game_speed': ['slow', 'normal', 'fast'],
+            'ball_size': ['small', 'medium', 'large'],
+            'paddle_size': ['short', 'normal', 'long'],
+            'theme': ['light', 'dark'],
+            'font_size': ['small', 'medium', 'large'],
+            'language': ['eng', 'fin', 'swd']
+        }
+        for key, valid_values in valid_game_settings.items():
+            if key in data and data[key] not in valid_values:
+                return JsonResponse({"ok": False, "error": f"Invalid {key}: {data[key]}", "statusCode": 400}, status=400)
+        
+        # Update game settings
+        settings.game_speed = data.get('game_speed', settings.game_speed)
+        settings.ball_size = data.get('ball_size', settings.ball_size)
+        settings.paddle_size = data.get('paddle_size', settings.paddle_size)
+        settings.theme = data.get('theme', settings.theme)
+        settings.font_size = data.get('font_size', settings.font_size)
+        settings.language = data.get('language', settings.language)
+        settings.save()
+        
+        # Update password if provided
+        if data.get('password'):
+            user.set_password(data['password'])
+            user.save()
+        
+        # Update player names
+        players_data = data.get('players', [])
+        if len(players_data) != 4:
+            return JsonResponse({"ok": False, "error": "Exactly 4 players must be provided", "statusCode": 400}, status=400)
+        
+        player_names = [player['player_name'] for player in players_data]
+        if len(set(player_names)) != len(player_names):
+            return JsonResponse({"ok": False, "error": "Player names must be unique", "statusCode": 400}, status=400)
+        
+        player_fields = [session.active_player_1, session.active_player_2, session.active_player_3, session.active_player_4]
+        for i, player_data in enumerate(players_data):
+            player_name = player_data.get('player_name')
+            if not player_name:
+                return JsonResponse({"ok": False, "error": f"Player {i+1} name cannot be empty", "statusCode": 400}, status=400)
+            if player_fields[i]:
+                player_fields[i].player_name = player_name
+                player_fields[i].save()
+        
+        return JsonResponse({"ok": True, "message": "Settings updated successfully", "statusCode": 200}, status=200)
+    
+    except GameSettings.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Game settings not found for user", "statusCode": 400}, status=400)
+    except PongSession.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Pong session not found for user", "statusCode": 400}, status=400)
     except Exception as err:
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
