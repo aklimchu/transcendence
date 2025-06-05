@@ -100,39 +100,14 @@ export default class extends AbstractView {
         document.getElementById("save_settings").addEventListener("click", this.push_Settings);
     }
 
-//     // save changes to backend, not sure how to do this lucas C:
-//     push_Settings() {
-//         const getValue = (id) => document.getElementById(id)?.value || "";
-//         const getFileName = (id) => document.getElementById(id)?.files?.[0]?.name || null;
-    
-//         const settings = {
-//             gameSpeed: getValue("game_speed"),
-//             ballSize: getValue("ball_size"),
-//             paddleSize: getValue("paddle_size"),
-//             theme: getValue("theme"),
-//             players: [1, 2, 3, 4].map(player => ({
-//                 name: getValue(`player${player}_name`), // not sure where they are stored
-//             }))
-//         };
-    
-//         // save settings to database, backend stuff
-//         alert("Settings saved!");
-//     }
-// }
-
 	push_Settings() {
 	    const getValue = (id) => document.getElementById(id)?.value || "";
-	    const playerNames = [1, 2, 3, 4].map(player => getValue(`player${player}_name`));
-	
-	    if (playerNames.some(name => !name)) {
-	        alert("All player names must be provided.");
-	        return;
-	    }
-	    if (new Set(playerNames).size !== playerNames.length) {
-	        alert("Player names must be unique.");
-	        return;
-	    }
-		// Can we just leave current players' names in these cases?
+	    const players = [1, 2, 3, 4].map(player => {
+            const name = getValue(`player${player}_name`);
+            if (name.trim()) {
+                return { player_name: name, position: player };
+            }
+		}).filter(player => player); // Only include non-empty players
 
 	    const settings = {
 	        game_speed: getValue("game_speed"),
@@ -142,10 +117,10 @@ export default class extends AbstractView {
 	        font_size: getValue("font_size"),
 	        language: getValue("language"),
 	        password: getValue("password"),
-	        players: playerNames.map(name => ({ player_name: name }))
+	        players: players
 	    };
 
-	    fetch('/pong_api/pong_settings/', {  // Updated to /pong_api/pong_settings/
+	    fetch('/pong_api/pong_settings/', {
 	        method: 'POST',
 	        headers: {
 	            'Content-Type': 'application/json',
@@ -154,14 +129,19 @@ export default class extends AbstractView {
 	        body: JSON.stringify(settings)
 	    })
 	    .then(response => {
-	        if (!response.ok) {
-	            return response.text().then(text => {
-	                console.error("Response status:", response.status, "Response text:", text);
-	                throw new Error(`HTTP ${response.status}: ${text}`);
-	            });
-	        }
-	        return response.json();
-	    })
+            if (!response.ok) {
+                return response.text().then(text => {
+                    try {
+                        const data = JSON.parse(text);
+                        throw new Error(data.error || `HTTP ${response.status} error`);
+                    } catch (e) {
+                        console.error("Response status:", response.status, "Response text:", text);
+                        throw new Error(`Server error (HTTP ${response.status}): ${text.substring(0, 100)}...`);
+                    }
+                });
+            }
+            return response.json();
+        })
 	    .then(data => {
 	        if (data.ok) {
 	            alert("Settings saved successfully!");

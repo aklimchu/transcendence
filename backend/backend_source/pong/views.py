@@ -18,12 +18,16 @@ from functools import wraps
 from random import shuffle
 
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import SettingsSerializer
+from .serializers import GameSettingsSerializer
 
 from rest_framework.permissions import IsAuthenticated
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password
 
 #[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
 #[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
@@ -428,21 +432,32 @@ def pong_update_settings(request, username):
         
         # Update player names
         players_data = data.get('players', [])
-        if len(players_data) != 4:
-            return JsonResponse({"ok": False, "error": "Exactly 4 players must be provided", "statusCode": 400}, status=400)
-        
-        player_names = [player['player_name'] for player in players_data]
-        if len(set(player_names)) != len(player_names):
-            return JsonResponse({"ok": False, "error": "Player names must be unique", "statusCode": 400}, status=400)
-        
         player_fields = [session.active_player_1, session.active_player_2, session.active_player_3, session.active_player_4]
-        for i, player_data in enumerate(players_data):
+        existing_names = [player.player_name for player in player_fields if player.player_name]
+
+        # Validate new player names
+        new_names = [(player['player_name'], player['position']) for player in players_data if player.get('player_name') and player.get('position')]
+        if new_names:
+            # Check for duplicates among new names
+            names_only = [name for name, _ in new_names]
+            if len(set(names_only)) != len(names_only):
+                return JsonResponse({"ok": False, "error": "New player names must be unique", "statusCode": 400}, status=400)
+
+            # Check each new name against existing names (excluding its own position)
+            for name, position in new_names:
+                if not 1 <= position <= 4:
+                    return JsonResponse({"ok": False, "error": f"Invalid position: {position}", "statusCode": 400}, status=400)
+                other_existing_names = [existing_names[i] for i in range(4) if i + 1 != position and existing_names[i]]
+                if name in other_existing_names or name in [n for n, pos in new_names if pos != position]:
+                    return JsonResponse({"ok": False, "error": f"Player name '{name}' is already used by another player", "statusCode": 400}, status=400)
+
+        # Update provided player names
+        for player_data in players_data:
             player_name = player_data.get('player_name')
-            if not player_name:
-                return JsonResponse({"ok": False, "error": f"Player {i+1} name cannot be empty", "statusCode": 400}, status=400)
-            if player_fields[i]:
-                player_fields[i].player_name = player_name
-                player_fields[i].save()
+            position = player_data.get('position')
+            if player_name and position and 1 <= position <= 4:
+                player_fields[position - 1].player_name = player_name
+                player_fields[position - 1].save()
         
         return JsonResponse({"ok": True, "message": "Settings updated successfully", "statusCode": 200}, status=200)
     
