@@ -4,89 +4,146 @@ export default class extends AbstractView {
     constructor(params) {
         super(params);
     }
+	
+	extractErrorMessage(text, status) {
+        try {
+            const cleanedText = text.trim().replace(/^\uFEFF/, '');
+            const data = JSON.parse(cleanedText);
+            return data.error || `HTTP ${status} error`;
+        } catch (e) {
+            console.error("Parse error:", e, "Response status:", status, "Response text:", text);
+            const errorMatch = text.match(/"error"\s*:\s*"([^"]+)"/i);
+    		console.log("Error match: ",  errorMatch);
+            if (errorMatch && errorMatch[1]) {
+                return errorMatch[1];
+            }
+            const plainText = text.trim().substring(0, 100);
+            if (plainText) {
+                return `Server error (HTTP ${status}): ${plainText}${text.length > 100 ? '...' : ''}`;
+            }
+            return `Server error (HTTP ${status}): No error message available`;
+        }
+    }
 
     async goToView() {
-        var content = `
+        // Fetch current settings from the server
+        let settingsData = {
+            game_speed: "normal",
+            ball_size: "medium",
+            paddle_size: "normal",
+            theme: "light",
+            font_size: "medium",
+            language: "eng",
+            players: Array(4).fill().map((_, index) => ({ player_name: '', position: index + 1 }))
+        };
+
+        try {
+            console.log("Fetching settings from /pong_api/pong_settings/");
+            const response = await fetch("/pong_api/pong_settings/", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("Response status:", response.status);
+            const responseText = await response.text();
+            console.log("Response text:", responseText);
+            if (!response.ok) {
+                throw new Error(this.extractErrorMessage(responseText, response.status));
+            }
+            const data = JSON.parse(responseText);
+            console.log("Settings data:", data);
+            if (data.ok && data.settings && typeof data.settings === "object") {
+                settingsData = {
+                    ...data.settings,
+                    players: Array(4).fill().map((_, index) => {
+                        const player = data.settings.players?.find(p => p.position === index + 1);
+                        return { player_name: player?.player_name || '', position: index + 1 };
+                    })
+                };
+            } else {
+                console.warn("Invalid settings response:", data);
+                throw new Error("Invalid settings data received");
+            }
+        } catch (error) {
+            console.error("Failed to load settings:", error);
+            alert("Error loading settings: " + error.message);
+            // Fall back to defaults defined above
+        }
+
+        // Construct content with player names
+        const content = `
             <div class="settings-wrapper">
                 <div class="settings-header">
                     <div class="settings-container">
                         <h2 class="head">General Settings</h2>
                         <form id="settings-form">
-                        <div class="form-row">
-                            <label for="game_speed">Game Speed</label>
-                            <select id="game_speed">
-                            <option value="slow">Slow</option>
-                            <option value="normal" selected>Normal</option>
-                            <option value="fast">Fast</option>
-                            </select>
-                        </div>
-
-                        <div class="form-row">
-                            <label for="ball_size">Ball Size</label>
-                            <select id="ball_size">
-                            <option value="small">Small</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="large">Large</option>
-                            </select>
-                        </div>
-
-                        <div class="form-row">
-                            <label for="paddle_size">Paddle Size</label>
-                            <select id="paddle_size">
-                            <option value="short">Short</option>
-                            <option value="normal" selected>Normal</option>
-                            <option value="long">Long</option>
-                            </select>
-                        </div>
-
-                        <div class="form-row">
-                            <label for="theme">Theme</label>
-                            <select id="theme">
-                            <option value="light" selected>Light</option>
-                            <option value="dark">Dark</option>
-                            </select>
-                        </div>
-
-                        <div class="form-row">
-                            <label for="font_size">Font Size</label>
-                            <select id="font_size">
-                            <option value="small">Small</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="large">Large</option>
-                            </select>
-                        </div>
-
-                        <div class="form-row">
-                            <label for="language">Language</label>
-                            <select id="language">
-                            <option value="eng" selected>English</option>
-                            <option value="fin">Finnish</option>
-                            <option value="swd">Swedish</option>
-                            </select>
-                        </div>
-
-                        <div class="form-row">
-                            <label for="password">Change Password</label>
-                            <input type="password" id="password" placeholder="Enter new password" />
-                        </div>
+                            <div class="form-row">
+                                <label for="game_speed">Game Speed</label>
+                                <select id="game_speed">
+                                    <option value="slow" ${settingsData.game_speed === "slow" ? "selected" : ""}>Slow</option>
+                                    <option value="normal" ${settingsData.game_speed === "normal" ? "selected" : ""}>Normal</option>
+                                    <option value="fast" ${settingsData.game_speed === "fast" ? "selected" : ""}>Fast</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="ball_size">Ball Size</label>
+                                <select id="ball_size">
+                                    <option value="small" ${settingsData.ball_size === "small" ? "selected" : ""}>Small</option>
+                                    <option value="medium" ${settingsData.ball_size === "medium" ? "selected" : ""}>Medium</option>
+                                    <option value="large" ${settingsData.ball_size === "large" ? "selected" : ""}>Large</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="paddle_size">Paddle Size</label>
+                                <select id="paddle_size">
+                                    <option value="short" ${settingsData.paddle_size === "short" ? "selected" : ""}>Short</option>
+                                    <option value="normal" ${settingsData.paddle_size === "normal" ? "selected" : ""}>Normal</option>
+                                    <option value="long" ${settingsData.paddle_size === "long" ? "selected" : ""}>Long</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="theme">Theme</label>
+                                <select id="theme">
+                                    <option value="light" ${settingsData.theme === "light" ? "selected" : ""}>Light</option>
+                                    <option value="dark" ${settingsData.theme === "dark" ? "selected" : ""}>Dark</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="font_size">Font Size</label>
+                                <select id="font_size">
+                                    <option value="small" ${settingsData.font_size === "small" ? "selected" : ""}>Small</option>
+                                    <option value="medium" ${settingsData.font_size === "medium" ? "selected" : ""}>Medium</option>
+                                    <option value="large" ${settingsData.font_size === "large" ? "selected" : ""}>Large</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="language">Language</label>
+                                <select id="language">
+                                    <option value="eng" ${settingsData.language === "eng" ? "selected" : ""}>English</option>
+                                    <option value="fin" ${settingsData.language === "fin" ? "selected" : ""}>Finnish</option>
+                                    <option value="swd" ${settingsData.language === "swd" ? "selected" : ""}>Swedish</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="password">Change Password</label>
+                                <input type="password" id="password" placeholder="Enter new password" />
+                            </div>
                         </form>
                         <button type="button" id="save_settings" class="btn btn-secondary mb-4">
                             Save Settings
                         </button>
                     </div>
-
                     <div class="player-settings-container">
                         <h2 class="head">Player Settings</h2>
                         <div class="player-settings">
-                        ${[1, 2, 3, 4].map(player => `
-                            <div class="player-box player${player}">
-                            <h3>Player ${player}</h3>
-                            <div class="player-config player${player}-config">
-                                <label for="player${player}_name">Name</label>
-                                <input type="text" id="player${player}_name" placeholder="Enter name" />
-                            </div>
-                            </div>
-                        `).join('')}
+                            ${settingsData.players.map((player, index) => `
+                                <div class="player-box player${index + 1}">
+                                    <h3>${player.player_name || `Player ${index + 1}`}</h3>
+                                    <div class="player-config player${index + 1}-config">
+                                        <label for="player${index + 1}_name">Name</label>
+                                        <input type="text" id="player${index + 1}_name" placeholder="Enter name" value="${player.player_name || ''}" />
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 </div>
@@ -97,7 +154,7 @@ export default class extends AbstractView {
         this.unhideNavbar();
         await this.setContent(content);
 
-        document.getElementById("save_settings").addEventListener("click", this.push_Settings);
+        document.getElementById("save_settings").addEventListener("click", this.push_Settings.bind(this));
     }
 
 	push_Settings() {
@@ -131,13 +188,7 @@ export default class extends AbstractView {
 	    .then(response => {
             if (!response.ok) {
                 return response.text().then(text => {
-                    try {
-                        const data = JSON.parse(text);
-                        throw new Error(data.error || `HTTP ${response.status} error`);
-                    } catch (e) {
-                        console.error("Response status:", response.status, "Response text:", text);
-                        throw new Error(`Server error (HTTP ${response.status}): ${text.substring(0, 100)}...`);
-                    }
+                        throw new Error(extractErrorMessage(text, response.status));
                 });
             }
             return response.json();
@@ -153,6 +204,26 @@ export default class extends AbstractView {
 	        alert("Error saving settings: " + error.message);
 	        console.error(error);
 	    });
+
+		function extractErrorMessage(text, status) {
+		    try {
+		        const cleanedText = text.trim().replace(/^\uFEFF/, '');
+		        const data = JSON.parse(cleanedText);
+		        return data.error || `HTTP ${status} error`;
+		    } catch (e) {
+		        console.error("Parse error:", e, "Response status:", status, "Response text:", text);
+		        const errorMatch = text.match(/"error"\s*:\s*"([^"]+)"/i);
+				console.log("Error match: ",  errorMatch);
+		        if (errorMatch && errorMatch[1]) {
+		            return errorMatch[1];
+		        }
+		        const plainText = text.trim().substring(0, 100);
+		        if (plainText) {
+		            return `Server error (HTTP ${status}): ${plainText}${text.length > 100 ? '...' : ''}`;
+		        }
+		        return `Server error (HTTP ${status}): No error message available`;
+		    }
+		}
 
 	    function getCookie(name) {
 	        let cookieValue = null;

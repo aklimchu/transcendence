@@ -1,4 +1,3 @@
-import logging
 import json
 from django.http import JsonResponse
 
@@ -389,13 +388,11 @@ def pong_create_tournament(request, username):
     except Exception as err:
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
-# Configure logging
-logger = logging.getLogger(__name__)
 
 # New settings view
 #@pong_auth_wrapper
 #@csrf_exempt
-def pong_update_settings(request):
+def pong_update_settings(request, username):
     try:
         #if request.method != "POST":
         #    return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
@@ -446,27 +443,12 @@ def pong_update_settings(request):
             return JsonResponse({"ok": True, "settings": settings_data, "statusCode": 200}, status=200)
 
         elif request.method == "POST":
-            # Parse request body
-            try:
-                data = json.loads(request.body)
-            except json.JSONDecodeError as e:
-                logger.error(f"Invalid JSON in POST request: {str(e)}")
-                return JsonResponse({"ok": False, "error": "Invalid JSON data", "statusCode": 400}, status=400)
-
-            # Get user and related models
-            user = request.user
-            try:
-                settings = user.gamesettings
-            except GameSettings.DoesNotExist:
-                logger.info(f"Creating default GameSettings for user {user.username}")
-                settings = GameSettings.objects.create(user=user)
-
-            try:
-                session = user.pongsession
-            except (PongSession.DoesNotExist, AttributeError) as e:
-                logger.info(f"No PongSession for user {user.username}: {str(e)}")
-                return JsonResponse({"ok": False, "error": "No active session found. Please start a session first.", "statusCode": 400}, status=400)
-
+            user = User.objects.get(username=username)
+            session = user.pongsession
+            settings = user.gamesettings  # Assumes GameSettings is linked to User via OneToOneField
+    
+            data = json.loads(request.body)
+    
             # Validate game settings
             valid_game_settings = {
                 'game_speed': ['slow', 'normal', 'fast'],
@@ -478,9 +460,8 @@ def pong_update_settings(request):
             }
             for key, valid_values in valid_game_settings.items():
                 if key in data and data[key] not in valid_values:
-                    logger.warning(f"Invalid {key}: {data[key]} for user {user.username}")
                     return JsonResponse({"ok": False, "error": f"Invalid {key}: {data[key]}", "statusCode": 400}, status=400)
-
+    
             # Update game settings
             settings.game_speed = data.get('game_speed', settings.game_speed)
             settings.ball_size = data.get('ball_size', settings.ball_size)
@@ -489,63 +470,40 @@ def pong_update_settings(request):
             settings.font_size = data.get('font_size', settings.font_size)
             settings.language = data.get('language', settings.language)
             settings.save()
-            logger.info(f"Updated GameSettings for user {user.username}")
-
+    
             # Update password if provided
             if data.get('password'):
                 user.set_password(data['password'])
                 user.save()
-                logger.info(f"Updated password for user {user.username}")
-
-            # Update player names (only for players in current session)
+    
+            # Update player names
             players_data = data.get('players', [])
-            player_fields = ['active_player_1', 'active_player_2', 'active_player_3', 'active_player_4']
-            existing_names = []
-            for field in player_fields:
-                player = getattr(session, field, None)
-                existing_names.append(player.player_name if player and hasattr(player, 'player_name') else None)
-
+            player_fields = [session.active_player_1, session.active_player_2, session.active_player_3, session.active_player_4]
+            existing_names = [player.player_name for player in player_fields if player.player_name] 
             # Validate new player names
             new_names = [(player['player_name'], player['position']) for player in players_data if player.get('player_name') and player.get('position')]
             if new_names:
                 # Check for duplicates among new names
                 names_only = [name for name, _ in new_names]
                 if len(set(names_only)) != len(names_only):
-                    logger.warning(f"Duplicate player names: {names_only} for user {user.username}")
-                    return JsonResponse({"ok": False, "error": "New player names must be unique", "statusCode": 400}, status=400)
-
+                    return JsonResponse({"ok": False, "error": "New player names must be unique", "statusCode": 400}, status=400)   
                 # Check each new name against existing names (excluding its own position)
                 for name, position in new_names:
                     if not 1 <= position <= 4:
-                        logger.warning(f"Invalid position {position} for player {name} by user {user.username}")
                         return JsonResponse({"ok": False, "error": f"Invalid position: {position}", "statusCode": 400}, status=400)
                     other_existing_names = [existing_names[i] for i in range(4) if i + 1 != position and existing_names[i]]
                     if name in other_existing_names or name in [n for n, pos in new_names if pos != position]:
-                        logger.warning(f"Player name '{name}' already used for user {user.username}")
-                        return JsonResponse({"ok": False, "error": f"Player name '{name}' is already used by another player", "statusCode": 400}, status=400)
-
-            # Update player names only for existing session players
+                        return JsonResponse({"ok": False, "error": f"Player name '{name}' is already used by another player", "statusCode": 400}, status=400)   
+            # Update provided player names
             for player_data in players_data:
                 player_name = player_data.get('player_name')
                 position = player_data.get('position')
                 if player_name and position and 1 <= position <= 4:
-                    player = getattr(session, player_fields[position - 1], None)
-                    if player is None:
-                        logger.warning(f"No player exists at position {position} for user {user.username}, skipping name update for {player_name}")
-                        continue  # Skip if no player is assigned to this position
-                    try:
-                        player.player_name = player_name
-                        player.save()
-                        logger.info(f"Updated player name to {player_name} at position {position} for user {user.username}")
-                    except Exception as e:
-                        logger.error(f"Error updating player name {player_name} at position {position}: {str(e)}")
-                        return JsonResponse({"ok": False, "error": f"Error updating player {player_name}: {str(e)}", "statusCode": 400}, status=400)
-
-            session.save()
-            logger.info(f"Updated PongSession for user {user.username}")
-
-            return JsonResponse({"ok": True, "message": "Settings updated successfully", "statusCode": 200}, status=200)
+                    player_fields[position - 1].player_name = player_name
+                    player_fields[position - 1].save()
     
+            return JsonResponse({"ok": True, "message": "Settings updated successfully", "statusCode": 200}, status=200)
+	
         return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
 
     except GameSettings.DoesNotExist:
