@@ -88,7 +88,7 @@ export async function logout_func() {
 
 	if (!refresh) {
 		showErrorMessage("Session expired. Please log in again.", 0);
-		setTimeout(() => window.location.href = "/login", 2000);
+		setTimeout(() => { if (typeof router === "function") router(null);}, 1000);
 		return false;
 	}
 
@@ -97,7 +97,7 @@ export async function logout_func() {
 	} else {
 		showSuccessMessage("Logged out successfully.", 1);
 	}
-	setTimeout(() => window.location.href = "/login", 1000);
+	setTimeout(() => { if (typeof router === "function") router(null);}, 2000);
 	return true;
 }
 
@@ -200,7 +200,7 @@ export async function authFetch(url, options = {}) {
 			localStorage.removeItem('access');
 			localStorage.removeItem('refresh');
 			showErrorMessage("Session expired. Please log in again.", 0);
-			setTimeout(() => window.location.href = "/login", 2000);
+			setTimeout(() => { if (typeof router === "function") router(null);}, 1000);
 			return null;
 		}
 	}
