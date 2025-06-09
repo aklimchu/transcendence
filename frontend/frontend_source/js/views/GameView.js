@@ -190,6 +190,49 @@ export default class extends AbstractView
 		// Set canvas
 		await this.goToGameView();
 
+        // Fetch current settings from the server
+        let settingsData = {
+            game_speed: "normal",
+            ball_size: "medium",
+            paddle_size: "normal",
+            theme: "light",
+            font_size: "medium",
+            language: "eng",
+            players: Array(4).fill().map((_, index) => ({ player_name: '', position: index + 1 }))
+        };
+
+        try {
+            console.log("Fetching settings from /pong_api/pong_settings/");
+            const response = await authFetch("/pong_api/pong_settings/", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("Response status:", response.status);
+            const responseText = await response.text();
+            console.log("Response text:", responseText);
+            if (!response.ok) {
+                throw new Error(this.extractErrorMessage(responseText, response.status));
+            }
+            const data = JSON.parse(responseText);
+            console.log("Settings data:", data);
+            if (data.ok && data.settings && typeof data.settings === "object") {
+                settingsData = {
+                    ...data.settings,
+                    players: Array(4).fill().map((_, index) => {
+                        const player = data.settings.players?.find(p => p.position === index + 1);
+                        return { player_name: player?.player_name || '', position: index + 1 };
+                    })
+                };
+            } else {
+                console.warn("Invalid settings response:", data);
+                throw new Error("Invalid settings data received");
+            }
+        } catch (error) {
+            console.error("Failed to load settings:", error);
+            alert("Error loading settings: " + error.message);
+            // Fall back to defaults defined above
+        }
+
 		var game_data = {};
 
 		game_data.game_type = 'pong';
@@ -212,21 +255,26 @@ export default class extends AbstractView
 		game_data.context = game_data.canvas.getContext('2d');
 		game_data.max_y = game_data.canvas.height - game_data.grid - game_data.paddleHeight;
 	
-	
-		this.create_pong_ball(game_data, 'ball1', 0.5, 0.5, 7, 'left');
+        let ball_speed = 7;
+        if (settingsData.game_speed == "fast")
+            ball_speed = 9;
+        else if (settingsData.game_speed == "slow")
+            ball_speed = 5;
+
+		this.create_pong_ball(game_data, 'ball1', 0.5, 0.5, ball_speed, 'left', settingsData.ball_size);
 		//this.create_pong_ball(game_data, 'ball2', 0.5, 0.5, 7, 'right');
 
 		if (player_left2 === null && player_right2 === null)
 		{
-			this.create_pong_player(game_data, player_left1, 'left', 0.5, 6, 'w', 's');
-			this.create_pong_player(game_data, player_right1, 'right', 0.5, 6, 'ArrowUp', 'ArrowDown');   
+			this.create_pong_player(game_data, player_left1, 'left', 0.5, 6, 'w', 's', settingsData.paddle_size);
+			this.create_pong_player(game_data, player_right1, 'right', 0.5, 6, 'ArrowUp', 'ArrowDown', settingsData.paddle_size);   
 		}
 		else
 		{
-			this.create_pong_player(game_data, player_left1, 'left', 1/3, 6, 'w', 's');
-			this.create_pong_player(game_data, player_right1, 'right', 1/3, 6, 'ArrowUp', 'ArrowDown');
-			this.create_pong_player(game_data, player_left2, 'left', 2/3, 6, 'd', 'c');
-			this.create_pong_player(game_data, player_right2, 'right', 2/3, 6, 'o', 'l');
+			this.create_pong_player(game_data, player_left1, 'left', 1/3, 6, 'w', 's', settingsData.paddle_size);
+			this.create_pong_player(game_data, player_right1, 'right', 1/3, 6, 'ArrowUp', 'ArrowDown', settingsData.paddle_size);
+			this.create_pong_player(game_data, player_left2, 'left', 2/3, 6, 'd', 'c', settingsData.paddle_size);
+			this.create_pong_player(game_data, player_right2, 'right', 2/3, 6, 'o', 'l', settingsData.paddle_size);
 		}    
 	
 		document.addEventListener('keydown', e => this.pause_listener(e, game_data));
@@ -269,7 +317,7 @@ export default class extends AbstractView
 
 	/* -------------------------------------------------------------- Game helpers ---------------------------------------------------------- */
 
-	create_pong_ball(game_data, name, x, y, speed, left)
+	create_pong_ball(game_data, name, x, y, speed, left, size)
 	{
 		var ball =
 		{
@@ -284,10 +332,19 @@ export default class extends AbstractView
 			dy: speed,
 		}
 
+        if (size == "large") {
+            ball.width *= 2;
+            ball.height *= 2;
+        }
+        else if (size == "small") {
+            ball.width *= 0.5;
+            ball.height *= 0.5;
+        }
+
 		game_data.balls.push(ball);
 	}
 
-	create_pong_player(game_data, name, side, start_y, speed, up, down)
+	create_pong_player(game_data, name, side, start_y, speed, up, down, size)
 	{
 		var player =
 		{
@@ -301,34 +358,42 @@ export default class extends AbstractView
 			dy: 0
 		};
 
+        if (size == "long") {
+            player.height *= 1.5;
+        }
+        else if (size == "short") {
+            player.height *= 0.7;
+        }
+
 		this.add_pong_player_listeners(player, up, down);
 
 		game_data.players.push(player);
 	}
 
-	move_pong_player(game_data, player)
-	{
-		if ((player.y + player.dy < game_data.grid) || (player.y + player.dy > game_data.max_y))
-		{
-			if (player.dy > 0)
-				player.y = game_data.max_y;
-			else
-				player.y = game_data.grid;
-		}
-		else
-			player.y = player.y + player.dy;
-	}
+	move_pong_player(game_data, player) {
+        const newY = player.y + player.dy;
+        if (newY < game_data.grid) {
+            player.y = game_data.grid; // Top border
+        } else if (newY + player.height > game_data.canvas.height - game_data.grid) {
+            player.y = game_data.canvas.height - game_data.grid - player.height; // Bottom border
+        } else {
+            player.y = newY;
+        }
+    }
 
 	move_pong_ball(game_data, ball)
 	{
 		ball.x += ball.dx;
 		ball.y += ball.dy;
 	
-		if (ball.y < game_data.grid || ball.y + game_data.grid > game_data.canvas.height - game_data.grid)
-		{
-			ball.y = (ball.y < game_data.grid ? game_data.grid : game_data.canvas.height - game_data.grid * 2);
-			ball.dy *= -1;
-		}
+		if (ball.y < game_data.grid || ball.y + ball.height > game_data.canvas.height - game_data.grid) {
+            if (ball.y < game_data.grid) {
+                ball.y = game_data.grid; // Top border
+            } else {
+                ball.y = game_data.canvas.height - game_data.grid - ball.height; // Bottom border
+            }
+            ball.dy *= -1;
+        }
 	
 		if ((ball.x < 0 || ball.x > game_data.canvas.width) && !ball.resetting)
 		{
@@ -351,7 +416,11 @@ export default class extends AbstractView
 		if ((ball.x < player.x + player.width) && (ball.x + ball.width > player.x) && (ball.y < player.y + player.height) && (ball.y + ball.height > player.y))
 		{
 			ball.dx *= -1;
-			ball.x = player.x + (player.side === "left" ? player.width : -player.width);
+			if (player.side === "left") {
+                ball.x = player.x + player.width; // Place ball just to the right of left paddle
+            } else {
+                ball.x = player.x - ball.width; // Place ball's right edge at paddle's left edge
+            }
 		}
 	}
 
