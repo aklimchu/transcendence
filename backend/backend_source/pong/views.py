@@ -369,8 +369,8 @@ def pong_create_tournament(request):
 logger = logging.getLogger(__name__)
 
 # New settings view
-#@pong_auth_wrapper
-#@csrf_exempt
+@api_view(['POST', 'GET'])
+@permission_classes([IsAuthenticated])
 def pong_update_settings(request):
     try:
         #if request.method != "POST":
