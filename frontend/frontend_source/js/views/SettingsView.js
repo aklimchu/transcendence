@@ -1,11 +1,25 @@
 import AbstractView from "./AbstractView.js";
+import { authFetch } from "../auth.js";
 
 export default class extends AbstractView {
     constructor(params) {
         super(params);
     }
 
-    async goToView() {
+    async goToView()
+    {
+        let json;
+        try {
+            json = await this.fetchSessionData();
+            if (!json || !json.data) {
+                await this.goToNoAuth("Session expired. Please log in again.");
+                return;
+            }
+        } catch (err) {
+            await this.goToNoAuth("Session expired. Please log in again.");
+            return;
+        }
+		
         var content = `
             <div class="settings-wrapper">
                 <div class="settings-header">
@@ -115,8 +129,20 @@ export default class extends AbstractView {
             }))
         };
     
-        // save settings to database, backend stuff
-        alert("Settings saved!");
+		const response = authFetch("/api/settings", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(settings)
+		});
+		if (!response) {
+			alert("Failed to save settings. Please try again.");
+			return;
+		}
+		if (!response.ok) {
+			alert("Error saving settings: " + response.statusText);
+			return;
+		}
+		alert("Settings saved!");
     }
 }
 

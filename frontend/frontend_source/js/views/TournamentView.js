@@ -7,12 +7,20 @@ export default class extends GameView
         super(params);
     }
 
-    async goToView() {
+    async goToView()
+    {
+        let json;
         try {
-            var json = await this.fetchSessionData();
+            json = await this.fetchSessionData();
+            if (!json || !json.data) {
+                await this.goToNoAuth("Session expired. Please log in again.");
+                return;
+            }
         } catch (err) {
+            await this.goToNoAuth("Session expired. Please log in again.");
             return;
-        }    
+        }
+
         if (json.data["unfinished_tournament"] === null) {
         var content = `
         <div class="container text-center mt-5">
@@ -149,10 +157,20 @@ export default class extends GameView
         await this.setContent(content);
     }
 
-    async goToResult()
-    {
-        try {var json = await this.fetchSessionData();}
-        catch (err) {return;}
+	async goToResult()
+	{
+		try {
+			var json = await this.fetchSessionData();
+			if (!json || !json.data) {
+				await this.goToNoAuth("Session expired. Please log in again.");
+				return;
+			}
+		} catch(err) {
+			await this.goToNoAuth("Session expired. Please log in again.");
+			return;
+		}
+
+    var game = json.data["games"][0];
 
         var content = `
         <div class="container my-3">
