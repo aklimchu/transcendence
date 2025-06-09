@@ -3,7 +3,7 @@ import Game from "./views/GameView.js";
 import Tournament from "./views/TournamentView.js";
 import Settings from "./views/SettingsView.js";
 import Stats from "./views/StatsView.js";
-import { login_func, register_func, logout_func } from './auth.js';
+import { login_func, register_func, logout_func, authFetch } from './auth.js';
 import { getCookie } from './auth.js';
 
 async function history_and_router(view_id)
@@ -82,13 +82,13 @@ async function authentication_listener(event)
             successful = await login_func(user, pwd);
 
         if (successful)
-            router(null);
+            await router(null);
     }
     else if (event.target.id === "logout")
     {
         successful = await logout_func();
         if (successful)
-            router(null);
+            await router(null);
         else
         {
             var view = new Lobby;
@@ -134,11 +134,12 @@ async function create_tournament_listener(event) {
             return;
         }
         try {
-            const response = await fetch("pong_api/pong_create_tournament/", {
+            const response = await authFetch("pong_api/pong_create_tournament/", {
                 method: "POST",
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tournament_type: tournamentType })
             });
+			if (!response) throw new Error("No response from server");
             if (!response.ok) throw new Error("Failed to create tournament");
         } catch (err) {
             console.error(err.message);

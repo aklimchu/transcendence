@@ -1,4 +1,5 @@
 import AbstractView from "./AbstractView.js";
+import { authFetch } from "../auth.js";
 
 export default class extends AbstractView {
     constructor(params) {
@@ -25,7 +26,20 @@ export default class extends AbstractView {
         }
     }
 
-    async goToView() {
+    async goToView()
+    {
+        let json;
+        try {
+            json = await this.fetchSessionData();
+            if (!json || !json.data) {
+                await this.goToNoAuth("Session expired. Please log in again.");
+                return;
+            }
+        } catch (err) {
+            await this.goToNoAuth("Session expired. Please log in again.");
+            return;
+        }
+		
         // Fetch current settings from the server
         let settingsData = {
             game_speed: "normal",
@@ -39,7 +53,7 @@ export default class extends AbstractView {
 
         try {
             console.log("Fetching settings from /pong_api/pong_settings/");
-            const response = await fetch("/pong_api/pong_settings/", {
+            const response = await authFetch("/pong_api/pong_settings/", {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });
@@ -177,7 +191,7 @@ export default class extends AbstractView {
 	        players: players
 	    };
 
-	    fetch('/pong_api/pong_settings/', {
+	    authFetch('/pong_api/pong_settings/', {
 	        method: 'POST',
 	        headers: {
 	            'Content-Type': 'application/json',

@@ -10,8 +10,17 @@ export default class extends AbstractView
 
     async goToView()
     {
-        try {var json = await this.fetchSessionData();}
-        catch (err) {return;}
+        let json;
+        try {
+            json = await this.fetchSessionData();
+            if (!json || !json.data) {
+                await this.goToNoAuth("Session expired. Please log in again.");
+                return;
+            }
+        } catch (err) {
+            await this.goToNoAuth("Session expired. Please log in again.");
+            return;
+        }
 
         var content = `
         <div class="container my-4">
