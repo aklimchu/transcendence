@@ -45,6 +45,7 @@ export default class extends AbstractView {
             game_speed: "normal",
             ball_size: "medium",
             paddle_size: "normal",
+            power_jump: "on",
             theme: "light",
             font_size: "medium",
             language: "eng",
@@ -99,7 +100,15 @@ export default class extends AbstractView {
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="ball_size">Ball Size</label>
+                                <label for="paddle_size">Paddle Size (pong)</label>
+                                <select id="paddle_size">
+                                    <option value="short" ${settingsData.paddle_size === "short" ? "selected" : ""}>Short</option>
+                                    <option value="normal" ${settingsData.paddle_size === "normal" ? "selected" : ""}>Normal</option>
+                                    <option value="long" ${settingsData.paddle_size === "long" ? "selected" : ""}>Long</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label for="ball_size">Ball Size (pong)</label>
                                 <select id="ball_size">
                                     <option value="small" ${settingsData.ball_size === "small" ? "selected" : ""}>Small</option>
                                     <option value="medium" ${settingsData.ball_size === "medium" ? "selected" : ""}>Medium</option>
@@ -107,11 +116,10 @@ export default class extends AbstractView {
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="paddle_size">Paddle Size</label>
-                                <select id="paddle_size">
-                                    <option value="short" ${settingsData.paddle_size === "short" ? "selected" : ""}>Short</option>
-                                    <option value="normal" ${settingsData.paddle_size === "normal" ? "selected" : ""}>Normal</option>
-                                    <option value="long" ${settingsData.paddle_size === "long" ? "selected" : ""}>Long</option>
+                                <label for="power_jump">Power Jump (snek)</label>
+                                <select id="power_jump">
+                                    <option value="on" ${settingsData.power_jump === "on" ? "selected" : ""}>On</option>
+                                    <option value="off" ${settingsData.power_jump === "off" ? "selected" : ""}>Off</option>
                                 </select>
                             </div>
                             <div class="form-row">
@@ -184,6 +192,7 @@ export default class extends AbstractView {
 	        game_speed: getValue("game_speed"),
 	        ball_size: getValue("ball_size"),
 	        paddle_size: getValue("paddle_size"),
+            power_jump: getValue("power_jump"),
 	        theme: getValue("theme"),
 	        font_size: getValue("font_size"),
 	        language: getValue("language"),

@@ -16,7 +16,7 @@ class GameSettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GameSettings
-        fields = ['game_speed', 'ball_size', 'paddle_size', 'theme', 'font_size', 'language', 'players']
+        fields = ['game_speed', 'ball_size', 'paddle_size', 'power_jump', 'theme', 'font_size', 'language', 'players']
 
     def validate_players(self, value):
         if not value:
@@ -59,6 +59,7 @@ class GameSettingsSerializer(serializers.ModelSerializer):
         instance.game_speed = validated_data.get('game_speed', instance.game_speed)
         instance.ball_size = validated_data.get('ball_size', instance.ball_size)
         instance.paddle_size = validated_data.get('paddle_size', instance.paddle_size)
+        instance.power_jump = validated_data.get('power_jump', instance.power_jump)
         instance.theme = validated_data.get('theme', instance.theme)
         instance.font_size = validated_data.get('font_size', instance.font_size)
         instance.language = validated_data.get('language', instance.language)

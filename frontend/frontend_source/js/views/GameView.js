@@ -195,6 +195,7 @@ export default class extends AbstractView
             game_speed: "normal",
             ball_size: "medium",
             paddle_size: "normal",
+            power_jump: "on",
             theme: "light",
             font_size: "medium",
             language: "eng",
@@ -523,11 +524,59 @@ export default class extends AbstractView
 		// Set canvas
 		await this.goToGameView();
 
+        // Fetch current settings from the server
+        let settingsData = {
+            game_speed: "normal",
+            ball_size: "medium",
+            paddle_size: "normal",
+            power_jump: "on",
+            theme: "light",
+            font_size: "medium",
+            language: "eng",
+            players: Array(4).fill().map((_, index) => ({ player_name: '', position: index + 1 }))
+        };
+
+        try {
+            console.log("Fetching settings from /pong_api/pong_settings/");
+            const response = await authFetch("/pong_api/pong_settings/", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("Response status:", response.status);
+            const responseText = await response.text();
+            console.log("Response text:", responseText);
+            if (!response.ok) {
+                throw new Error(this.extractErrorMessage(responseText, response.status));
+            }
+            const data = JSON.parse(responseText);
+            console.log("Settings data:", data);
+            if (data.ok && data.settings && typeof data.settings === "object") {
+                settingsData = {
+                    ...data.settings,
+                    players: Array(4).fill().map((_, index) => {
+                        const player = data.settings.players?.find(p => p.position === index + 1);
+                        return { player_name: player?.player_name || '', position: index + 1 };
+                    })
+                };
+            } else {
+                console.warn("Invalid settings response:", data);
+                throw new Error("Invalid settings data received");
+            }
+        } catch (error) {
+            console.error("Failed to load settings:", error);
+            alert("Error loading settings: " + error.message);
+            // Fall back to defaults defined above
+        }
+    
 		var game_data = {};
 
 		game_data.game_type = 'snek';
 
-		game_data.fps = 10;
+		game_data.fps = 8;
+        if (settingsData.game_speed == "slow")
+		    game_data.fps = 5;
+        else if (settingsData.game_speed == "fast")
+		    game_data.fps = 12;
 		game_data.delay = 1000 / game_data.fps;
 	
 		game_data.players = [];
@@ -542,17 +591,21 @@ export default class extends AbstractView
 		game_data.cols = game_data.canvas.width / game_data.grid;
 		game_data.rows = game_data.canvas.height / game_data.grid;
 
+        let power_jump = true;
+        if (settingsData.power_jump == "off")
+		    power_jump = false;
+
 		if (player_left2 === null && player_right2 === null)
 		{
-			this.create_snek_player(game_data, player_left1, 'left', '#24a7a1', 20, 4, 1, 0, 'w', 's', 'a', 'd', 'r');
-			this.create_snek_player(game_data, player_right1, 'right', '#ff9810', 20, 55, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l");
+			this.create_snek_player(game_data, player_left1, 'left', '#24a7a1', 20, 4, 1, 0, 'w', 's', 'a', 'd', 'r', power_jump);
+			this.create_snek_player(game_data, player_right1, 'right', '#ff9810', 20, 55, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l", power_jump);
 		}
 		else
 		{
-			this.create_snek_player(game_data, player_left1, 'left', '#24a7a1', 10, 4, 1, 0, 'w', 's', 'a', 'd', 'r');
-			this.create_snek_player(game_data, player_right1, 'right', '#ff9810', 10, 55, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l");
-			this.create_snek_player(game_data, player_left2, 'left', '#24a7a1', 30, 4, 1, 0, '1', '2', '3', '4', '5');
-			this.create_snek_player(game_data, player_right2, 'right', '#ff9810', 30, 55, -1, 0, '6', '7', '8', '9', "0");
+			this.create_snek_player(game_data, player_left1, 'left', '#24a7a1', 10, 4, 1, 0, 'w', 's', 'a', 'd', 'r', power_jump);
+			this.create_snek_player(game_data, player_right1, 'right', '#ff9810', 10, 55, -1, 0, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', "l", power_jump);
+			this.create_snek_player(game_data, player_left2, 'left', '#24a7a1', 30, 4, 1, 0, '1', '2', '3', '4', '5', power_jump);
+			this.create_snek_player(game_data, player_right2, 'right', '#ff9810', 30, 55, -1, 0, '6', '7', '8', '9', "0", power_jump);
 		}
 
 		this.draw_initial_snek_frame.bind(this, game_data)();
@@ -630,7 +683,7 @@ export default class extends AbstractView
 
 	/* ---------------------------------------------------------- Snek Game helpers ---------------------------------------------------------- */
 
-	create_snek_player(game_data, name, side, color, y, x, dx, dy, up, down, left, right, jump)
+	create_snek_player(game_data, name, side, color, y, x, dx, dy, up, down, left, right, jump, bool_jump)
 	{
 		var player = 
 		{
@@ -648,7 +701,7 @@ export default class extends AbstractView
 			start_dy: dy
 		};
 
-		this.add_snek_player_listeners(player, up, down, left, right, jump);
+		this.add_snek_player_listeners(player, up, down, left, right, jump, bool_jump);
 
 		game_data.players.push(player);
 	}
@@ -718,12 +771,12 @@ export default class extends AbstractView
 
 	/* ------------------------------------------------------------ Key press listeners ------------------------------------------------------------ */
 
-	add_snek_player_listeners(player, up, down, left, right, jump)
+	add_snek_player_listeners(player, up, down, left, right, jump, bool_jump)
 	{
-		document.addEventListener('keydown', e => this.snek_pong_player_keydown_listener(e, player, up, down, left, right, jump));
+		document.addEventListener('keydown', e => this.snek_pong_player_keydown_listener(e, player, up, down, left, right, jump, bool_jump));
 	}
 
-	snek_pong_player_keydown_listener(e, player, up, down, left, right, jump)
+	snek_pong_player_keydown_listener(e, player, up, down, left, right, jump, bool_jump)
 	{
 		if (e.key === up && player.dy !== 1)
 		{        
@@ -746,7 +799,7 @@ export default class extends AbstractView
 			player.dy = 0;
 		}
 
-		if (e.key === jump)
+		if (bool_jump == true && e.key === jump)
 		{
 			if (player.dx !== 0)
 				player.x += (player.dx > 0 ? 5 : -5);

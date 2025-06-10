@@ -1,7 +1,7 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import User
 
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 # Create your models here.
@@ -14,35 +14,35 @@ class PongSession(models.Model):
     active_player_4 = models.ForeignKey("PongPlayer", null=True, blank=True, on_delete=models.SET_NULL, related_name="active_player_4")
 
     def __str__(self):
-        return self.user.username
+        return str(self.user.username)
 
-# On signal create PongSession for User
-# change it so that active players can be created in setting tab and their names can be changed
 @receiver(post_save, sender=User)
 def create_pong_session(sender, instance, created, **kwargs):
     if created:
-        session = PongSession.objects.create(user=instance)
-        session.active_player_1 = PongPlayer.objects.create(player_session = session, player_name = "Player 1")
-        session.active_player_2 = PongPlayer.objects.create(player_session = session, player_name = "Player 2")
-        session.active_player_3 = PongPlayer.objects.create(player_session = session, player_name = "Player 3")
-        session.active_player_4 = PongPlayer.objects.create(player_session = session, player_name = "Player 4")
-    instance.pongsession.save()
+        with transaction.atomic():
+            session, session_created = PongSession.objects.get_or_create(user=instance)
+            if session_created or not session.active_player_1:
+                session.active_player_1 = PongPlayer.objects.create(player_session=session, player_name="Player 1")
+                session.active_player_2 = PongPlayer.objects.create(player_session=session, player_name="Player 2")
+                session.active_player_3 = PongPlayer.objects.create(player_session=session, player_name="Player 3")
+                session.active_player_4 = PongPlayer.objects.create(player_session=session, player_name="Player 4")
+                session.save()
 
 # Signal to create GameSettings
 @receiver(post_save, sender=User)
 def create_game_settings(sender, instance, created, **kwargs):
     if created:
-        GameSettings.objects.create(user=instance)
+        GameSettings.objects.get_or_create(user=instance)
 
 # Do we need this?
-def change_player_names(sender, instance, created, **kwargs):
-    if created:
+#def change_player_names(sender, instance, created, **kwargs):
+    #if created:
         # session = PongSession.objects.create(user=instance)
-        session.active_player_1 = PongPlayer.objects.change(player_session = session, player_name = kwargs)
+       # session.active_player_1 = PongPlayer.objects.change(player_session = session, player_name = kwargs)
         # session.active_player_2 = PongPlayer.objects.change(player_session = session, player_name = "Player 2")
         # session.active_player_3 = PongPlayer.objects.change(player_session = session, player_name = "Player 3")
         # session.active_player_4 = PongPlayer.objects.change(player_session = session, player_name = "Player 4")
-    instance.pongsession.save()
+   # instance.pongsession.save()
 
 
 class PongPlayer(models.Model):
@@ -86,6 +86,7 @@ class GameSettings(models.Model):
     game_speed = models.CharField(max_length=10, choices=[('slow', 'Slow'), ('normal', 'Normal'), ('fast', 'Fast')], default='normal')
     ball_size = models.CharField(max_length=10, choices=[('small', 'Small'), ('medium', 'Medium'), ('large', 'Large')], default='medium')
     paddle_size = models.CharField(max_length=10, choices=[('short', 'Short'), ('normal', 'Normal'), ('long', 'Long')], default='normal')
+    power_jump = models.CharField(max_length=10, choices=[('on', 'On'), ('off', 'Off')], default='on')
     theme = models.CharField(max_length=10, choices=[('light', 'Light'), ('dark', 'Dark')], default='light')
     font_size = models.CharField(max_length=10, choices=[('small', 'Small'), ('medium', 'Medium'), ('large', 'Large')], default='medium')
     language = models.CharField(max_length=10, choices=[('eng', 'English'), ('fin', 'Finnish'), ('swd', 'Swedish')], default='eng')

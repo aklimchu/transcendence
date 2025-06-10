@@ -42,38 +42,51 @@ from rest_framework.permissions import AllowAny
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def pong_register(request):
-	try:
-		if not request.body:
-			raise BadRequest("Request without body")
-		
-		data = json.loads(request.body)
-		username = escape(data.get("username"))
-		password = data.get("password")
+    try:
+        if not request.body:
+            return JsonResponse({"ok": False, "error": "Request without body", "statusCode": 400}, status=400)
 
-		if not username or not password:
-			return JsonResponse({"ok": False, "error": "Both username and password required", "statusCode": 400}, status=400)
+        data = json.loads(request.body)
+        username = escape(data.get("username"))
+        password = data.get("password")
+        email = escape(data.get("email", ""))
 
-		if User.objects.filter(username=username).exists():
-			return JsonResponse({"ok": False, "error": "Username already exists", "statusCode": 400}, status=400)
+        if not username or not password:
+            return JsonResponse({"ok": False, "error": "Both username and password required", "statusCode": 400}, status=400)
 
-		user = User.objects.create_user(username=username, password=password)
-		PongSession.objects.create(user=user)
-		refresh = RefreshToken.for_user(user)
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({"ok": False, "error": "Username already exists", "statusCode": 400}, status=400)
 
-		return JsonResponse({
-			"ok": True,
-			"refresh": str(refresh),
-			"access": str(refresh.access_token),
-			"user": {"id": user.id, "username": user.username},
-			"message": "User created successfully",
-			"statusCode": 201},
-			status=201)
+        with transaction.atomic():
+            # Create user
+            user = User.objects.create_user(username=username, password=password, email=email)
+            # Create or get PongSession
+            session, created = PongSession.objects.get_or_create(user=user)
+            if created or not session.active_player_1:
+                # Create players
+                session.active_player_1 = PongPlayer.objects.create(player_session=session, player_name="Player 1")
+                session.active_player_2 = PongPlayer.objects.create(player_session=session, player_name="Player 2")
+                session.active_player_3 = PongPlayer.objects.create(player_session=session, player_name="Player 3")
+                session.active_player_4 = PongPlayer.objects.create(player_session=session, player_name="Player 4")
+                session.save()
+            # Create GameSettings
+            GameSettings.objects.get_or_create(user=user)
+            # Generate tokens
+            refresh = RefreshToken.for_user(user)
 
-	except IntegrityError:
-		return JsonResponse({"ok": False, "error": "This username is already used", "statusCode": 400}, status=400)
-	except Exception as err:
-		return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+        return JsonResponse({
+            "ok": True,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "user": {"id": user.id, "username": user.username},
+            "message": "User created successfully",
+            "statusCode": 201
+        }, status=201)
 
+    except IntegrityError as e:
+        return JsonResponse({"ok": False, "error": f"Database error: {str(e)}", "statusCode": 400}, status=400)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": f"Registration failed: {str(e)}", "statusCode": 400}, status=400)
 
 
 
@@ -147,47 +160,47 @@ def get_session_tournaments(session_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def pong_session_data(request):
-	user = request.user
+    user = request.user
 
-	if not hasattr(user, "pongsession"):
-		return JsonResponse({
-			"ok": False,
-			"error": "No active session for user",
-			"statusCode": 404
-		}, status=404)
+    if not hasattr(user, "pongsession"):
+        return JsonResponse({
+            "ok": False,
+            "error": "No active session for user",
+            "statusCode": 404
+        }, status=404)
 
-	session = user.pongsession
+    session = user.pongsession
 
-	try:
-		active_players = {
-			"p1": get_player_data(session.active_player_1.id),
-			"p2": get_player_data(session.active_player_2.id),
-			"p3": get_player_data(session.active_player_3.id),
-			"p4": get_player_data(session.active_player_4.id)
-		}
+    try:
+        active_players = {
+            "p1": get_player_data(session.active_player_1.id) if session.active_player_1 else None,
+            "p2": get_player_data(session.active_player_2.id) if session.active_player_2 else None,
+            "p3": get_player_data(session.active_player_3.id) if session.active_player_3 else None,
+            "p4": get_player_data(session.active_player_4.id) if session.active_player_4 else None,
+        }
 
-		unfinished_tournament, finished_tournaments = get_session_tournaments(session.id)
+        unfinished_tournament, finished_tournaments = get_session_tournaments(session.id)
 
-		data = {
-			"players": active_players,
-			"games": get_session_games(session.id),
-			"unfinished_tournament": unfinished_tournament,
-			"finished_tournaments": finished_tournaments
-		}
+        data = {
+            "players": active_players,
+            "games": get_session_games(session.id),
+            "unfinished_tournament": unfinished_tournament,
+            "finished_tournaments": finished_tournaments
+        }
 
-		return JsonResponse({
-			"ok": True,
-			"message": "Session data successfuly retrieved",
-			"data": data,
-			"statusCode": 200
-		}, status=200)
+        return JsonResponse({
+            "ok": True,
+            "message": "Session data successfully retrieved",
+            "data": data,
+            "statusCode": 200
+        }, status=200)
 
-	except Exception as err:
-		return JsonResponse({
-			"ok": False,
-			"error": str(err),
-			"statusCode": 400
-		}, status=400)
+    except Exception as err:
+        return JsonResponse({
+            "ok": False,
+            "error": str(err),
+            "statusCode": 400
+        }, status=400)
 	
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -414,6 +427,7 @@ def pong_update_settings(request):
                 "game_speed": settings.game_speed,
                 "ball_size": settings.ball_size,
                 "paddle_size": settings.paddle_size,
+                "power_jump": settings.power_jump,
                 "theme": settings.theme,
                 "font_size": settings.font_size,
                 "language": settings.language,
@@ -448,6 +462,7 @@ def pong_update_settings(request):
                 'game_speed': ['slow', 'normal', 'fast'],
                 'ball_size': ['small', 'medium', 'large'],
                 'paddle_size': ['short', 'normal', 'long'],
+                'power_jump': ['on', 'off'],
                 'theme': ['light', 'dark'],
                 'font_size': ['small', 'medium', 'large'],
                 'language': ['eng', 'fin', 'swd']
@@ -461,6 +476,7 @@ def pong_update_settings(request):
             settings.game_speed = data.get('game_speed', settings.game_speed)
             settings.ball_size = data.get('ball_size', settings.ball_size)
             settings.paddle_size = data.get('paddle_size', settings.paddle_size)
+            settings.power_jump = data.get('power_jump', settings.power_jump)
             settings.theme = data.get('theme', settings.theme)
             settings.font_size = data.get('font_size', settings.font_size)
             settings.language = data.get('language', settings.language)
