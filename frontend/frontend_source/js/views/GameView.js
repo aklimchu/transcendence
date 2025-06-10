@@ -15,7 +15,7 @@ export default class extends AbstractView
         try {
             json = await this.fetchSessionData();
             if (!json || !json.data) {
-                await this.goToNoAuth("Session expired. Please log in again.");
+                await this.goToNoAuth();
                 return;
             }
         } catch (err) {
@@ -116,7 +116,7 @@ export default class extends AbstractView
 		try {
 			var json = await this.fetchSessionData();
 			if (!json || !json.data) {
-				await this.goToNoAuth("Session expired. Please log in again.");
+				await this.goToNoAuth();
 				return;
 			}
 		} catch(err) {
@@ -746,7 +746,7 @@ export default class extends AbstractView
 					body: JSON.stringify({game_type: game_type, tournament: tournament, winner1: w1, winner2: w2, loser1: l1, loser2: l2, score: score})});
 			
 			if (!response) {
-				this.goToNoAuth("Session expired. Please log in again.");
+				this.goToNoAuth("No response from server");
 				return;
 			}
 			if (!response.ok) {

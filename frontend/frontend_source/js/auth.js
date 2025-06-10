@@ -95,7 +95,7 @@ export async function logout_func() {
 	if (!response || !response.ok) {
 		showErrorMessage("Failed to log out from server, but local session cleared.", 0);
 	} else {
-		showSuccessMessage("Logged out successfully.", 1);
+		showSuccessMessage("Logged out successfully.", 0);
 	}
 	setTimeout(() => { if (typeof router === "function") router(null);}, 2000);
 	return true;
@@ -140,8 +140,8 @@ function showErrorMessage(message, index) {
 }
 
 function showSuccessMessage(message, index) {
-	const alertBox = document.getElementById("error-alert");
-	const errorMessage = document.getElementById("error-message");
+	const alertBox = document.getElementById("success-alert");
+	const errorMessage = document.getElementById("success-message");
 	if (!alertBox || !errorMessage) return;
 	errorMessage.innerHTML = message;
 	alertBox.style.display = "block";
@@ -157,7 +157,7 @@ function showSuccessMessage(message, index) {
 		alertBox.style.textAlign = "center";
 		let verticalPosition;
 		if (index === 0)
-			verticalPosition = "62.5%";
+			verticalPosition = "12.5%";
 		else if (index === 1)
 			verticalPosition = "58%";
 		else
@@ -174,7 +174,7 @@ function showSuccessMessage(message, index) {
 	setTimeout(() => {
 		alertBox.classList.remove("show");
 		alertBox.style.display = "none";
-	}, 3000);
+	}, 1000);
 }
 
 export async function authFetch(url, options = {}) {

@@ -8,40 +8,13 @@ export default class extends AbstractView
     	super(params);
 	}
 
-// 	async fetchStatsData()
-// 	{
-// 		try
-// 		{
-// 			const response = await authFetch("pong_api/pong_stats_data/", {method: "GET"});
-			
-// 			if (!response) {
-// 				this.goToNoAuth("Session expired. Please log in again.");
-// 				return;
-// 			}
-// 			if (!response.ok) {
-// 				this.goToError();
-// 				return;
-// 			}
-// 			return await response.json();
-// 		}
-// 		catch(err)
-// 		{
-// //			console.error(err.message);
-// 			if (err.message === "No response from server")
-// 				this.goToNoAuth("Session expired. Please log in again.");
-// 			else
-// 				this.goToError();
-// 			throw err;
-// 		}
-// 	}
-
     async goToView()
     {
         let json;
         try {
             json = await this.fetchSessionData();
             if (!json || !json.data) {
-                await this.goToNoAuth("Session expired. Please log in again.");
+                await this.goToNoAuth();
                 return;
             }
         } catch (err) {

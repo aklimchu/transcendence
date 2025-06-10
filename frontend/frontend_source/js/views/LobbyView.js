@@ -14,7 +14,7 @@ export default class extends AbstractView
         try {
             json = await this.fetchSessionData();
             if (!json || !json.data) {
-                await this.goToNoAuth("Session expired. Please log in again.");
+                await this.goToNoAuth();
                 return;
             }
         } catch (err) {

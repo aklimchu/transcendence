@@ -13,7 +13,7 @@ export default class
 		{
 			var response = await authFetch("pong_api/pong_session_data/", {method: "GET"});
 			if (!response) {
-				this.goToNoAuth("Session expired. Please log in again.");
+				this.goToNoAuth("No response from server. Please try again.");
 				return;
 			}
 			if (!response.ok) {
@@ -24,7 +24,6 @@ export default class
 		}
 		catch(err)
 		{
-//			console.error(err.message);
 			if (err.message === "No response from server")
 				this.goToNoAuth("Session expired. Please log in again.");
 			else

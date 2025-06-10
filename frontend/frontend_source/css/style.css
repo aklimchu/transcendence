@@ -41,12 +41,25 @@ body::before {
     margin-right: 20px;
 }
 
+#success-alert {
+	justify-content: space-between;
+	align-items: center;
+	position: fixed;
+	padding-right: 40px;
+	z-index: 1000;
+}
+
+#success-message {
+	margin-right: 20px;
+}
+
+
 .btn-close {
     position: absolute;
     top: 50%;
     right: 10px;
     transform: translateY(-8%);
-}
+} 
 
 
 /* ----------------------------- Navbar Style ----------------------------- */
