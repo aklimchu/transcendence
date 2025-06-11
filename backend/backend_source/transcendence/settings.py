@@ -52,7 +52,11 @@ INSTALLED_APPS = [
     'pong',
 	'rest_framework',
 	'rest_framework_simplejwt',
-	'rest_framework_simplejwt.token_blacklist'
+	'rest_framework_simplejwt.token_blacklist',
+	'django_otp',
+	'django_otp.plugins.otp_static',
+	'django_otp.plugins.otp_totp',
+	'two_factor',
 ]
 
 REST_FRAMEWORK = {

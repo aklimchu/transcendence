@@ -23,5 +23,6 @@ urlpatterns = [
     path('pong_api/', include("pong.urls")),
 	path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
 	path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-	path('api/token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist')
+	path('api/token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist'),
+	path('two_factor/', include('two_factor.urls', 'two_factor')),
 ]
