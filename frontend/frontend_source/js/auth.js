@@ -1,18 +1,3 @@
-export function getCookie(name) {
-	let cookieValue = null;
-	if (document.cookie && document.cookie !== '') {
-		const cookies = document.cookie.split(';');
-		for (let i = 0; i < cookies.length; i++) {
-			const cookie = cookies[i].trim();
-			if (cookie.substring(0, name.length + 1) === (name + '=')) {
-				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-				break;
-			}
-		}
-	}
-	return cookieValue;
-}
-
 export async function register_func(user, pwd) {
 	try {
 		const response = await authFetch("/pong_api/pong_register/", {
@@ -26,19 +11,28 @@ export async function register_func(user, pwd) {
 			return false;
 		}
 		if (!response.ok) {
-			let errorMsg = "Registration failed. Please try again.";
+			let errorMsg = `Registration failed (${response.status}).`;
 			try {
 				const errorData = await response.json();
 				if (errorData && errorData.error)
-					errorMsg = errorData.error;
-			} catch {}
+					errorMsg = `Registration failed: ${errorData.error} (${response.status})`;
+				else if (errorData && errorData.detail)
+					errorMsg = `Registration failed: ${errorData.detail} (${response.status})`;
+			} catch (e) {
+				errorMsg += " (Could not parse error details)";
+			}
 			showErrorMessage(errorMsg, 0);
 			return false;
 		}
 		showSuccessMessage("Registration successful! Logging in...", 0);
-		return true;
+
+		await new Promise(resolve => setTimeout(resolve, 750));
+
+		const data = await response.json();		
+		const loginResult = await login_func(user, pwd);
+		return loginResult;
 	} catch (err) {
-		console.error(err.message);
+		showErrorMessage(`Registration error: ${err.message}`, 0);
 		return false;
 	}
 }
@@ -101,12 +95,23 @@ export async function logout_func() {
 	return true;
 }
 
+let errorAlertTimeout = null;
+let successAlertTimeout = null;
+
 function showErrorMessage(message, index) {
+	console.log("showErrorMessage:", message);
 	const alertBox = document.getElementById("error-alert");
 	const errorMessage = document.getElementById("error-message");
 	if (!alertBox || !errorMessage) return;
-	errorMessage.innerHTML = message;
+
+	if (errorAlertTimeout) clearTimeout(errorAlertTimeout);
+
+	alertBox.classList.remove("fade", "show");
 	alertBox.style.display = "block";
+	void alertBox.offsetWidth;
+
+	errorMessage.innerHTML = message;
+
 	if (index !== 2) {
 		alertBox.style.backgroundColor = "red";
 		alertBox.style.color = "orange";
@@ -127,24 +132,46 @@ function showErrorMessage(message, index) {
 		alertBox.style.top = verticalPosition;
 		alertBox.style.left = "50%";
 		alertBox.style.transform = "translateX(-50%)";
-		alertBox.style.width = "282px";
-		alertBox.style.height = "60px";
+		alertBox.style.minWidth = "200px";
+		alertBox.style.maxWidth = "90vw";
+		alertBox.style.padding = "16px";
+		alertBox.style.wordBreak = "break-word";
+		alertBox.style.whiteSpace = "pre-line";
 		alertBox.style.cursor = "pointer";
 		alertBox.style.fontSize = "20px";
 	}
-	alertBox.classList.add("show");
-	setTimeout(() => {
+
+	alertBox.classList.add("fade", "show");
+
+	errorAlertTimeout = setTimeout(() => {
 		alertBox.classList.remove("show");
 		alertBox.style.display = "none";
 	}, 3000);
+
+	const closeButton = alertBox.querySelector(".btn-close");
+	if (closeButton) {
+		closeButton.onclick = () => {
+			alertBox.classList.remove("show");
+			alertBox.style.display = "none";
+			if (errorAlertTimeout) clearTimeout(errorAlertTimeout);
+		};
+	}
 }
 
 function showSuccessMessage(message, index) {
+	console.log("showSuccessMessage:", message);
 	const alertBox = document.getElementById("success-alert");
 	const errorMessage = document.getElementById("success-message");
 	if (!alertBox || !errorMessage) return;
-	errorMessage.innerHTML = message;
+
+	if (successAlertTimeout) clearTimeout(successAlertTimeout);
+
+	alertBox.classList.remove("fade", "show");
 	alertBox.style.display = "block";
+	void alertBox.offsetWidth;
+
+	errorMessage.innerHTML = message;
+
 	if (index !== 2) {
 		alertBox.style.backgroundColor = "green";
 		alertBox.style.color = "white";
@@ -157,7 +184,7 @@ function showSuccessMessage(message, index) {
 		alertBox.style.textAlign = "center";
 		let verticalPosition;
 		if (index === 0)
-			verticalPosition = "12.5%";
+			verticalPosition = "22.5%";
 		else if (index === 1)
 			verticalPosition = "58%";
 		else
@@ -165,16 +192,30 @@ function showSuccessMessage(message, index) {
 		alertBox.style.top = verticalPosition;
 		alertBox.style.left = "50%";
 		alertBox.style.transform = "translateX(-50%)";
-		alertBox.style.width = "282px";
-		alertBox.style.height = "60px";
+		alertBox.style.minWidth = "200px";
+		alertBox.style.maxWidth = "90vw";
+		alertBox.style.padding = "16px";
+		alertBox.style.wordBreak = "break-word";
+		alertBox.style.whiteSpace = "pre-line";
 		alertBox.style.cursor = "pointer";
 		alertBox.style.fontSize = "20px";
 	}
-	alertBox.classList.add("show");
-	setTimeout(() => {
+
+	alertBox.classList.add("fade", "show");
+
+	successAlertTimeout = setTimeout(() => {
 		alertBox.classList.remove("show");
 		alertBox.style.display = "none";
-	}, 1000);
+	}, 3000);
+
+	const closeButton = alertBox.querySelector(".btn-close");
+	if (closeButton) {
+		closeButton.onclick = () => {
+			alertBox.classList.remove("show");
+			alertBox.style.display = "none";
+			if (successAlertTimeout) clearTimeout(successAlertTimeout);
+		};
+	}
 }
 
 export async function authFetch(url, options = {}) {

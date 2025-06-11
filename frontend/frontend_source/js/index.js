@@ -4,7 +4,6 @@ import Tournament from "./views/TournamentView.js";
 import Settings from "./views/SettingsView.js";
 import Stats from "./views/StatsView.js";
 import { login_func, register_func, logout_func, authFetch } from './auth.js';
-import { getCookie } from './auth.js';
 
 async function history_and_router(view_id)
 {

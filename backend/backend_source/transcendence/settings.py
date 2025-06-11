@@ -35,7 +35,12 @@ ALLOWED_HOSTS = [
 	"127.0.0.1:8042",
 ]
 
-# Application definition
+CSRF_TRUSTED_ORIGINS = [
+	"https://localhost:8042",
+	"https://127.0.1:8042",
+	"https://[::1]:8042",
+	"https://localhost:8042/admin"
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',

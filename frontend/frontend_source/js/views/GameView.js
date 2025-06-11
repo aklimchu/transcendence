@@ -1,6 +1,6 @@
  
 import AbstractView from "./AbstractView.js";
-import { authFetch, getCookie } from '../auth.js';
+import { authFetch } from '../auth.js';
 
 export default class extends AbstractView
 {

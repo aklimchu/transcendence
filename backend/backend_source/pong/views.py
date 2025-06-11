@@ -42,37 +42,40 @@ from rest_framework.permissions import AllowAny
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def pong_register(request):
-	try:
-		if not request.body:
-			raise BadRequest("Request without body")
-		
-		data = json.loads(request.body)
-		username = escape(data.get("username"))
-		password = data.get("password")
+    try:
+        if not request.body:
+            raise BadRequest("Request without body")
+        
+        data = json.loads(request.body)
+        username = escape(data.get("username"))
+        password = data.get("password")
 
-		if not username or not password:
-			return JsonResponse({"ok": False, "error": "Both username and password required", "statusCode": 400}, status=400)
+        print(f"Attempting to register username: '{username}'")
+        print("Existing users:", list(User.objects.values_list('username', flat=True)))
 
-		if User.objects.filter(username=username).exists():
-			return JsonResponse({"ok": False, "error": "Username already exists", "statusCode": 400}, status=400)
+        if not username or not password:
+            return JsonResponse({"ok": False, "error": "Both username and password required", "statusCode": 400}, status=400)
 
-		user = User.objects.create_user(username=username, password=password)
-		PongSession.objects.create(user=user)
-		refresh = RefreshToken.for_user(user)
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({"ok": False, "error": "Username already exists", "statusCode": 400}, status=400)
 
-		return JsonResponse({
-			"ok": True,
-			"refresh": str(refresh),
-			"access": str(refresh.access_token),
-			"user": {"id": user.id, "username": user.username},
-			"message": "User created successfully",
-			"statusCode": 201},
-			status=201)
+        user = User.objects.create_user(username=username, password=password)
+        refresh = RefreshToken.for_user(user)
 
-	except IntegrityError:
-		return JsonResponse({"ok": False, "error": "This username is already used", "statusCode": 400}, status=400)
-	except Exception as err:
-		return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+        return JsonResponse({
+            "ok": True,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "user": {"id": user.id, "username": user.username},
+            "message": "User created successfully",
+            "statusCode": 201},
+            status=201)
+    except IntegrityError as e:
+        print("IntegrityError:", e)
+        return JsonResponse({"ok": False, "error": "This username is already used", "statusCode": 400}, status=400)
+    except Exception as err:
+        print("Exception:", err)
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
 
 
