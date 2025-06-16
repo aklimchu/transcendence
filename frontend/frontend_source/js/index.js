@@ -134,23 +134,34 @@ async function create_tournament_listener(event) {
             return;
         }
         try {
-            const response = await authFetch("pong_api/pong_create_tournament/", {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tournament_type: tournamentType })
-            });
-			if (!response) throw new Error("No response from server");
-            if (!response.ok) throw new Error("Failed to create tournament");
-        } catch (err) {
-            console.error(err.message);
-            return document.querySelector("#content").innerHTML = `
-            <div class="container my-5">
-            <div class="alert alert-danger text-center fs-5" role="alert" style="background-color: red; color: white; box-shadow: 0px 0px 5px white;">
-                <strong>Error:</strong> Something went terribly wrong!!
-            </div>
-            </div>
-            `;
-        }
+			const response = await authFetch("/pong_api/pong_create_tournament/", { // Added leading slash
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ tournament_type: tournamentType })
+			});
+			if (!response) {
+				console.error("No response from server");
+				throw new Error("No response from server");
+			}
+			if (!response.ok) {
+				const errorText = await response.text(); // Get server error message
+				console.error(`Failed to create tournament: HTTP ${response.status} - ${errorText}`);
+				throw new Error(`Failed to create tournament: ${errorText || "Unknown error"}`);
+			}
+			const data = await response.json();
+			console.log("Tournament created successfully:", data);
+			alert("Tournament created successfully!");
+			router("tournament_view"); // Navigate after success
+		} catch (err) {
+			console.error("Error creating tournament:", err.message);
+			document.querySelector("#content").innerHTML = `
+				<div class="container my-5">
+					<div class="alert alert-danger text-center fs-5" role="alert" style="background-color: red; color: white; box-shadow: 0px 0px 5px white;">
+						<strong>Error:</strong> ${err.message || "Something went terribly wrong!!"}
+					</div>
+				</div>
+			`;
+		}
         router("tournament_view");
     }
 }

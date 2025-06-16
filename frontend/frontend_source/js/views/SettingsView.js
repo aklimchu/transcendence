@@ -5,8 +5,8 @@ export default class extends AbstractView {
     constructor(params) {
         super(params);
     }
-	
-	extractErrorMessage(text, status) {
+
+    extractErrorMessage(text, status) {
         try {
             const cleanedText = text.trim().replace(/^\uFEFF/, '');
             const data = JSON.parse(cleanedText);
@@ -14,7 +14,7 @@ export default class extends AbstractView {
         } catch (e) {
             console.error("Parse error:", e, "Response status:", status, "Response text:", text);
             const errorMatch = text.match(/"error"\s*:\s*"([^"]+)"/i);
-    		console.log("Error match: ",  errorMatch);
+            console.log("Error match: ", errorMatch);
             if (errorMatch && errorMatch[1]) {
                 return errorMatch[1];
             }
@@ -26,8 +26,7 @@ export default class extends AbstractView {
         }
     }
 
-    async goToView()
-    {
+    async goToView() {
         let json;
         try {
             json = await this.fetchSessionData();
@@ -39,7 +38,7 @@ export default class extends AbstractView {
             await this.goToNoAuth("Session expired. Please log in again.");
             return;
         }
-		
+
         // Fetch current settings from the server
         let settingsData = {
             game_speed: "normal",
@@ -83,6 +82,9 @@ export default class extends AbstractView {
             alert("Error loading settings: " + error.message);
             // Fall back to defaults defined above
         }
+
+        // Apply the current theme
+        this.applyTheme(settingsData.theme);
 
         // Construct content with player names
         const content = `
@@ -179,88 +181,74 @@ export default class extends AbstractView {
         document.getElementById("save_settings").addEventListener("click", this.push_Settings.bind(this));
     }
 
-	push_Settings() {
-	    const getValue = (id) => document.getElementById(id)?.value || "";
-	    const players = [1, 2, 3, 4].map(player => {
+    applyTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme); // Optional: store locally for quick access
+    }
+
+    push_Settings() {
+        const getValue = (id) => document.getElementById(id)?.value || "";
+        const players = [1, 2, 3, 4].map(player => {
             const name = getValue(`player${player}_name`);
             if (name.trim()) {
                 return { player_name: name, position: player };
             }
-		}).filter(player => player); // Only include non-empty players
+        }).filter(player => player); // Only include non-empty players
 
-	    const settings = {
-	        game_speed: getValue("game_speed"),
-	        ball_size: getValue("ball_size"),
-	        paddle_size: getValue("paddle_size"),
+        const settings = {
+            game_speed: getValue("game_speed"),
+            ball_size: getValue("ball_size"),
+            paddle_size: getValue("paddle_size"),
             power_jump: getValue("power_jump"),
-	        theme: getValue("theme"),
-	        font_size: getValue("font_size"),
-	        language: getValue("language"),
-	        password: getValue("password"),
-	        players: players
-	    };
+            theme: getValue("theme"),
+            font_size: getValue("font_size"),
+            language: getValue("language"),
+            password: getValue("password"),
+            players: players
+        };
 
-	    authFetch('/pong_api/pong_settings/', {
-	        method: 'POST',
-	        headers: {
-	            'Content-Type': 'application/json',
-	            'X-CSRFToken': getCookie('csrftoken')
-	        },
-	        body: JSON.stringify(settings)
-	    })
-	    .then(response => {
+        authFetch('/pong_api/pong_settings/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(settings)
+        })
+        .then(response => {
             if (!response.ok) {
                 return response.text().then(text => {
-                        throw new Error(extractErrorMessage(text, response.status));
+                    throw new Error(this.extractErrorMessage(text, response.status));
                 });
             }
             return response.json();
         })
-	    .then(data => {
-	        if (data.ok) {
-	            alert("Settings saved successfully!");
-	        } else {
-	            alert("Error saving settings: " + data.error);
-	        }
-	    })
-	    .catch(error => {
-	        alert("Error saving settings: " + error.message);
-	        console.error(error);
-	    });
+        .then(data => {
+            if (data.ok) {
+                this.applyTheme(settings.theme); // Apply the new theme after successful save
+                alert("Settings saved successfully!");
+            } else {
+                alert("Error saving settings: " + data.error);
+            }
+        })
+        .catch(error => {
+            alert("Error saving settings: " + error.message);
+            console.error(error);
+        });
 
-		function extractErrorMessage(text, status) {
-		    try {
-		        const cleanedText = text.trim().replace(/^\uFEFF/, '');
-		        const data = JSON.parse(cleanedText);
-		        return data.error || `HTTP ${status} error`;
-		    } catch (e) {
-		        console.error("Parse error:", e, "Response status:", status, "Response text:", text);
-		        const errorMatch = text.match(/"error"\s*:\s*"([^"]+)"/i);
-				console.log("Error match: ",  errorMatch);
-		        if (errorMatch && errorMatch[1]) {
-		            return errorMatch[1];
-		        }
-		        const plainText = text.trim().substring(0, 100);
-		        if (plainText) {
-		            return `Server error (HTTP ${status}): ${plainText}${text.length > 100 ? '...' : ''}`;
-		        }
-		        return `Server error (HTTP ${status}): No error message available`;
-		    }
-		}
-
-	    function getCookie(name) {
-	        let cookieValue = null;
-	        if (document.cookie && document.cookie !== '') {
-	            const cookies = document.cookie.split(';');
-	            for (let i = 0; i < cookies.length; i++) {
-	                const cookie = cookies[i].trim();
-	                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-	                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-	                    break;
-	                }
-	            }
-	        }
-	        return cookieValue;
-	    }
-	}
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    }
 }

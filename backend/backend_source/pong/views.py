@@ -34,6 +34,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError
 
 #[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
 #[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
@@ -341,43 +342,83 @@ def pong_push_game(request):
 		return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
 
+logger = logging.getLogger(__name__)
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def pong_create_tournament(request):
-	try:
-		if not request.body:
-			raise BadRequest("Request without body")
+    try:
+        if not request.body:
+            raise ValidationError("Request without body")
 
-		user = request.user
-		session = user.pongsession
-		
-		data = json.loads(request.body)
-		tournament_type = data.get("tournament_type")
+        user = request.user
+        session = user.pongsession
 
-		unfinished_tournaments = PongTournament.objects.filter(Q(tournament_session=session.id) & Q(tournament_game_3=None))
+        data = json.loads(request.body.decode('utf-8'))
+        tournament_type = data.get("tournament_type")
 
-		if (unfinished_tournaments.count() > 0):
-			return JsonResponse({"ok": False, "error": "Can't have more than one tournament ongoing", "statusCode": 400}, status=400)
+        if not tournament_type or tournament_type not in ["pong", "snek"]:
+            raise ValidationError("Invalid or missing tournament_type")
 
-		session_players_list = [session.active_player_1, session.active_player_2, session.active_player_3, session.active_player_4]
+        unfinished_tournaments = PongTournament.objects.filter(
+            Q(tournament_session=session.id) & Q(tournament_game_3=None)
+        )
 
-		shuffle(session_players_list)
+        if unfinished_tournaments.count() > 0:
+            return Response({
+                "ok": False,
+                "error": "Can't have more than one tournament ongoing",
+                "statusCode": 400
+            }, status=400)
 
-		PongTournament.objects.create(
-			tournament_session=session,
-			tournament_type=tournament_type,
-			semi_one_p1 = session_players_list[0],
-			semi_one_p2 = session_players_list[1],
-			semi_two_p1 = session_players_list[2],
-			semi_two_p2 = session_players_list[3]
-		)
+        session_players_list = [
+            session.active_player_1,
+            session.active_player_2,
+            session.active_player_3,
+            session.active_player_4
+        ]
 
-		request.method = 'GET'
-		return pong_session_data(request)
+        shuffle(session_players_list)
 
-	except Exception as err:
-		return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+        tournament = PongTournament.objects.create(
+            tournament_session=session,
+            tournament_type=tournament_type,
+            semi_one_p1=session_players_list[0],
+            semi_one_p2=session_players_list[1],
+            semi_two_p1=session_players_list[2],
+            semi_two_p2=session_players_list[3]
+        )
 
+        # Construct response similar to pong_session_data
+        active_players = {
+            "p1": get_player_data(session.active_player_1.id) if session.active_player_1 else None,
+            "p2": get_player_data(session.active_player_2.id) if session.active_player_2 else None,
+            "p3": get_player_data(session.active_player_3.id) if session.active_player_3 else None,
+            "p4": get_player_data(session.active_player_4.id) if session.active_player_4 else None,
+        }
+
+        unfinished_tournament, finished_tournaments = get_session_tournaments(session.id)
+
+        response_data = {
+            "ok": True,
+            "message": "Tournament created and session data retrieved",
+            "data": {
+                "players": active_players,
+                "games": get_session_games(session.id),
+                "unfinished_tournament": unfinished_tournament,
+                "finished_tournaments": finished_tournaments
+            },
+            "statusCode": 200
+        }
+
+        return Response(response_data)
+
+    except ValidationError as ve:
+        return Response({"ok": False, "error": str(ve), "statusCode": 400}, status=400)
+    except Exception as err:
+        logger.error(f"Error in pong_create_tournament: {str(err)}")
+        return Response({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+    
 # Configure logging
 logger = logging.getLogger(__name__)
 

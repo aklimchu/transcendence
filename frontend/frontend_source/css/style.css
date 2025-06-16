@@ -1,12 +1,69 @@
 @import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
 
-:root
-{
+:root {
     font-size: 20px;
     font-family: 'Quicksand', sans-serif;
-    --text-secondary: #ececec;
     --transition-speed: 600ms;
-    color: #000000;
+}
+
+/* Light Theme (default) */
+[data-theme="light"] {
+    --text-primary: #000000;
+    --text-secondary: #ececec;
+    --bg-primary: #ffffff;
+    --bg-secondary: #ffa500;
+    --bg-tertiary: #008080;
+    --bg-accent: #005252;
+    --bg-overlay: url('perry.jpg');
+    --bg-opacity: 0.68;
+    --card-shadow: 3px 3px 6px #ffffff;
+    --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --border-color: #ffffff;
+    --link-color: #009579;
+    --victory-color: #157045;
+    --defeat-color: #931024;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #333333;
+    --bg-tertiary: #004d4d;
+    --bg-accent: #003333;
+    --bg-overlay: url('perry.jpg');
+    --bg-opacity: 0.5;
+    --card-shadow: 3px 3px 6px #000000;
+    --box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+    --border-color: #444444;
+    --link-color: #00cc99;
+    --victory-color: #2ecc71;
+    --defeat-color: #e74c3c;
+}
+
+/* New rule for the button */
+.custom-bg-primary {
+    background-color: var(--bg-primary) !important; /* Override Bootstrap btn-warning */
+	color: var(--text-primary);
+}
+
+/* StatsView Styles */
+.stats-title {
+    color: var(--text-primary); /* Uses theme-specific bg-accent */
+}
+
+.stats-card {
+    border: 3px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    border-radius: 10px;
+    height: 80vh;
+    padding: 1rem;
+}
+
+body {
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
 }
 
 body::before {
@@ -16,17 +73,17 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: url('perry.jpg');
+    background: var(--bg-overlay);
     background-size: cover;
     background-position: 100%;
-    opacity: 0.68; 
+    opacity: var(--bg-opacity);
     z-index: -1;
 }
 
 .first-card {
     border-radius: 12px;
-    box-shadow: 3px 3px 6px #ffffff;
-    background-color: #ffa500;
+    box-shadow: var(--card-shadow);
+    background-color: var(--bg-secondary);
 }
 
 #error-alert {
@@ -35,6 +92,8 @@ body::before {
     position: fixed;
     padding-right: 40px;
     z-index: 1000;
+    background-color: var(--bg-accent);
+    color: var(--text-secondary);
 }
 
 #error-message {
@@ -46,41 +105,32 @@ body::before {
     top: 50%;
     right: 10px;
     transform: translateY(-8%);
+    color: var(--text-secondary);
 }
 
-
-/* ----------------------------- Navbar Style ----------------------------- */
-
-.navbar
-{
+/* Navbar Style */
+.navbar {
     position: fixed;
     top: 0;
     width: 5rem;
     height: 100vh;
-    background-color: #222222;
+    background-color: var(--bg-accent);
     opacity: 0;
-    display: "none";
+    display: none;
     z-index: 1;
-    transition: width 600ms ease;
-    -webkit-transition: opacity 600ms ease;
-    -moz-transition: opacity 600ms ease;
-    -ms-transition: opacity 600ms ease;
-    -o-transition: opacity 600ms ease;
-    transition: opacity 600ms ease;
+    transition: width 600ms ease, opacity 600ms ease;
 }
 
-.navbar:hover
-{
+.navbar:hover {
     width: 15rem;
+    opacity: 1;
 }
 
-.navbar:hover .link-text
-{
+.navbar:hover .link-text {
     display: inline;
 }
 
-.navbar_nav
-{
+.navbar_nav {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -90,76 +140,61 @@ body::before {
     height: 100%;
 }
 
-.nav_item
-{
+.nav_item {
     width: 100%;
 }
 
-.nav_link
-{
+.nav_link {
     display: flex;
     align-items: center;
     height: 5rem;
-    color: #eeeeee;
+    color: var(--text-secondary);
     text-decoration: none;
     transition: var(--transition-speed);
     filter: grayscale(100%) opacity(0.7);
 }
 
-.nav_link svg
-{
+.nav_link svg {
     width: 3rem;
     min-width: 3rem;
     margin: 1rem;
+    fill: var(--text-secondary);
 }
 
-.nav_link:hover
-{
+.nav_link:hover {
     filter: grayscale(0%) opacity(1);
-    background: #006666;
-    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
-object
-{
+object {
     pointer-events: none;
 }
 
-.link-text
-{
+.link-text {
     display: none;
     margin-left: 1rem;
 }
 
-a
-{
-    color: #009579;
+a {
+    color: var(--link-color);
 }
 
-
-/* ----------------------------- Content Style ----------------------------- */
-
-#content
-{
+/* Content Style */
+#content {
     display: flex;
-    justify-content: center;  
+    justify-content: center;
     align-items: center;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
-    -webkit-transition: opacity .4s ease-in-out;
-    -moz-transition: opacity .4s ease-in-out;
-    -ms-transition: opacity .4s ease-in-out;
-    -o-transition: opacity .4s ease-in-out;
-    transition: opacity .4s ease-in-out;
+    transition: opacity 0.4s ease-in-out;
 }
-
 
 .teal-container {
     position: relative;
-    /*height: 30vh;*/
     height: 45%;
     width: 30rem;
     display: flex;
@@ -168,10 +203,10 @@ a
 }
 
 .teal-box {
-    background-color: teal;
+    background-color: var(--bg-tertiary);
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--box-shadow);
     position: relative;
     overflow: hidden;
     opacity: 0;
@@ -180,17 +215,17 @@ a
 
 .hover-overlay {
     position: absolute;
-    top: 10;
+    top: 10px;
     left: 0;
     width: 50%;
     height: 50%;
-    background-color: #ffa500;
+    background-color: var(--bg-secondary);
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 36px;
-    border: 3px solid white;
-    color: #005252;
+    border: 3px solid var(--border-color);
+    color: var(--text-primary);
     font-size: 2rem;
     font-weight: bold;
     opacity: 1;
@@ -205,83 +240,66 @@ a
     opacity: 1;
 }
 
-
 #content label {
     font-weight: bold;
     margin-right: 10px;
+    color: var(--text-primary); /* Changed from inherited context */
 }
 
 #content select {
     max-width: 220px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
 #content .btn {
     min-width: 180px;
+    background-color: var(--bg-accent);
+    color: var(--text-secondary);
 }
 
 .game-card {
-    background-color: orange !important;
-    box-shadow: 0px 0px 5px white !important;
+    background-color: var(--bg-secondary) !important;
+    box-shadow: 0px 0px 5px var(--border-color) !important;
     border-radius: 24px;
 }
 
 .go-back-btn {
-    box-shadow: 0px 0px 5px white !important;
+    box-shadow: 0px 0px 5px var(--border-color) !important;
     border-radius: 24px;
+    background-color: var(--bg-accent);
+    color: var(--text-secondary);
 }
 
 .game-status-card {
-    color: orange;
-    background-color: #005252 !important;
-    box-shadow: 0px 0px 5px white !important;
+    color: var(--bg-secondary);
+    background-color: var(--bg-accent) !important;
+    box-shadow: 0px 0px 5px var(--border-color) !important;
     border-radius: 24px;
 }
 
 .side-text-color {
-    color: teal;
+    color: var(--bg-tertiary);
 }
 
-/* ----------------------------- Lobby View Style ----------------------------- */
-
+/* Lobby View Style */
 .lobby-card-title {
-    color: #002E2E;
+    color: var(--text-primary);
 }
 
-.lobby-card1 {
-    border: 2px solid white;
-    background-color: #ffa500;
+.lobby-card1, .lobby-card2, .lobby-card3, .lobby-card4 {
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-secondary);
     border-radius: 10px;
-    /* box-shadow: 0px 0px 10px white !important; */
 }
 
-.lobby-card2 {
-    border: 2px solid white;
-    background-color: orange;
-    border-radius: 10px;
-    /* box-shadow: 0px 0px 10px white !important; */
-}
-
-.lobby-card3 {
-    border: 2px solid white;
-    background-color:orange;
-    border-radius: 10px;
-    /* box-shadow: 0px 0px 10px white !important; */
-}
-
-.lobby-card4 {
-    border: 2px solid white;
-    background-color:orange;
-    border-radius: 10px;
-    /* box-shadow: 0px 0px 10px white !important; */
-}
-
-/* ----------------------------- Tournament View Style ----------------------------- */
-
+/* Tournament View Style */
 .custom-btn {
-    background-color: orange;
-    color: teal;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
     font-weight: bold;
-    border: 3px solid white;
+    border: 3px solid var(--border-color);
     font-size: 1.5rem;
     padding: 1rem 2rem;
     border-radius: 0.5rem;
@@ -290,28 +308,27 @@ a
 }
 
 .custom-btn:hover {
-    background-color: teal;
-    color: white;
-    border-color: white;
-    box-shadow: 0 0 20px orange;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    box-shadow: 0 0 20px var(--bg-secondary);
 }
 
 .card {
-    background-color: #008080 !important;
-    box-shadow: 0 0 20px white !important;
+    background-color: var(--bg-tertiary) !important;
+    box-shadow: 0 0 20px var(--border-color) !important;
 }
 
 .card-header {
-    color: black !important;
-    background-color: #ffa500 !important;
-    box-shadow: 0px 0px 5px white !important;
+    color: var(--text-primary) !important;
+    background-color: var(--bg-secondary) !important;
+    box-shadow: 0px 0px 5px var(--border-color) !important;
 }
 
-/* ----------------------------- Statistics View Style ----------------------------- */
-
+/* Statistics View Style */
 .stats-card {
-    border: 3px solid white;
-    background-color: orange;
+    border: 3px solid var(--border-color);
+    background-color: var(--bg-secondary);
     border-radius: 10px;
     height: 80vh;
     padding: 1rem;
@@ -323,11 +340,10 @@ a
 }
 
 .text-teal {
-    color: #008080 !important;
+    color: var(--bg-tertiary) !important;
 }
 
-/* ----------------------------- Settings View Style ----------------------------- */
-
+/* Settings View Style */
 .settings-wrapper {
     width: 1200px;
     gap: 20px;
@@ -342,16 +358,16 @@ a
 }
 
 .settings-container {
-    background-color: orange;
+    background-color: var(--bg-secondary);
     padding: 10px;
     border-radius: 20px;
     box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.3);
-    border: 4px solid white;
+    border: 4px solid var(--border-color);
 }
 
 #save_settings {
-    background-color: #005252;
-    color: white;
+    background-color: var(--bg-accent);
+    color: var(--text-secondary);
     font-weight: bold;
     font-size: 1.5rem;
     border-radius: 0.5rem;
@@ -366,27 +382,33 @@ a
 
 #settings-form label {
     font-weight: bold;
-    color: #005252;
+    color: var(--text-primary); /* Changed from var(--bg-accent) */
     font-size: 1rem;
 }
 
 #settings-form select,
 #settings-form input {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border-radius: 12px;
-  border: none;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+#settings-form input::placeholder {
+    color: var(--text-secondary); /* Ensure placeholder is visible */
 }
 
 .player-settings-container {
     width: 490px;
-    background-color: orange;
+    background-color: var(--bg-secondary);
     padding: 30px;
     border-radius: 20px;
-    box-shadow: 6px 6px 20px gray;
-    border: 4px solid white;
+    box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.3);
+    border: 4px solid var(--border-color);
 }
 
 .player-settings {
@@ -402,20 +424,20 @@ a
     justify-content: center;
     width: 200px;
     height: 200px;
-    border: 3px solid #005252;
+    border: 3px solid var(--bg-accent);
     border-radius: 18px;
     font-weight: bold;
     font-size: 1.1rem;
-    color: black;
+    color: var(--text-primary);
     cursor: pointer;
-    background-color: #ffffff;
+    background-color: var(--bg-primary);
     transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
 .player-box:hover {
     transform: scale(1.03);
     padding: 20px;
-    background-color: white;
+    background-color: var(--bg-primary);
 }
 
 .player-box:hover .player-config {
@@ -436,7 +458,7 @@ a
     font-weight: bold;
     display: block;
     margin-top: 10px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .player-config input {
@@ -446,10 +468,12 @@ a
     border-radius: 10px;
     border: none;
     margin-top: 4px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
-.head{
+.head {
     text-align: center;
     margin-bottom: 30px;
-    color: #005252;
+    color: var(--text-primary); /* Changed from var(--bg-accent) */
 }
