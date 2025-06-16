@@ -42,6 +42,11 @@ export default class extends GameView
             game_type = 'pong';
         else
             game_type = 'snek';
+
+		// Get the theme from the body (similar to StatsView.js)
+		const theme = document.body.getAttribute('data-theme') || 'light';
+		// Define button colors based on theme
+		const buttonColor = theme === 'dark' ? '#ffb84d' : '#cc8400'; // Lighter orange for dark, darker for light
     
         // --------------------------------------- Semifinal 1 ---------------------------------------
         console.log(json.data["unfinished_tournament"]);
@@ -60,8 +65,8 @@ export default class extends GameView
                             <option>${json.data["unfinished_tournament"]["semi_one_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_one_p2"]}</option>
                         </select>
-                        <button type="button" class="play_game_btn btn btn-warning mt-3 ${game_type} 1v1 T1 custom-bg-primary" data-left="semi1-left" data-right="semi1-right">
-    						Play ${game_type}
+                        <button type="button" class="play_game_btn btn btn-warning mt-3 ${game_type} 1v1 T1" data-left="semi1-left" data-right="semi1-right" style="background-color: #ffa500;">
+							Play ${game_type}
 						</button>
                     </div>
                 </div>`;
@@ -93,8 +98,8 @@ export default class extends GameView
                             <option>${json.data["unfinished_tournament"]["semi_two_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_two_p2"]}</option>
                         </select>
-                        <button type="button" class="play_game_btn btn btn-warning mt-3 ${game_type} 1v1 T1 custom-bg-primary" data-left="semi1-left" data-right="semi1-right">
-    						Play ${game_type}
+                        <button type="button" class="play_game_btn btn btn-warning mt-3 ${game_type} 1v1 T2" data-left="semi2-left" data-right="semi2-right" style="background-color: #ffa500;">
+							Play ${game_type}
 						</button>
                     </div>
                 </div>`;
