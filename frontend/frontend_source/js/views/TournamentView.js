@@ -1,4 +1,5 @@
 import GameView from "./GameView.js";
+import { resetSettingsToDefault } from "../utils.js";
 
 export default class extends GameView
 {
@@ -30,10 +31,18 @@ export default class extends GameView
                     <button type="button" id="create_snek_tournament" class="custom-btn mb-3 snek">Create Snek Tournament</button>
                 </div>
             </div>
+			<div class="row mt-4">
+                <div class="col text-center">
+                    <button type="button" id="reset-settings-btn" class="btn btn-primary">Reset Settings to Default</button>
+                </div>
+            </div>
         </div>`;
             this.setTitle("Tournament");
             this.unhideNavbar();
             await this.setContent(content);
+
+			document.getElementById('reset-settings-btn').addEventListener('click', () => resetSettingsToDefault());
+
             return;
         }
 
