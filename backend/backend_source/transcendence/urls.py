@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenBlacklistView
+from two_factor import urls as two_factor_urls
+from pong.views import TwoFAStatusView, TwoFASetupView, TwoFAVerifyView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,5 +26,8 @@ urlpatterns = [
 	path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
 	path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 	path('api/token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist'),
-	path('two_factor/', include('two_factor.urls', 'two_factor')),
+	path('twofactor/', include(two_factor_urls.urlpatterns, 'two_factor')),
+	path('pong_api/2fa/status/', TwoFAStatusView.as_view()),
+	path('pong_api/2fa/setup/', TwoFASetupView.as_view()),
+	path('pong_api/2fa/verify/', TwoFAVerifyView.as_view()),
 ]

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from pong.views import TwoFADisableView 
 
 
 urlpatterns = [
@@ -9,4 +10,5 @@ urlpatterns = [
     path("pong_push_game/", views.pong_push_game, name="pong_push_game"),
     path("pong_create_tournament/", views.pong_create_tournament, name="pong_create_tournament"),
 	path("pong_settings/", views.pong_update_settings, name="pong_update_settings"),
+	path("2fa/disable/", TwoFADisableView.as_view())
 ]

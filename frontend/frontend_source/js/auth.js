@@ -38,32 +38,52 @@ export async function register_func(user, pwd) {
 }
 
 export async function login_func(user, pwd) {
-	const response = await authFetch("/api/token/", {
-		method: "POST",
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ username: user, password: pwd })
-	});
+    const response = await authFetch("/api/token/", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pwd })
+    });
 
-	if (!response) {
-		showErrorMessage("No response from server. Please try again.", 0);
-		return false;
-	}
-	if (!response.ok) {
-		let errorMsg = "Login failed. Please check your credentials.";
-		try {
-			const errorData = await response.json();
-			if (errorData && errorData.detail)
-				errorMsg = errorData.detail;
-		} catch {}
-		showErrorMessage(errorMsg, 0);
-		return false;
-	}
+    if (response.status === 401) {
+        const twoFAResp = await authFetch("/pong_api/2fa/status/", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user })
+        });
+        if (twoFAResp.ok) {
+            const data = await twoFAResp.json();
+            if (data["2fa_enabled"]) {
+                const code = prompt("Enter your 2FA code from Google Authenticator:");
+                if (!code) return false;
+                const resp2 = await authFetch("/api/token/2fa/", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pwd, token: code })
+                });
+                if (resp2.ok) {
+                    const tokens = await resp2.json();
+                    localStorage.setItem("access", tokens.access);
+                    localStorage.setItem("refresh", tokens.refresh);
+                    return true;
+                } else {
+                    showErrorMessage("Invalid 2FA code.", 0);
+                    return false;
+                }
+            }
+        }
+        showErrorMessage("Login failed.", 0);
+        return false;
+    }
 
-	const data = await response.json();
-	localStorage.setItem("access", data.access);
-	localStorage.setItem("refresh", data.refresh);
-	showSuccessMessage("Login successful! Welcome!", 0);
-	return true;
+    if (response.ok) {
+        const tokens = await response.json();
+        localStorage.setItem("access", tokens.access);
+        localStorage.setItem("refresh", tokens.refresh);
+        return true;
+    }
+
+    showErrorMessage("Login failed.", 0);
+    return false;
 }
 
 export async function logout_func() {
