@@ -2,6 +2,7 @@
 
 :root {
     --base-font-size: 20px; /* Default base font size */
+    --settings-form-size: 100%; /* Default settings form size */
     font-family: 'Quicksand', sans-serif;
     --transition-speed: 600ms;
 }
@@ -9,6 +10,7 @@
 /* Font Size Variations */
 [data-font-size="small"] {
     --base-font-size: 16px; /* Adjusted for readability */
+	--settings-form-size: 50%;
 }
 
 [data-font-size="medium"] {
@@ -428,7 +430,7 @@ a {
 
 #settings-form select,
 #settings-form input {
-    width: 100%;
+    width: var(--settings-form-size);
     padding: 10px;
     font-size: var(--base-font-size);
     border-radius: 12px;
