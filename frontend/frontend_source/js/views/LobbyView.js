@@ -54,8 +54,9 @@ export default class extends AbstractView {
         settingsData = { theme: "light" }; // Fallback theme
 	}
 
-        // Apply the theme to the body
+        // Apply the theme and font to the body
         this.applyTheme(settingsData.theme);
+		this.applyFontSize(settingsData.font_size);
 
         var content = `
         <div class="container my-4">
@@ -107,5 +108,10 @@ export default class extends AbstractView {
     // Assume this method exists in AbstractView.js
     applyTheme(theme) {
         document.body.setAttribute('data-theme', theme);
+    }
+
+	applyFontSize(fontSize) {
+        document.documentElement.setAttribute('data-font-size', fontSize);
+        localStorage.setItem('font-size', fontSize); // Optional: store locally for quick access
     }
 }

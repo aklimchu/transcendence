@@ -83,8 +83,9 @@ export default class extends AbstractView {
             // Fall back to defaults defined above
         }
 
-        // Apply the current theme
+        // Apply the current theme and font
         this.applyTheme(settingsData.theme);
+		this.applyFontSize(settingsData.font_size);
 
         // Construct content with player names
         const content = `
@@ -186,6 +187,11 @@ export default class extends AbstractView {
         localStorage.setItem('theme', theme); // Optional: store locally for quick access
     }
 
+	applyFontSize(fontSize) {
+        document.documentElement.setAttribute('data-font-size', fontSize);
+        localStorage.setItem('font-size', fontSize); // Optional: store locally for quick access
+    }
+
     push_Settings() {
         const getValue = (id) => document.getElementById(id)?.value || "";
         const players = [1, 2, 3, 4].map(player => {
@@ -226,6 +232,7 @@ export default class extends AbstractView {
         .then(data => {
             if (data.ok) {
                 this.applyTheme(settings.theme); // Apply the new theme after successful save
+				this.applyFontSize(settings.font_size); // Apply the new font size after successful save
                 alert("Settings saved successfully!");
             } else {
                 alert("Error saving settings: " + data.error);

@@ -50,18 +50,18 @@ export default class extends AbstractView
         }
 
 		console.log(json)
-		
-/* 		// Fetch user settings to get the theme
-		let settingsData;
-		try {
-			console.log("Fetching settings from /pong_api/pong_settings/");
+
+		// Fetch user settings to get the theme
+        let settingsData;
+        try {
+            console.log("Fetching settings from /pong_api/pong_settings/");
 			const response = await authFetch("/pong_api/pong_settings/", {
-				method: "GET",
-				headers: { "Content-Type": "application/json" }
-			});
-			console.log("Response status:", response.status);
-			const responseText = await response.text();
-			console.log("Response text:", responseText);
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("Response status:", response.status);
+            const responseText = await response.text();
+            console.log("Response text:", responseText);
 		if (!response.ok) {
 			throw new Error(this.extractErrorMessage(responseText, response.status));
 		}
@@ -83,11 +83,8 @@ export default class extends AbstractView
 		} catch (error) {
 			console.error("Failed to load settings:", error);
 			alert("Error loading settings: " + error.message);
-			settingsData = { theme: "light" }; // Fallback theme
+    	    settingsData = { theme: "light" }; // Fallback theme
 		}
-
-		// Apply the theme to the body
-		this.applyTheme(settingsData.theme); */
 
 		const players = json.data["players"];
         if (!players || !players["p1"]) {
@@ -113,42 +110,55 @@ export default class extends AbstractView
         await this.setContent(content);
 
         function createChart(id, player) {
-            const ctx = document.getElementById(id).getContext('2d');
-            const theme = document.body.getAttribute('data-theme') || 'light';
-            const victoryColor = theme === 'dark' ? '#2ecc71' : '#157045'; // Lighter green for dark
-            const defeatColor = theme === 'dark' ? '#e74c3c' : '#931024'; // Lighter red for dark
-
-            new Chart(ctx, {
-                type: 'pie', /* 'doughnut' can also be used */
-                data: {
-                    labels: ['Victories', 'Defeats'],
-                    datasets: [{
-                        data: [player.won, player.lost],
-                        backgroundColor: [victoryColor, defeatColor],
-                        borderColor: '#fff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: `${player.name}`,
-                            font: { size: 17 },
-                            color: theme === 'dark' ? '#00cc99' : '#005252' // Adjust title color
-                        },
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: { size: 15 },
-                                color: theme === 'dark' ? '#b0b0b0' : '#005252' // Adjust legend color
-                            }
-                        }
-                    }
-                }
-            });
-        }
+			const ctx = document.getElementById(id).getContext('2d');
+			const theme = document.body.getAttribute('data-theme') || 'light';
+			const font_size = settingsData.font_size || 'medium';
+		
+			// Color mappings for theme
+			const victoryColor = theme === 'dark' ? '#2ecc71' : '#157045'; // Lighter green for dark
+			const defeatColor = theme === 'dark' ? '#e74c3c' : '#931024'; // Lighter red for dark
+			const titleColor = theme === 'dark' ? '#00cc99' : '#005252'; // Title color
+			const legendColor = theme === 'dark' ? '#b0b0b0' : '#005252'; // Legend color
+		
+			// Font size mappings
+			const fontSizes = {
+				small: { title: 13, legend: 12 },
+				medium: { title: 17, legend: 15 },
+				large: { title: 21, legend: 18 }
+			};
+			const selectedFontSize = fontSizes[font_size] || fontSizes['medium']; // Fallback to medium
+		
+			new Chart(ctx, {
+				type: 'pie', // 'doughnut' can also be used
+				data: {
+					labels: ['Victories', 'Defeats'],
+					datasets: [{
+						data: [player.won, player.lost],
+						backgroundColor: [victoryColor, defeatColor],
+						borderColor: '#fff',
+						borderWidth: 2
+					}]
+				},
+				options: {
+					responsive: true,
+					plugins: {
+						title: {
+							display: true,
+							text: `${player.name}`,
+							font: { size: selectedFontSize.title },
+							color: titleColor
+						},
+						legend: {
+							position: 'bottom',
+							labels: {
+								font: { size: selectedFontSize.legend },
+								color: legendColor
+							}
+						}
+					}
+				}
+			});
+		}
 
         createChart("chartP1", players["p1"]);
         createChart("chartP2", players["p2"]);
