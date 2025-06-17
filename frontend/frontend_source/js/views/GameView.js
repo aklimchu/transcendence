@@ -1,16 +1,14 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch, getCookie } from '../auth.js';
-import { resetSettingsToDefault } from "../utils.js";
+import { resetSettingsToDefault, TranslationManager } from "../utils.js";
 
-export default class extends AbstractView
-{
-    constructor(params)
-    {
+export default class extends AbstractView {
+    constructor(params) {
         super(params);
+        this.translationManager = new TranslationManager(); // Initialize TranslationManager
     }
 
-    async goToView()
-    {
+    async goToView() {
         let json;
         try {
             json = await this.fetchSessionData();
@@ -23,13 +21,55 @@ export default class extends AbstractView
             return;
         }
 
+        // Fetch settings to get language
+        let settingsData = {
+            game_speed: "normal",
+            ball_size: "medium",
+            paddle_size: "normal",
+            power_jump: "on",
+            theme: "light",
+            font_size: "medium",
+            language: "eng",
+            players: Array(4).fill().map((_, index) => ({ player_name: '', position: index + 1 }))
+        };
+        try {
+            console.log("Fetching settings from /pong_api/pong_settings/");
+            const response = await authFetch("/pong_api/pong_settings/", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("Response status:", response.status);
+            const responseText = await response.text();
+            console.log("Response text:", responseText);
+            if (!response.ok) {
+                throw new Error(this.extractErrorMessage(responseText, response.status));
+            }
+            const data = JSON.parse(responseText);
+            console.log("Settings data:", data);
+            if (data.ok && data.settings && typeof data.settings === "object") {
+                settingsData = {
+                    ...data.settings,
+                    players: Array(4).fill().map((_, index) => {
+                        const player = data.settings.players?.find(p => p.position === index + 1);
+                        return { player_name: player?.player_name || '', position: index + 1 };
+                    })
+                };
+            } else {
+                console.warn("Invalid settings response:", data);
+                throw new Error("Invalid settings data received");
+            }
+        } catch (error) {
+            console.error("Failed to load settings:", error);
+            alert("Error loading settings: " + error.message);
+        }
+
         var content = `
         <div class="container-fluid py-4">
             <div class="row teal-container">
-                <div class="hover-overlay">1v1 Mode</div>
+                <div class="hover-overlay" data-i18n="game.1v1">1v1 Mode</div>
                 <div class="col teal-box d-flex flex-column justify-content-center align-items-center">
                     <div class="mb-3">
-                        <label for="left-select">Pick left player:</label>
+                        <label for="left-select" data-i18n="game.pick_left">Pick left player:</label>
                         <select name="LeftPlayer" id="left-select" class="form-select">
                             <option>${json.data["players"]["p1"]["name"]}</option>
                             <option>${json.data["players"]["p2"]["name"]}</option>
@@ -38,7 +78,7 @@ export default class extends AbstractView
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="right-select">Pick right player:</label>
+                        <label for="right-select" data-i18n="game.pick_right">Pick right player:</label>
                         <select name="RightPlayer" id="right-select" class="form-select">
                             <option>${json.data["players"]["p1"]["name"]}</option>
                             <option>${json.data["players"]["p2"]["name"]}</option>
@@ -47,18 +87,18 @@ export default class extends AbstractView
                         </select>
                     </div>
                     <div class="d-flex gap-3">
-                        <button type="button" class="btn btn-warning play_game_btn pong 1v1 T0" data-left="left-select" data-right="right-select">Play Pong</button>
-                        <button type="button" class="btn btn-secondary play_game_btn snek 1v1 T0" data-left="left-select" data-right="right-select">Play Snek</button>
+                        <button type="button" class="btn btn-warning play_game_btn pong 1v1 T0" data-left="left-select" data-right="right-select" data-i18n="game.play_pong">Play Pong</button>
+                        <button type="button" class="btn btn-secondary play_game_btn snek 1v1 T0" data-left="left-select" data-right="right-select" data-i18n="game.play_snek">Play Snek</button>
                     </div>
                 </div>
             </div>
 
             <div class="row teal-container">
-                <div class="hover-overlay">2v2 Mode</div>
+                <div class="hover-overlay" data-i18n="game.2v2">2v2 Mode</div>
                 <div class="col teal-box d-flex flex-column justify-content-center align-items-center">
                     <div class="row mb-2">
                         <div class="col">
-                            <label for="left-select1">Pick left player 1:</label>
+                            <label for="left-select1" data-i18n="game.pick_left_player_1">Pick left player 1:</label>
                             <select name="LeftPlayer1" id="left-select1" class="form-select">
                                 <option>${json.data["players"]["p1"]["name"]}</option>
                                 <option>${json.data["players"]["p2"]["name"]}</option>
@@ -67,7 +107,7 @@ export default class extends AbstractView
                             </select>
                         </div>
                         <div class="col">
-                            <label for="right-select1">Pick right player 1:</label>
+                            <label for="right-select1" data-i18n="game.pick_right_player_1">Pick right player 1:</label>
                             <select name="RightPlayer1" id="right-select1" class="form-select">
                                 <option>${json.data["players"]["p1"]["name"]}</option>
                                 <option>${json.data["players"]["p2"]["name"]}</option>
@@ -78,7 +118,7 @@ export default class extends AbstractView
                     </div>
                     <div class="row mb-4">
                         <div class="col">
-                            <label for="left-select2">Pick left player 2:</label>
+                            <label for="left-select2" data-i18n="game.pick_left_player_2">Pick left player 2:</label>
                             <select name="LeftPlayer2" id="left-select2" class="form-select">
                                 <option>${json.data["players"]["p1"]["name"]}</option>
                                 <option>${json.data["players"]["p2"]["name"]}</option>
@@ -87,7 +127,7 @@ export default class extends AbstractView
                             </select>
                         </div>
                         <div class="col">
-                            <label for="right-select2">Pick right player 2:</label>
+                            <label for="right-select2" data-i18n="game.pick_right_player_2">Pick right player 2:</label>
                             <select name="RightPlayer2" id="right-select2" class="form-select">
                                 <option>${json.data["players"]["p1"]["name"]}</option>
                                 <option>${json.data["players"]["p2"]["name"]}</option>
@@ -97,14 +137,14 @@ export default class extends AbstractView
                         </div>
                     </div>
                     <div class="d-flex gap-3">
-                        <button type="button" class="btn btn-warning play_game_btn pong 2v2 T0">Play Pong</button>
-                        <button type="button" class="btn btn-secondary play_game_btn snek 2v2 T0">Play Snek</button>
+                        <button type="button" class="btn btn-warning play_game_btn pong 2v2 T0" data-i18n="game.play_pong">Play Pong</button>
+                        <button type="button" class="btn btn-secondary play_game_btn snek 2v2 T0" data-i18n="game.play_snek">Play Snek</button>
                     </div>
                 </div>
             </div>
             <div class="row mt-4">
                 <div class="col text-center">
-                    <button type="button" id="reset-settings-btn" class="btn btn-primary">Reset Settings to Default</button>
+                    <button type="button" id="reset-settings-btn" class="btn btn-primary" data-i18n="game.reset_settings">Reset Settings to Default</button>
                 </div>
             </div>
         </div>
@@ -113,21 +153,64 @@ export default class extends AbstractView
         this.unhideNavbar();
         await this.setContent(content);
 
+        // Apply translations
+        const translations = await this.translationManager.initLanguage(settingsData.language, [
+            'game.1v1',
+            'game.2v2',
+            'game.pick_left',
+            'game.pick_right',
+            'game.pick_left_player_1',
+            'game.pick_right_player_1',
+            'game.pick_left_player_2',
+            'game.pick_right_player_2',
+            'game.play_pong',
+            'game.play_snek',
+            'game.reset_settings'
+        ]);
+
         // Add event listener for the reset settings button
         document.getElementById('reset-settings-btn').addEventListener('click', () => resetSettingsToDefault());
     }
 
-    async goToResult()
-    {
+    async goToResult() {
         try {
             var json = await this.fetchSessionData();
             if (!json || !json.data) {
                 await this.goToNoAuth("Session expired. Please log in again.");
                 return;
             }
-        } catch(err) {
+        } catch (err) {
             await this.goToNoAuth("Session expired. Please log in again.");
             return;
+        }
+
+        // Fetch settings to get language
+        let settingsData = {
+            language: "eng"
+        };
+        try {
+            console.log("Fetching settings from /pong_api/pong_settings/");
+            const response = await authFetch("/pong_api/pong_settings/", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("Response status:", response.status);
+            const responseText = await response.text();
+            console.log("Response text:", responseText);
+            if (!response.ok) {
+                throw new Error(this.extractErrorMessage(responseText, response.status));
+            }
+            const data = JSON.parse(responseText);
+            console.log("Settings data:", data);
+            if (data.ok && data.settings && typeof data.settings === "object") {
+                settingsData = { ...data.settings };
+            } else {
+                console.warn("Invalid settings response:", data);
+                throw new Error("Invalid settings data received");
+            }
+        } catch (error) {
+            console.error("Failed to load settings:", error);
+            alert("Error loading settings: " + error.message);
         }
 
         var game = json.data["games"][0];
@@ -149,10 +232,8 @@ export default class extends AbstractView
 
         var content = `
             <div class="container my-6">
-                <button type="button" id="game_view" class="go-back-btn btn btn-secondary mb-4" sub-view-reference>
-                    Go back
-                </button>
-                <h3 class="game-status-card p-3 text-center mb-4">Game Completed!</h3>
+                <button type="button" id="game_view" class="go-back-btn btn btn-secondary mb-4" sub-view-reference data-i18n="game.go_back">Go back</button>
+                <h3 class="game-status-card p-3 text-center mb-4" data-i18n="game.game_completed">Game Completed!</h3>
                 <div class="game-card p-4 fs-5">
                     <div class="game-card-body">
                         <div class="row text-center">
@@ -177,6 +258,9 @@ export default class extends AbstractView
         this.setTitle("Game");
         this.unhideNavbar();
         await this.setContent(content);
+
+        // Apply translations
+        const translations = await this.translationManager.initLanguage(settingsData.language, ['game.game_completed', 'game.go_back']);
     }
 
     /* -------------------------------------------------------------------------------------------------------------------------------------------- */

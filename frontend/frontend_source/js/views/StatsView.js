@@ -1,11 +1,13 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch } from "../auth.js";
+import { TranslationManager } from "../utils.js"
 
 export default class extends AbstractView
 {
 	constructor(params)
 	{
     	super(params);
+		this.translationManager = new TranslationManager(); // Initialize TranslationManager
 	}
 
 // 	async fetchStatsData()
@@ -77,13 +79,13 @@ export default class extends AbstractView
 			};
 		} else {
 			console.warn("Invalid settings response:", data);
-			settingsData = { theme: "light" }; // Default to light if no settings
+			settingsData = { theme: "light", font_size: "medium",  language: "eng"}; // Default to light if no settings
 			throw new Error("Invalid settings data received");
 		}
 		} catch (error) {
 			console.error("Failed to load settings:", error);
 			alert("Error loading settings: " + error.message);
-    	    settingsData = { theme: "light" }; // Fallback theme
+    	    settingsData = { theme: "light", font_size: "medium",  language: "eng" }; // Fallback theme
 		}
 
 		const players = json.data["players"];
@@ -95,7 +97,7 @@ export default class extends AbstractView
         const content = `
         <div class="stats-container my-2">
             <div class="stats-card text-center">
-                <h3 class="stats-title mb-3">🏓Player Performance Overview🐍</h3>
+                <h3 class="stats-title mb-3" data-i18n="stats.title">🏓Player Performance Overview🐍</h3>
                 <div class="row row-cols-1 row-cols-md-2 g-4">
                     <div class="col"><canvas id="chartP1"></canvas></div>
                     <div class="col"><canvas id="chartP2"></canvas></div>
@@ -109,62 +111,69 @@ export default class extends AbstractView
         this.unhideNavbar();
         await this.setContent(content);
 
-        function createChart(id, player) {
-			const ctx = document.getElementById(id).getContext('2d');
-			const theme = document.body.getAttribute('data-theme') || 'light';
-			const font_size = settingsData.font_size || 'medium';
+		// Apply translations
+		const translations = await this.translationManager.initLanguage(settingsData.language, ['stats.title', 'lobby.victories', 'lobby.defeats']);
+
+        // Update createChart to use translations
+		function createChart(id, player, translations) {
+		    const ctx = document.getElementById(id).getContext('2d');
+		    const theme = document.body.getAttribute('data-theme') || 'light';
+		    const font_size = settingsData.font_size || 'medium';
 		
-			// Color mappings for theme
-			const victoryColor = theme === 'dark' ? '#2ecc71' : '#157045'; // Lighter green for dark
-			const defeatColor = theme === 'dark' ? '#e74c3c' : '#931024'; // Lighter red for dark
-			const titleColor = theme === 'dark' ? '#00cc99' : '#005252'; // Title color
-			const legendColor = theme === 'dark' ? '#b0b0b0' : '#005252'; // Legend color
+		    // Color mappings for theme
+		    const victoryColor = theme === 'dark' ? '#2ecc71' : '#157045';
+		    const defeatColor = theme === 'dark' ? '#e74c3c' : '#931024';
+		    const titleColor = theme === 'dark' ? '#00cc99' : '#005252';
+		    const legendColor = theme === 'dark' ? '#b0b0b0' : '#005252';
 		
-			// Font size mappings
-			const fontSizes = {
-				small: { title: 13, legend: 12 },
-				medium: { title: 17, legend: 15 },
-				large: { title: 21, legend: 18 }
-			};
-			const selectedFontSize = fontSizes[font_size] || fontSizes['medium']; // Fallback to medium
+		    // Font size mappings
+		    const fontSizes = {
+		        small: { title: 13, legend: 12 },
+		        medium: { title: 17, legend: 15 },
+		        large: { title: 21, legend: 18 }
+		    };
+		    const selectedFontSize = fontSizes[font_size] || fontSizes['medium'];
 		
-			new Chart(ctx, {
-				type: 'pie', // 'doughnut' can also be used
-				data: {
-					labels: ['Victories', 'Defeats'],
-					datasets: [{
-						data: [player.won, player.lost],
-						backgroundColor: [victoryColor, defeatColor],
-						borderColor: '#fff',
-						borderWidth: 2
-					}]
-				},
-				options: {
-					responsive: true,
-					plugins: {
-						title: {
-							display: true,
-							text: `${player.name}`,
-							font: { size: selectedFontSize.title },
-							color: titleColor
-						},
-						legend: {
-							position: 'bottom',
-							labels: {
-								font: { size: selectedFontSize.legend },
-								color: legendColor
-							}
-						}
-					}
-				}
-			});
+		    new Chart(ctx, {
+		        type: 'pie',
+		        data: {
+		            labels: [
+		                translations.lobby?.victories || translations['lobby.victories'] || 'Victories',
+		                translations.lobby?.defeats || translations['lobby.defeats'] || 'Defeats'
+		            ],
+		            datasets: [{
+		                data: [player.won, player.lost],
+		                backgroundColor: [victoryColor, defeatColor],
+		                borderColor: '#fff',
+		                borderWidth: 2
+		            }]
+		        },
+		        options: {
+		            responsive: true,
+		            plugins: {
+		                title: {
+		                    display: true,
+		                    text: `${player.name}`,
+		                    font: { size: selectedFontSize.title },
+		                    color: titleColor
+		                },
+		                legend: {
+		                    position: 'bottom',
+		                    labels: {
+		                        font: { size: selectedFontSize.legend },
+		                        color: legendColor
+		                    }
+		                }
+		            }
+		        }
+		    });
 		}
 
-        createChart("chartP1", players["p1"]);
-        createChart("chartP2", players["p2"]);
-        createChart("chartP3", players["p3"]);
-        createChart("chartP4", players["p4"]);
-    }
+		createChart("chartP1", players["p1"], translations);
+		createChart("chartP2", players["p2"], translations);
+		createChart("chartP3", players["p3"], translations);
+		createChart("chartP4", players["p4"], translations);
+	}
 
 /*     // Assume this method exists in AbstractView.js
     applyTheme(theme) {
