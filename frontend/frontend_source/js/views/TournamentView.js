@@ -1,15 +1,14 @@
 import GameView from "./GameView.js";
-import { resetSettingsToDefault } from "../utils.js";
+import { resetSettingsToDefault, TranslationManager } from "../utils.js";
+import { authFetch } from "../auth.js";
 
-export default class extends GameView
-{
-    constructor(params)
-    {
+export default class extends GameView {
+    constructor(params) {
         super(params);
+        this.translationManager = new TranslationManager(); // Initialize TranslationManager
     }
 
-    async goToView()
-    {
+    async goToView() {
         let json;
         try {
             json = await this.fetchSessionData();
@@ -22,26 +21,66 @@ export default class extends GameView
             return;
         }
 
+        // Fetch user settings to get the language
+        let settingsData = {
+            language: "eng"
+        };
+        try {
+            console.log("Fetching settings from /pong_api/pong_settings/");
+            const response = await authFetch("/pong_api/pong_settings/", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("Response status:", response.status);
+            const responseText = await response.text();
+            console.log("Response text:", responseText);
+            if (!response.ok) {
+                throw new Error(this.extractErrorMessage(responseText, response.status));
+            }
+            const data = JSON.parse(responseText);
+            console.log("Settings data:", data);
+            if (data.ok && data.settings && typeof data.settings === "object") {
+                settingsData = { ...data.settings };
+            } else {
+                console.warn("Invalid settings response:", data);
+                throw new Error("Invalid settings data received");
+            }
+        } catch (error) {
+            console.error("Failed to load settings:", error);
+            alert("Error loading settings: " + error.message);
+        }
+
         if (json.data["unfinished_tournament"] === null) {
-        var content = `
-        <div class="container text-center mt-5">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <button type="button" id="create_pong_tournament" class="custom-btn mb-3 pong">Create Pong Tournament</button>
-                    <button type="button" id="create_snek_tournament" class="custom-btn mb-3 snek">Create Snek Tournament</button>
+            var content = `
+            <div class="container text-center mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <button type="button" id="create_pong_tournament" class="custom-btn mb-3 pong" data-i18n="tournament.create_pong_tournament">Create Pong Tournament</button>
+                        <button type="button" id="create_snek_tournament" class="custom-btn mb-3 snek" data-i18n="tournament.create_snek_tournament">Create Snek Tournament</button>
+                    </div>
                 </div>
-            </div>
-			<div class="row mt-4">
-                <div class="col text-center">
-                    <button type="button" id="reset-settings-btn" class="btn btn-primary">Reset Settings to Default</button>
+                <div class="row mt-4">
+                    <div class="col text-center">
+                        <button type="button" id="reset-settings-btn" class="btn btn-primary" data-i18n="tournament.reset_settings">Reset Settings to Default</button>
+                    </div>
                 </div>
-            </div>
-        </div>`;
-            this.setTitle("Tournament");
+            </div>`;
             this.unhideNavbar();
             await this.setContent(content);
 
-			document.getElementById('reset-settings-btn').addEventListener('click', () => resetSettingsToDefault());
+            // Apply translations
+            const translations = await this.translationManager.initLanguage(settingsData.language, [
+                'tournament.title',
+                'tournament.create_pong_tournament',
+                'tournament.create_snek_tournament',
+                'tournament.reset_settings'
+            ]);
+
+            // Set translated page title
+            const title = translations.tournament?.title || 'Tournament';
+            this.setTitle(title);
+
+            document.getElementById('reset-settings-btn').addEventListener('click', () => resetSettingsToDefault());
 
             return;
         }
@@ -52,109 +91,103 @@ export default class extends GameView
         else
             game_type = 'snek';
 
-		// Get the theme from the body (similar to StatsView.js)
-		const theme = document.body.getAttribute('data-theme') || 'light';
-		// Define button colors based on theme
-		const buttonColor = theme === 'dark' ? '#ffb84d' : '#cc8400'; // Lighter orange for dark, darker for light
-    
+        // Get the theme from the body (similar to StatsView.js)
+        const theme = document.body.getAttribute('data-theme') || 'light';
+        // Define button colors based on theme
+        const buttonColor = theme === 'dark' ? '#ffb84d' : '#cc8400'; // Lighter orange for dark, darker for light
+
         // --------------------------------------- Semifinal 1 ---------------------------------------
         console.log(json.data["unfinished_tournament"]);
         if (json.data["unfinished_tournament"]["semi1_score"] === null) {
             semi1_div_content = `
                 <div class="card text-center mb-3">
-                    <div class="card-header">Semifinal 1</div>
+                    <div class="card-header" data-i18n="tournament.semifinal_1">Semifinal 1</div>
                     <div class="card-body">
-                        <label for="semi1-left" class="form-label">Left Player</label>
+                        <label for="semi1-left" class="form-label" data-i18n="tournament.left_player">Left Player</label>
                         <select id="semi1-left" class="form-select">
                             <option>${json.data["unfinished_tournament"]["semi_one_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_one_p2"]}</option>
                         </select>
-                        <label for="semi1-right" class="form-label mt-2">Right Player</label>
+                        <label for="semi1-right" class="form-label mt-2" data-i18n="tournament.right_player">Right Player</label>
                         <select id="semi1-right" class="form-select">
                             <option>${json.data["unfinished_tournament"]["semi_one_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_one_p2"]}</option>
                         </select>
-                        <button type="button" class="play_game_btn btn btn-warning mt-3 ${game_type} 1v1 T1" data-left="semi1-left" data-right="semi1-right" style="background-color: #ffa500;">
-							Play ${game_type}
-						</button>
+                        <button type="button" class="play_game_btn btn btn-warning mt-3 ${game_type} 1v1 T1" data-left="semi1-left" data-right="semi1-right" style="background-color: #ffa500;" data-i18n="tournament.play_${game_type}">Play ${game_type}</button>
                     </div>
                 </div>`;
         } else {
             semi1_div_content = `
                 <div class="card text-center mb-3">
-                    <div class="card-header">Semifinal 1</div>
+                    <div class="card-header" data-i18n="tournament.semifinal_1">Semifinal 1</div>
                     <div class="card-body">
-                        <p><span class="fw-bold">Winner:</span> ${json.data["unfinished_tournament"]["semi1_winner"]}</p>
-                        <p><span class="fw-bold">Loser:</span> ${json.data["unfinished_tournament"]["semi1_loser"]}</p>
-                        <p><span class="fw-bold">Score:</span> ${json.data["unfinished_tournament"]["semi1_score"]}</p>
+                        <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data["unfinished_tournament"]["semi1_winner"]}</p>
+                        <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data["unfinished_tournament"]["semi1_loser"]}</p>
+                        <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data["unfinished_tournament"]["semi1_score"]}</p>
                     </div>
                 </div>`;
         }
-    
+
         // --------------------------------------- Semifinal 2 ---------------------------------------
         if (json.data["unfinished_tournament"]["semi2_score"] === null) {
             semi2_div_content = `
                 <div class="card text-center mb-3">
-                    <div class="card-header">Semifinal 2</div>
+                    <div class="card-header" data-i18n="tournament.semifinal_2">Semifinal 2</div>
                     <div class="card-body">
-                        <label for="semi2-left" class="form-label">Left Player</label>
+                        <label for="semi2-left" class="form-label" data-i18n="tournament.left_player">Left Player</label>
                         <select id="semi2-left" class="form-select">
                             <option>${json.data["unfinished_tournament"]["semi_two_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_two_p2"]}</option>
                         </select>
-                        <label for="semi2-right" class="form-label mt-2">Right Player</label>
+                        <label for="semi2-right" class="form-label mt-2" data-i18n="tournament.right_player">Right Player</label>
                         <select id="semi2-right" class="form-select">
                             <option>${json.data["unfinished_tournament"]["semi_two_p1"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi_two_p2"]}</option>
                         </select>
-                        <button type="button" class="play_game_btn btn btn-warning mt-3 ${game_type} 1v1 T2" data-left="semi2-left" data-right="semi2-right" style="background-color: #ffa500;">
-							Play ${game_type}
-						</button>
+                        <button type="button" class="play_game_btn btn btn-warning mt-3 ${game_type} 1v1 T2" data-left="semi2-left" data-right="semi2-right" style="background-color: #ffa500;" data-i18n="tournament.play_${game_type}">Play ${game_type}</button>
                     </div>
                 </div>`;
         } else {
             semi2_div_content = `
                 <div class="card text-center mb-3">
-                    <div class="card-header">Semifinal 2</div>
+                    <div class="card-header" data-i18n="tournament.semifinal_2">Semifinal 2</div>
                     <div class="card-body">
-                        <p><span class="fw-bold">Winner:</span> ${json.data["unfinished_tournament"]["semi2_winner"]}</p>
-                        <p><span class="fw-bold">Loser:</span> ${json.data["unfinished_tournament"]["semi2_loser"]}</p>
-                        <p><span class="fw-bold">Score:</span> ${json.data["unfinished_tournament"]["semi2_score"]}</p>
+                        <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data["unfinished_tournament"]["semi2_winner"]}</p>
+                        <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data["unfinished_tournament"]["semi2_loser"]}</p>
+                        <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data["unfinished_tournament"]["semi2_score"]}</p>
                     </div>
                 </div>`;
         }
-    
+
         // --------------------------------------- Final ---------------------------------------
         if (json.data["unfinished_tournament"]["semi1_score"] !== null && json.data["unfinished_tournament"]["semi2_score"] !== null) {
             final_div_content = `
                 <div class="card text-center mb-3">
-                    <div class="card-header">Final</div>
+                    <div class="card-header" data-i18n="tournament.final">Final</div>
                     <div class="card-body">
-                        <label for="final-left" class="form-label">Left Player</label>
+                        <label for="final-left" class="form-label" data-i18n="tournament.left_player">Left Player</label>
                         <select id="final-left" class="form-select">
                             <option>${json.data["unfinished_tournament"]["semi1_winner"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi2_winner"]}</option>
                         </select>
-                        <label for="final-right" class="form-label mt-2">Right Player</label>
+                        <label for="final-right" class="form-label mt-2" data-i18n="tournament.right_player">Right Player</label>
                         <select id="final-right" class="form-select">
                             <option>${json.data["unfinished_tournament"]["semi1_winner"]}</option>
                             <option>${json.data["unfinished_tournament"]["semi2_winner"]}</option>
                         </select>
-                        <button type="button" class="play_game_btn btn btn-danger mt-3 ${game_type} 1v1 T3" data-left="final-left" data-right="final-right">
-                            Play ${game_type}
-                        </button>
+                        <button type="button" class="play_game_btn btn btn-danger mt-3 ${game_type} 1v1 T3" data-left="final-left" data-right="final-right" data-i18n="tournament.play_${game_type}">Play ${game_type}</button>
                     </div>
                 </div>`;
         } else {
             final_div_content = `
                 <div class="card text-center mb-3">
-                    <div class="card-header">Final</div>
+                    <div class="card-header" data-i18n="tournament.final">Final</div>
                     <div class="card-body">
-                        <p><span class="fw-bold">Waiting for semifinals...</span></p>
+                        <p><span class="fw-bold" data-i18n="tournament.waiting_for_semifinals">Waiting for semifinals...</span></p>
                     </div>
                 </div>`;
         }
-    
+
         // --------------------------------------- Total Content ---------------------------------------
         var content = `
             <div class="container mt-5">
@@ -166,51 +199,93 @@ export default class extends GameView
                     <div class="col-md-8">${final_div_content}</div>
                 </div>
             </div>`;
-        this.setTitle("Tournament");
         this.unhideNavbar();
         await this.setContent(content);
+
+        // Apply translations
+        const translations = await this.translationManager.initLanguage(settingsData.language, [
+            'tournament.title',
+            'tournament.semifinal_1',
+            'tournament.semifinal_2',
+            'tournament.final',
+            'tournament.left_player',
+            'tournament.right_player',
+            `tournament.play_${game_type}`,
+            'tournament.winner',
+            'tournament.loser',
+            'tournament.score',
+            'tournament.waiting_for_semifinals'
+        ]);
+
+        // Set translated page title
+        const title = translations.tournament?.title || 'Tournament';
+        this.setTitle(title);
     }
 
-	async goToResult()
-	{
-		try {
-			var json = await this.fetchSessionData();
-			if (!json || !json.data) {
-				await this.goToNoAuth("Session expired. Please log in again.");
-				return;
-			}
-		} catch(err) {
-			await this.goToNoAuth("Session expired. Please log in again.");
-			return;
-		}
+    async goToResult() {
+        try {
+            var json = await this.fetchSessionData();
+            if (!json || !json.data) {
+                await this.goToNoAuth("Session expired. Please log in again.");
+                return;
+            }
+        } catch (err) {
+            await this.goToNoAuth("Session expired. Please log in again.");
+            return;
+        }
 
-    var game = json.data["games"][0];
+        // Fetch user settings to get the language
+        let settingsData = {
+            language: "eng"
+        };
+        try {
+            console.log("Fetching settings from /pong_api/pong_settings/");
+            const response = await authFetch("/pong_api/pong_settings/", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("Response status:", response.status);
+            const responseText = await response.text();
+            console.log("Response text:", responseText);
+            if (!response.ok) {
+                throw new Error(this.extractErrorMessage(responseText, response.status));
+            }
+            const data = JSON.parse(responseText);
+            console.log("Settings data:", data);
+            if (data.ok && data.settings && typeof data.settings === "object") {
+                settingsData = { ...data.settings };
+            } else {
+                console.warn("Invalid settings response:", data);
+                throw new Error("Invalid settings data received");
+            }
+        } catch (error) {
+            console.error("Failed to load settings:", error);
+            alert("Error loading settings: " + error.message);
+        }
 
         var content = `
         <div class="container my-3">
-            <button type="button" id="tournament_view" class="btn btn-secondary mb-4" sub-view-reference>
-                Go back
-            </button>
-            <h3 class="text-center mb-4">Tournament Completed!</h3>
+            <button type="button" id="tournament_view" class="btn btn-secondary mb-4" sub-view-reference data-i18n="tournament.go_back">Go back</button>
+            <h3 class="text-center mb-4" data-i18n="tournament.tournament_completed">Tournament Completed!</h3>
             
             <div class="row justify-content-center">
                 <div class="col-md-6">
                     <div class="card mb-3 p-4 fs-5">
-                        <div class="card-header">Semifinal 1</div>
+                        <div class="card-header" data-i18n="tournament.semifinal_1">Semifinal 1</div>
                         <div class="card-body">
-                            <p><span class="fw-bold">Winner:</span> ${json.data["finished_tournaments"][0]["semi1_winner"]}</p>
-                            <p><span class="fw-bold">Loser:</span> ${json.data["finished_tournaments"][0]["semi1_loser"]}</p>
-                            <p><span class="fw-bold">Score:</span> ${json.data["finished_tournaments"][0]["semi1_score"]}</p>
+                            <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data["finished_tournaments"][0]["semi1_winner"]}</p>
+                            <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data["finished_tournaments"][0]["semi1_loser"]}</p>
+                            <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data["finished_tournaments"][0]["semi1_score"]}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="card mb-3 p-4 fs-5">
-                        <div class="card-header">Semifinal 2</div>
+                        <div class="card-header" data-i18n="tournament.semifinal_2">Semifinal 2</div>
                         <div class="card-body">
-                            <p><span class="fw-bold">Winner:</span> ${json.data["finished_tournaments"][0]["semi2_winner"]}</p>
-                            <p><span class="fw-bold">Loser:</span> ${json.data["finished_tournaments"][0]["semi2_loser"]}</p>
-                            <p><span class="fw-bold">Score:</span> ${json.data["finished_tournaments"][0]["semi2_score"]}</p>
+                            <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data["finished_tournaments"][0]["semi2_winner"]}</p>
+                            <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data["finished_tournaments"][0]["semi2_loser"]}</p>
+                            <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data["finished_tournaments"][0]["semi2_score"]}</p>
                         </div>
                     </div>
                 </div>
@@ -219,27 +294,41 @@ export default class extends GameView
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <div class="card p-4 fs-5">
-                        <div class="card-header">Final</div>
+                        <div class="card-header" data-i18n="tournament.final">Final</div>
                         <div class="card-body">
-                            <p><span class="fw-bold">Winner:</span> ${json.data["finished_tournaments"][0]["final_winner"]}</p>
-                            <p><span class="fw-bold">Loser:</span> ${json.data["finished_tournaments"][0]["final_loser"]}</p>
-                            <p><span class="fw-bold">Score:</span> ${json.data["finished_tournaments"][0]["final_score"]}</p>
+                            <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data["finished_tournaments"][0]["final_winner"]}</p>
+                            <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data["finished_tournaments"][0]["final_loser"]}</p>
+                            <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data["finished_tournaments"][0]["final_score"]}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         `;
-        this.setTitle("Tournament");
         this.unhideNavbar();
         await this.setContent(content);
-    }
 
+        // Apply translations
+        const translations = await this.translationManager.initLanguage(settingsData.language, [
+            'tournament.title',
+            'tournament.tournament_completed',
+            'tournament.go_back',
+            'tournament.semifinal_1',
+            'tournament.semifinal_2',
+            'tournament.final',
+            'tournament.winner',
+            'tournament.loser',
+            'tournament.score'
+        ]);
+
+        // Set translated page title
+        const title = translations.tournament?.title || 'Tournament';
+        this.setTitle(title);
+    }
 
     /* ---------------------------------------------------------- Post game handling functions ---------------------------------------------------------- */
 
-    async display_result(tournament)
-    {
+    async display_result(tournament) {
         if (tournament === 3)
             await this.goToResult();
         else

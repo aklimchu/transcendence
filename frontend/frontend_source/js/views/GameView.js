@@ -255,13 +255,16 @@ export default class extends AbstractView {
                 </div>
             </div>
         `;
-        this.setTitle("Game");
         this.unhideNavbar();
         await this.setContent(content);
 
         // Apply translations
         const translations = await this.translationManager.initLanguage(settingsData.language, ['game.game_completed', 'game.go_back']);
-    }
+		
+		// Set translated page title
+        const title = translations.game?.title || 'Game';
+        this.setTitle(title);
+	}
 
     /* -------------------------------------------------------------------------------------------------------------------------------------------- */
     /*                                                                                                                                              */

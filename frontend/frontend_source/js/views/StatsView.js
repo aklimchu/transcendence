@@ -107,12 +107,15 @@ export default class extends AbstractView
             </div>
         </div>
         `;
-        this.setTitle("Statistics");
         this.unhideNavbar();
         await this.setContent(content);
 
 		// Apply translations
 		const translations = await this.translationManager.initLanguage(settingsData.language, ['stats.title', 'lobby.victories', 'lobby.defeats']);
+		
+		// Set translated page title
+		const title = translations.stats?.page_title || 'Stats';
+		this.setTitle(title);
 
         // Update createChart to use translations
 		function createChart(id, player, translations) {

@@ -150,7 +150,7 @@ async function create_tournament_listener(event) {
 			}
 			const data = await response.json();
 			console.log("Tournament created successfully:", data);
-			alert("Tournament created successfully!");
+			//alert("Tournament created successfully!");
 			router("tournament_view"); // Navigate after success
 		} catch (err) {
 			console.error("Error creating tournament:", err.message);

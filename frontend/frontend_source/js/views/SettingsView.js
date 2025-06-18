@@ -1,9 +1,11 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch } from "../auth.js";
+import { TranslationManager } from "../utils.js";
 
 export default class extends AbstractView {
     constructor(params) {
         super(params);
+        this.translationManager = new TranslationManager(); // Initialize TranslationManager
     }
 
     extractErrorMessage(text, status) {
@@ -85,87 +87,85 @@ export default class extends AbstractView {
 
         // Apply the current theme and font
         this.applyTheme(settingsData.theme);
-		this.applyFontSize(settingsData.font_size);
+        this.applyFontSize(settingsData.font_size);
 
-        // Construct content with player names
+        // Construct content with player names and translatable elements
         const content = `
             <div class="settings-wrapper">
                 <div class="settings-header">
                     <div class="settings-container">
-                        <h2 class="head">General Settings</h2>
+                        <h2 class="head" data-i18n="settings.title_general">General Settings</h2>
                         <form id="settings-form">
                             <div class="form-row">
-                                <label for="game_speed">Game Speed</label>
+                                <label for="game_speed" data-i18n="settings.speed">Game Speed</label>
                                 <select id="game_speed">
-                                    <option value="slow" ${settingsData.game_speed === "slow" ? "selected" : ""}>Slow</option>
-                                    <option value="normal" ${settingsData.game_speed === "normal" ? "selected" : ""}>Normal</option>
-                                    <option value="fast" ${settingsData.game_speed === "fast" ? "selected" : ""}>Fast</option>
+                                    <option value="slow" ${settingsData.game_speed === "slow" ? "selected" : ""} data-i18n="settings.speed_slow">Slow</option>
+                                    <option value="normal" ${settingsData.game_speed === "normal" ? "selected" : ""} data-i18n="settings.speed_normal">Normal</option>
+                                    <option value="fast" ${settingsData.game_speed === "fast" ? "selected" : ""} data-i18n="settings.speed_fast">Fast</option>
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="paddle_size">Paddle Size (pong)</label>
+                                <label for="paddle_size" data-i18n="settings.paddle_size">Paddle Size</label>
                                 <select id="paddle_size">
-                                    <option value="short" ${settingsData.paddle_size === "short" ? "selected" : ""}>Short</option>
-                                    <option value="normal" ${settingsData.paddle_size === "normal" ? "selected" : ""}>Normal</option>
-                                    <option value="long" ${settingsData.paddle_size === "long" ? "selected" : ""}>Long</option>
+                                    <option value="short" ${settingsData.paddle_size === "short" ? "selected" : ""} data-i18n="settings.paddle_short">Short</option>
+                                    <option value="normal" ${settingsData.paddle_size === "normal" ? "selected" : ""} data-i18n="settings.paddle_normal">Normal</option>
+                                    <option value="long" ${settingsData.paddle_size === "long" ? "selected" : ""} data-i18n="settings.paddle_long">Long</option>
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="ball_size">Ball Size (pong)</label>
+                                <label for="ball_size" data-i18n="settings.ball_size">Ball Size</label>
                                 <select id="ball_size">
-                                    <option value="small" ${settingsData.ball_size === "small" ? "selected" : ""}>Small</option>
-                                    <option value="medium" ${settingsData.ball_size === "medium" ? "selected" : ""}>Medium</option>
-                                    <option value="large" ${settingsData.ball_size === "large" ? "selected" : ""}>Large</option>
+                                    <option value="small" ${settingsData.ball_size === "small" ? "selected" : ""} data-i18n="settings.ball_small">Small</option>
+                                    <option value="medium" ${settingsData.ball_size === "medium" ? "selected" : ""} data-i18n="settings.ball_medium">Medium</option>
+                                    <option value="large" ${settingsData.ball_size === "large" ? "selected" : ""} data-i18n="settings.ball_large">Large</option>
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="power_jump">Power Jump (snek)</label>
+                                <label for="power_jump" data-i18n="settings.power_jump">Power Jump (snek)</label>
                                 <select id="power_jump">
-                                    <option value="on" ${settingsData.power_jump === "on" ? "selected" : ""}>On</option>
-                                    <option value="off" ${settingsData.power_jump === "off" ? "selected" : ""}>Off</option>
+                                    <option value="on" ${settingsData.power_jump === "on" ? "selected" : ""} data-i18n="settings.power_jump_on">On</option>
+                                    <option value="off" ${settingsData.power_jump === "off" ? "selected" : ""} data-i18n="settings.power_jump_off">Off</option>
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="theme">Theme</label>
+                                <label for="theme" data-i18n="settings.theme">Theme</label>
                                 <select id="theme">
-                                    <option value="light" ${settingsData.theme === "light" ? "selected" : ""}>Light</option>
-                                    <option value="dark" ${settingsData.theme === "dark" ? "selected" : ""}>Dark</option>
+                                    <option value="light" ${settingsData.theme === "light" ? "selected" : ""} data-i18n="settings.light">Light</option>
+                                    <option value="dark" ${settingsData.theme === "dark" ? "selected" : ""} data-i18n="settings.dark">Dark</option>
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="font_size">Font Size</label>
+                                <label for="font_size" data-i18n="settings.font_size">Font Size</label>
                                 <select id="font_size">
-                                    <option value="small" ${settingsData.font_size === "small" ? "selected" : ""}>Small</option>
-                                    <option value="medium" ${settingsData.font_size === "medium" ? "selected" : ""}>Medium</option>
-                                    <option value="large" ${settingsData.font_size === "large" ? "selected" : ""}>Large</option>
+                                    <option value="small" ${settingsData.font_size === "small" ? "selected" : ""} data-i18n="settings.font_small">Small</option>
+                                    <option value="medium" ${settingsData.font_size === "medium" ? "selected" : ""} data-i18n="settings.font_medium">Medium</option>
+                                    <option value="large" ${settingsData.font_size === "large" ? "selected" : ""} data-i18n="settings.font_large">Large</option>
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="language">Language</label>
+                                <label for="language" data-i18n="settings.language">Language</label>
                                 <select id="language">
-                                    <option value="eng" ${settingsData.language === "eng" ? "selected" : ""}>English</option>
-                                    <option value="fin" ${settingsData.language === "fin" ? "selected" : ""}>Finnish</option>
-                                    <option value="swd" ${settingsData.language === "swd" ? "selected" : ""}>Swedish</option>
+                                    <option value="eng" ${settingsData.language === "eng" ? "selected" : ""} data-i18n="settings.lang_eng">English</option>
+                                    <option value="fin" ${settingsData.language === "fin" ? "selected" : ""} data-i18n="settings.lang_fin">Finnish</option>
+                                    <option value="swd" ${settingsData.language === "swd" ? "selected" : ""} data-i18n="settings.lang_swd">Swedish</option>
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="password">Change Password</label>
-                                <input type="password" id="password" placeholder="Enter new password" />
+                                <label for="password" data-i18n="settings.password">Change Password</label>
+                                <input type="password" id="password" data-i18n-placeholder="settings.password_placeholder" placeholder="Enter new password" />
                             </div>
                         </form>
-                        <button type="button" id="save_settings" class="btn btn-secondary mb-4">
-                            Save Settings
-                        </button>
+                        <button type="button" id="save_settings" class="btn btn-secondary mb-4" data-i18n="settings.save_settings">Save Settings</button>
                     </div>
                     <div class="player-settings-container">
-                        <h2 class="head">Player Settings</h2>
+                        <h2 class="head" data-i18n="settings.title_player">Player Settings</h2>
                         <div class="player-settings">
                             ${settingsData.players.map((player, index) => `
                                 <div class="player-box player${index + 1}">
                                     <h3>${player.player_name || `Player ${index + 1}`}</h3>
                                     <div class="player-config player${index + 1}-config">
-                                        <label for="player${index + 1}_name">Name</label>
-                                        <input type="text" id="player${index + 1}_name" placeholder="Enter name" value="${player.player_name || ''}" />
+                                        <label for="player${index + 1}_name" data-i18n="settings.player_name">Name</label>
+                                        <input type="text" id="player${index + 1}_name" data-i18n-placeholder="settings.player_placeholder" placeholder="Enter name" value="${player.player_name || ''}" />
                                     </div>
                                 </div>
                             `).join('')}
@@ -175,11 +175,54 @@ export default class extends AbstractView {
             </div>
         `;
 
-        this.setTitle("Settings");
         this.unhideNavbar();
         await this.setContent(content);
 
-        document.getElementById("save_settings").addEventListener("click", this.push_Settings.bind(this));
+        // Apply translations
+        const translations = await this.translationManager.initLanguage(settingsData.language, [
+            'settings.title',
+            'settings.title_general',
+            'settings.title_player',
+            'settings.speed',
+            'settings.speed_slow',
+            'settings.speed_normal',
+            'settings.speed_fast',
+            'settings.ball_size',
+            'settings.ball_small',
+            'settings.ball_medium',
+            'settings.ball_large',
+            'settings.paddle_size',
+            'settings.paddle_short',
+            'settings.paddle_normal',
+            'settings.paddle_long',
+            'settings.power_jump',
+            'settings.power_jump_on',
+            'settings.power_jump_off',
+            'settings.theme',
+            'settings.light',
+            'settings.dark',
+            'settings.font_size',
+            'settings.font_small',
+            'settings.font_medium',
+            'settings.font_large',
+            'settings.language',
+            'settings.lang_eng',
+            'settings.lang_fin',
+            'settings.lang_swd',
+            'settings.password',
+            'settings.password_placeholder',
+            'settings.save_settings',
+            'settings.player_name',
+            'settings.player_placeholder',
+            'settings.alert_saved',
+            'settings.alert_error'
+        ]);
+
+        // Set translated page title
+        const title = translations.settings?.title || 'Settings';
+        this.setTitle(title);
+
+        document.getElementById("save_settings").addEventListener("click", this.push_Settings.bind(this, translations));
     }
 
     applyTheme(theme) {
@@ -187,12 +230,12 @@ export default class extends AbstractView {
         localStorage.setItem('theme', theme); // Optional: store locally for quick access
     }
 
-	applyFontSize(fontSize) {
+    applyFontSize(fontSize) {
         document.documentElement.setAttribute('data-font-size', fontSize);
         localStorage.setItem('font-size', fontSize); // Optional: store locally for quick access
     }
 
-    push_Settings() {
+    push_Settings(translations) {
         const getValue = (id) => document.getElementById(id)?.value || "";
         const players = [1, 2, 3, 4].map(player => {
             const name = getValue(`player${player}_name`);
@@ -232,14 +275,14 @@ export default class extends AbstractView {
         .then(data => {
             if (data.ok) {
                 this.applyTheme(settings.theme); // Apply the new theme after successful save
-				this.applyFontSize(settings.font_size); // Apply the new font size after successful save
-                alert("Settings saved successfully!");
+                this.applyFontSize(settings.font_size); // Apply the new font size after successful save
+                alert(translations.settings?.alert_saved || "Settings saved successfully!");
             } else {
-                alert("Error saving settings: " + data.error);
+                alert(`${translations.settings?.alert_error || "Error saving settings"}: ${data.error}`);
             }
         })
         .catch(error => {
-            alert("Error saving settings: " + error.message);
+            alert(`${translations.settings?.alert_error || "Error saving settings"}: ${error.message}`);
             console.error(error);
         });
 

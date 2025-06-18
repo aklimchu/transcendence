@@ -9,6 +9,7 @@
     "register": "Rekisteröidy"
     },
     "game": {
+	"title": "Peli",
     "1v1": "1v1-tila",
     "2v2": "2v2-tila",
     "pick_left": "Valitse vasen pelaaja:",
@@ -24,6 +25,7 @@
 	"game_completed": "Peli päättynyt!"
     },
 	"tournament": {
+	"title": "Turnaus",
 	"game_title": "Peli",
 	"1v1_mode": "1v1-tila",
 	"2v2_mode": "2v2-tila",
@@ -38,6 +40,19 @@
 	"reset_settings": "Palauta asetukset oletusarvoihin",
 	"tournament_title": "Turnaus",
 	"tournament_mode": "Turnaustila",
+	"create_pong_tournament": "Luo Pong-turnaus",
+    "create_snek_tournament": "Luo Snek-turnaus",
+    "semifinal_1": "Välierä 1",
+    "semifinal_2": "Välierä 2",
+    "left_player": "Vasen pelaaja",
+    "right_player": "Oikea pelaaja",
+    "winner": "Voittaja",
+    "loser": "Häviäjä",
+    "score": "Pisteet",
+    "final": "Finaali",
+    "waiting_for_semifinals": "Odotetaan välieriä...",
+    "go_back": "Palaa takaisin",
+    "tournament_completed": "Turnaus päättynyt!",
 	"player_1": "Pelaaja 1:",
 	"player_2": "Pelaaja 2:",
 	"player_3": "Pelaaja 3:",
@@ -51,6 +66,7 @@
     "defeats": "Tappiot"
     },
     "settings": {
+    "title": "Asetukset",
     "title_general": "Yleiset asetukset",
     "title_player": "Pelaaja-asetukset",
     "speed": "Pelin nopeus",
@@ -59,18 +75,21 @@
     "speed_fast": "Nopea",
     "ball_size": "Pallon koko",
     "ball_small": "Pieni",
-    "ball_medium": "Keskikoko",
+    "ball_medium": "Keskikokoinen",
     "ball_large": "Suuri",
-    "paddle_size": "Mailan koko",
+    "paddle_size": "Melan koko",
     "paddle_short": "Lyhyt",
     "paddle_normal": "Normaali",
     "paddle_long": "Pitkä",
+    "power_jump": "Voimahyppy (snek)",
+    "power_jump_on": "Päällä",
+    "power_jump_off": "Pois",
     "theme": "Teema",
     "light": "Vaalea",
     "dark": "Tumma",
     "font_size": "Fonttikoko",
     "font_small": "Pieni",
-    "font_medium": "Keskikoko",
+    "font_medium": "Keskikokoinen",
     "font_large": "Suuri",
     "language": "Kieli",
     "lang_eng": "Englanti",
@@ -80,11 +99,24 @@
     "password_placeholder": "Syötä uusi salasana",
     "save_settings": "Tallenna asetukset",
     "player_name": "Nimi",
-    "player_placeholder": "Syötä nimi"
-    },
+    "player_placeholder": "Syötä nimi",
+    "alert_saved": "Asetukset tallennettu onnistuneesti!",
+    "alert_error": "Virhe asetusten tallentamisessa"
+  	},
     "stats": {
+	"page_title": "Tilastot",
     "title": "🏓Pelaajaan suorituskyvyn yleiskatsaus🐍",
     "total_games": "Pelejä pelattu yhteensä:",
     "users": "Rekisteröidyt käyttäjät:"
-    }
+    },
+	"nav": {
+    "title": "Pong",
+    "lobby": "Aula",
+    "game": "Peli",
+    "tournament": "Turnaus",
+    "settings": "Asetukset",
+    "stats": "Tilastot",
+    "logout": "Kirjaudu ulos",
+    "error": "Virhe"
+  }
 }
