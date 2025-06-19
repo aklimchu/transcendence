@@ -1,6 +1,6 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch, getCookie } from '../auth.js';
-import { resetSettingsToDefault, TranslationManager } from "../utils.js";
+import { resetSettingsToDefault, TranslationManager , extractErrorMessage } from "../utils.js";
 
 export default class extends AbstractView {
     constructor(params) {
@@ -42,7 +42,7 @@ export default class extends AbstractView {
             const responseText = await response.text();
             console.log("Response text:", responseText);
             if (!response.ok) {
-                throw new Error(this.extractErrorMessage(responseText, response.status));
+                throw new Error(extractErrorMessage(responseText, response.status));
             }
             const data = JSON.parse(responseText);
             console.log("Settings data:", data);
@@ -198,7 +198,7 @@ export default class extends AbstractView {
             const responseText = await response.text();
             console.log("Response text:", responseText);
             if (!response.ok) {
-                throw new Error(this.extractErrorMessage(responseText, response.status));
+                throw new Error(extractErrorMessage(responseText, response.status));
             }
             const data = JSON.parse(responseText);
             console.log("Settings data:", data);
@@ -304,7 +304,7 @@ export default class extends AbstractView {
             const responseText = await response.text();
             console.log("Response text:", responseText);
             if (!response.ok) {
-                throw new Error(this.extractErrorMessage(responseText, response.status));
+                throw new Error(extractErrorMessage(responseText, response.status));
             }
             const data = JSON.parse(responseText);
             console.log("Settings data:", data);
@@ -631,7 +631,7 @@ export default class extends AbstractView {
             const responseText = await response.text();
             console.log("Response text:", responseText);
             if (!response.ok) {
-                throw new Error(this.extractErrorMessage(responseText, response.status));
+                throw new Error(extractErrorMessage(responseText, response.status));
             }
             const data = JSON.parse(responseText);
             console.log("Settings data:", data);

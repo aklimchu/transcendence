@@ -100,7 +100,8 @@
 	  "player_name": "Name",
 	  "player_placeholder": "Enter name",
 	  "alert_saved": "Settings saved successfully!",
-	  "alert_error": "Error saving settings"
+	  "alert_error": "Error saving settings",
+      "upload_avatar": "Upload avatar"
 	},
     "stats": {
 	"page_title": "Stats",

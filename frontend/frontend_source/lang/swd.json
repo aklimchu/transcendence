@@ -101,7 +101,8 @@
 	  "player_name": "Namn",
 	  "player_placeholder": "Ange namn",
 	  "alert_saved": "Inställningar sparade framgångsrikt!",
-	  "alert_error": "Fel vid sparande av inställningar"
+	  "alert_error": "Fel vid sparande av inställningar",
+      "upload_avatar": "Ladda upp avatar"
 	},
     "stats": {
 	"page_title": "Statistik",

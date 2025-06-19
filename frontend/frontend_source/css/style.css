@@ -1,9 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
 
 :root {
     --base-font-size: 20px; /* Default base font size */
     --settings-form-size: 100%; /* Default settings form size */
-    font-family: 'Quicksand', sans-serif;
+    font-family: 'Inter', sans-serif; /* Use Inter, fallback to sans-serif */
     --transition-speed: 600ms;
 }
 
@@ -60,6 +61,36 @@ html {
     --link-color: #00cc99;
     --victory-color: #2ecc71;
     --defeat-color: #e74c3c;
+}
+
+.player-avatar {
+    width: 80px;  /* Adjust to fit the card design */
+    height: 80px;
+    border-radius: 50%;  /* Circular avatars */
+    object-fit: cover;
+    margin: 10px auto;  /* Center and add spacing */
+    border: 2px solid #ffd700;  /* Gold border to match the theme */
+}
+.avatar-upload {
+    display: none; /* Hide the file input */
+}
+.avatar-upload-label {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #006461;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+.avatar-upload-label:hover {
+    background-color: #004d4d;
+}
+.player-box {
+    text-align: center;
+}
+.avatar-container {
+    margin-bottom: 10px;
 }
 
 .form-select {

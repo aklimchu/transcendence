@@ -1,6 +1,6 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch } from "../auth.js";
-import { TranslationManager } from "../utils.js";
+import { TranslationManager, extractErrorMessage } from "../utils.js";
 
 export default class extends AbstractView {
     constructor(params) {
@@ -21,12 +21,12 @@ export default class extends AbstractView {
             return;
         }
 
-        // Fetch user settings to get the theme and language
+        // Fetch user settings to get the theme, language, and player avatars
         let settingsData = {
             theme: "light",
             font_size: "medium",
             language: "eng",
-            players: Array(4).fill().map((_, index) => ({ player_name: '', position: index + 1 }))
+            players: Array(4).fill().map((_, index) => ({ player_name: '', position: index + 1, avatar: null }))
         };
         try {
             console.log("Fetching settings from /pong_api/pong_settings/");
@@ -38,30 +38,41 @@ export default class extends AbstractView {
             const responseText = await response.text();
             console.log("Response text:", responseText);
             if (!response.ok) {
-                throw new Error(this.extractErrorMessage(responseText, response.status));
-            }
-            const data = JSON.parse(responseText);
-            console.log("Settings data:", data);
-            if (data.ok && data.settings && typeof data.settings === "object") {
-                settingsData = {
-                    ...data.settings,
-                    players: Array(4).fill().map((_, index) => {
-                        const player = data.settings.players?.find(p => p.position === index + 1);
-                        return { player_name: player?.player_name || '', position: index + 1 };
-                    })
-                };
+                console.warn("Settings fetch failed, using defaults:", response.status);
             } else {
-                console.warn("Invalid settings response:", data);
-                throw new Error("Invalid settings data received");
+                const data = JSON.parse(responseText);
+                console.log("Settings data:", data);
+                if (data.ok && data.settings && typeof data.settings === "object") {
+                    settingsData = {
+                        ...data.settings,
+                        players: Array(4).fill().map((_, index) => {
+                            const player = data.settings.players?.find(p => p.position === index + 1);
+                            return {
+                                player_name: player?.player_name || '',
+                                position: index + 1,
+                                avatar: player?.avatar || null // URL or null
+                            };
+                        })
+                    };
+                } else {
+                    console.warn("Invalid settings response, using defaults:", data);
+                }
             }
         } catch (error) {
-            console.error("Failed to load settings:", error);
-            alert("Error loading settings: " + error.message);
+            console.warn("Failed to load settings, using defaults:", error);
         }
 
         // Apply the theme and font to the body
         this.applyTheme(settingsData.theme);
         this.applyFontSize(settingsData.font_size);
+
+        // Map settingsData.players to match json.data.players positions (p1, p2, p3, p4)
+        const playerMap = {
+            'p1': settingsData.players.find(p => p.position === 1),
+            'p2': settingsData.players.find(p => p.position === 2),
+            'p3': settingsData.players.find(p => p.position === 3),
+            'p4': settingsData.players.find(p => p.position === 4)
+        };
 
         var content = `
         <div class="container my-4">
@@ -69,45 +80,49 @@ export default class extends AbstractView {
                 <div class="col">
                     <div class="lobby-card1 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p1"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p1"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p1"]["lost"]}</p>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p1"]["name"] || 'Player 1'}</h4>
+                            <img src="${playerMap['p1']?.avatar ? playerMap['p1'].avatar : '../../css/perry.jpg'}" alt="Avatar for ${json.data["players"]["p1"]["name"] || 'Player 1'}" class="player-avatar" />
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p1"]["won"] || 0}</p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p1"]["lost"] || 0}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="lobby-card2 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p2"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p2"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p2"]["lost"]}</p>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p2"]["name"] || 'Player 2'}</h4>
+                            <img src="${playerMap['p2']?.avatar ? playerMap['p2'].avatar : '../../css/perry.jpg'}" alt="Avatar for ${json.data["players"]["p2"]["name"] || 'Player 2'}" class="player-avatar" />
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p2"]["won"] || 0}</p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p2"]["lost"] || 0}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="lobby-card3 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p3"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p3"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p3"]["lost"]}</p>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p3"]["name"] || 'Player 3'}</h4>
+                            <img src="${playerMap['p3']?.avatar ? playerMap['p3'].avatar : '../../css/perry.jpg'}" alt="Avatar for ${json.data["players"]["p3"]["name"] || 'Player 3'}" class="player-avatar" />
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p3"]["won"] || 0}</p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p3"]["lost"] || 0}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="lobby-card4 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p4"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p4"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p4"]["lost"]}</p>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p4"]["name"] || 'Player 4'}</h4>
+                            <img src="${playerMap['p4']?.avatar ? playerMap['p4'].avatar : '../../css/perry.jpg'}" alt="Avatar for ${json.data["players"]["p4"]["name"] || 'Player 4'}" class="player-avatar" />
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p4"]["won"] || 0}</p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p4"]["lost"] || 0}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         `;
-		
-		this.unhideNavbar();
-		await this.setContent(content);
+
+        this.unhideNavbar();
+        await this.setContent(content);
 
         // Apply translations
         const translations = await this.translationManager.initLanguage(settingsData.language, [
@@ -128,6 +143,6 @@ export default class extends AbstractView {
 
     applyFontSize(fontSize) {
         document.documentElement.setAttribute('data-font-size', fontSize);
-        localStorage.setItem('font-size', fontSize); // Optional: store locally for quick access
+        //localStorage.setItem('font-size', fontSize); // Optional: store locally for quick access
     }
 }

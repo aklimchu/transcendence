@@ -172,3 +172,23 @@ export async function resetSettingsToDefault()
             alert("Error resetting settings: " + error.message);
         }
     }
+
+    export function extractErrorMessage(text, status) {
+        try {
+            const cleanedText = text.trim().replace(/^\uFEFF/, '');
+            const data = JSON.parse(cleanedText);
+            return data.error || `HTTP ${status} error`;
+        } catch (e) {
+            console.error("Parse error:", e, "Response status:", status, "Response text:", text);
+            const errorMatch = text.match(/"error"\s*:\s*"([^"]+)"/i);
+            console.log("Error match: ", errorMatch);
+            if (errorMatch && errorMatch[1]) {
+                return errorMatch[1];
+            }
+            const plainText = text.trim().substring(0, 100);
+            if (plainText) {
+                return `Server error (HTTP ${status}): ${plainText}${text.length > 100 ? '...' : ''}`;
+            }
+            return `Server error (HTTP ${status}): No error message available`;
+        }
+    }

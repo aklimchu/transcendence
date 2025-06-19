@@ -101,7 +101,8 @@
     "player_name": "Nimi",
     "player_placeholder": "Syötä nimi",
     "alert_saved": "Asetukset tallennettu onnistuneesti!",
-    "alert_error": "Virhe asetusten tallentamisessa"
+    "alert_error": "Virhe asetusten tallentamisessa",
+    "upload_avatar": "Lataa avatar"
   	},
     "stats": {
 	"page_title": "Tilastot",
