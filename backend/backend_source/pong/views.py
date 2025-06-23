@@ -11,6 +11,10 @@ from django.db.models import Q
 from .models import *
 from functools import wraps
 from random import shuffle
+from django_otp.plugins.otp_totp.models import TOTPDevice
+import qrcode
+import base64
+from io import BytesIO
 
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
@@ -19,9 +23,15 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from django_otp.plugins.otp_totp.models import TOTPDevice
-
 logger = logging.getLogger(__name__)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def TwoFAStatus(request):
+	user = request.user
+	TwoFA_enabled = user.totpdevice_set.filter(confirmed=True).exists()
+	return Response({"2fa_enabled": TwoFA_enabled})
 
 
 @api_view(['POST'])
@@ -34,8 +44,17 @@ def pong_register(request):
     if User.objects.filter(username=username).exists():
         return Response({"error": "Username already exists"}, status=400)
     user = User.objects.create_user(username=username, password=password)
-    TOTPDevice.objects.create(user=user, confirmed=False)
-    return Response({"success": True}, status=201)
+    device = TOTPDevice.objects.create(user=user, confirmed=True, name="default")
+    uri = device.config_url
+    qr = qrcode.make(uri)
+    buf = BytesIO()
+    qr.save(buf)
+    qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    return Response({
+        "success": True,
+        "qr_code": qr_b64,
+        "secret": device.key
+    }, status=201)
 
 class TwoFAStatusView(APIView):
     permission_classes = [AllowAny]
@@ -48,56 +67,47 @@ class TwoFAStatusView(APIView):
         return Response({"2fa_enabled": twofa_enabled})
 
 class TwoFASetupView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        username = request.data.get("username")
-        if not username:
-            return Response({"error": "Username required"}, status=400)
-        try:
-            user = User.objects.get(username=username)
-            device, _ = TOTPDevice.objects.get_or_create(user=user, confirmed=False)
-            otp_uri = device.config_url
-            import qrcode
-            import base64
-            from io import BytesIO
-            img = qrcode.make(otp_uri)
-            buf = BytesIO()
-            img.save(buf)
-            qr_b64 = base64.b64encode(buf.getvalue()).decode()
-            return Response({"qr_code": qr_b64})
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=404)
+        user = request.user
+        device, created = TOTPDevice.objects.get_or_create(
+            user=user, confirmed=False, name="default"
+        )
+        uri = device.config_url
+        qr = qrcode.make(uri)
+        buf = BytesIO()
+        qr.save(buf)
+        qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+        return Response({'qr_code': qr_b64, 'secret': device.key})
 
 class TwoFAVerifyView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        username = request.data.get("username")
-        token = request.data.get("token")
-        if not username or not token:
-            return Response({"error": "Missing username or token"}, status=400)
+        user = request.user
+        token = request.data.get('token')
         try:
-            user = User.objects.get(username=username)
-            device = TOTPDevice.objects.filter(user=user, confirmed=False).first()
-            if device and device.verify_token(token):
-                device.confirmed = True
-                device.save()
-                return Response({"success": True})
-            return Response({"error": "Invalid token"}, status=400)
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=404)
+            device = TOTPDevice.objects.get(user=user, confirmed=False, name="default")
+        except TOTPDevice.DoesNotExist:
+            return Response({'error': 'No pending device.'}, status=400)
+        if device.verify_token(token):
+            device.confirmed = True
+            device.save()
+            return Response({'success': True})
+        return Response({'error': 'Invalid token.'}, status=400)
 
 class TwoFADisableView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        username = request.data.get("username")
-        if not username:
-            return Response({"error": "Username required"}, status=400)
+        user = request.user
         try:
-            user = User.objects.get(username=username)
-            TOTPDevice.objects.filter(user=user).delete()
-            return Response({"success": True})
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=404)
+            device = user.totpdevice_set.get(confirmed=True, name="default")
+            device.delete()
+            return Response({'success': True})
+        except TOTPDevice.DoesNotExist:
+            return Response({'error': 'No 2FA device to disable.'}, status=400)
 
 
 def get_player_data(player_id):
@@ -441,3 +451,31 @@ def pong_update_settings(request):
         return JsonResponse({"ok": False, "error": "Pong session not found for user", "statusCode": 400}, status=400)
     except Exception as err:
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_with_2fa(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+    token = request.data.get("token")
+    if not username or not password:
+        return Response({"error": "Missing credentials"}, status=400)
+    user = authenticate(username=username, password=password)
+    if user is None:
+        return Response({"error": "Invalid credentials"}, status=401)
+    # Only require 2FA if a confirmed device exists
+    device_qs = user.totpdevice_set.filter(confirmed=True, name="default")
+    if device_qs.exists():
+        if not token:
+            return Response({"error": "2FA token required"}, status=401)
+        device = device_qs.first()
+        if not device.verify_token(token):
+            return Response({"error": "Invalid 2FA token"}, status=401)
+    # Issue JWT tokens
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+        "user_id": user.id,
+        "username": user.username,
+    })

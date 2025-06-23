@@ -28,6 +28,16 @@ export async function register_func(user, pwd) {
 
 		await new Promise(resolve => setTimeout(resolve, 750));
 
+		// After successful registration, show QR code and secret
+		if (response.ok) {
+			const data = await response.json();
+			// Show QR code and secret to the user
+			const qr = document.getElementById("twofa-qr");
+			qr.src = "data:image/png;base64," + data.qr_code;
+			qr.style.display = "block";
+			// Do NOT display the secret!
+		}
+
 		const data = await response.json();		
 		const loginResult = await login_func(user, pwd);
 		return loginResult;
@@ -38,52 +48,34 @@ export async function register_func(user, pwd) {
 }
 
 export async function login_func(user, pwd) {
-    const response = await authFetch("/api/token/", {
+    let token = prompt("Enter your 2FA code from Google Authenticator (leave blank if not enabled):") || "";
+
+    const response = await authFetch("/pong_api/login_with_2fa/", {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user, password: pwd })
+        body: JSON.stringify({ username: user, password: pwd, token: token })
     });
 
-    if (response.status === 401) {
-        const twoFAResp = await authFetch("/pong_api/2fa/status/", {
-            method: "POST",
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: user })
-        });
-        if (twoFAResp.ok) {
-            const data = await twoFAResp.json();
-            if (data["2fa_enabled"]) {
-                const code = prompt("Enter your 2FA code from Google Authenticator:");
-                if (!code) return false;
-                const resp2 = await authFetch("/api/token/2fa/", {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: user, password: pwd, token: code })
-                });
-                if (resp2.ok) {
-                    const tokens = await resp2.json();
-                    localStorage.setItem("access", tokens.access);
-                    localStorage.setItem("refresh", tokens.refresh);
-                    return true;
-                } else {
-                    showErrorMessage("Invalid 2FA code.", 0);
-                    return false;
-                }
-            }
+    if (!response.ok) {
+        let errorMsg = `Login failed (${response.status}).`;
+        try {
+            const errorData = await response.json();
+            if (errorData && errorData.error)
+                errorMsg = `Login failed: ${errorData.error} (${response.status})`;
+            else if (errorData && errorData.detail)
+                errorMsg = `Login failed: ${errorData.detail} (${response.status})`;
+        } catch (e) {
+            errorMsg += " (Could not parse error details)";
         }
-        showErrorMessage("Login failed.", 0);
+        showErrorMessage(errorMsg, 0);
         return false;
     }
 
-    if (response.ok) {
-        const tokens = await response.json();
-        localStorage.setItem("access", tokens.access);
-        localStorage.setItem("refresh", tokens.refresh);
-        return true;
-    }
-
-    showErrorMessage("Login failed.", 0);
-    return false;
+    const data = await response.json();
+    localStorage.setItem("access", data.access);
+    localStorage.setItem("refresh", data.refresh);
+    showSuccessMessage("Login successful!", 0);
+    return true;
 }
 
 export async function logout_func() {
