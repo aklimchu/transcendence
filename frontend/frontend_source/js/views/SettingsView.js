@@ -162,7 +162,7 @@ export default class extends AbstractView {
                             <div class="form-row" id="twofa-setup-row" style="display:none;">
                                 <label></label>
                                 <div>
-                                    <p>Scan this QR code with Google Authenticator:</p>
+                                    <p>Scan this QR code with your Authenticator app:</p>
                                     <img id="twofa-qr" src="" alt="2FA QR Code" style="max-width:200px;"/>
                                     <p>Enter the 6-digit code from your app:</p>
                                     <input type="text" id="twofa-code" maxlength="6" class="form-control form-control-sm" style="width:100px;display:inline-block;" />

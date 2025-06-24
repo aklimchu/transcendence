@@ -24,31 +24,28 @@ export async function register_func(user, pwd) {
 			showErrorMessage(errorMsg, 0);
 			return false;
 		}
-		showSuccessMessage("Registration successful! Logging in...", 0);
+		showSuccessMessage("User registered successfully! Please scan the QR code with your Authenticator app to enable 2FA.", 0);
 
 		await new Promise(resolve => setTimeout(resolve, 750));
 
-		// After successful registration, show QR code and secret
 		if (response.ok) {
 			const data = await response.json();
-			// Show QR code and secret to the user
-			const qr = document.getElementById("twofa-qr");
+		const qr = document.getElementById("twofa-qr");
 			qr.src = "data:image/png;base64," + data.qr_code;
 			qr.style.display = "block";
-			// Do NOT display the secret!
 		}
-
-		const data = await response.json();		
-		const loginResult = await login_func(user, pwd);
-		return loginResult;
-	} catch (err) {
+		} catch (err) {
 		showErrorMessage(`Registration error: ${err.message}`, 0);
 		return false;
 	}
+	const data = await response.json();		
+	const loginResult = await login_func(user, pwd);
+	return loginResult;
+
 }
 
 export async function login_func(user, pwd) {
-    let token = prompt("Enter your 2FA code from Google Authenticator (leave blank if not enabled):") || "";
+    let token = prompt("Enter your 2FA code from your Authenticator app (leave blank if not enabled):") || "";
 
     const response = await authFetch("/pong_api/login_with_2fa/", {
         method: "POST",
