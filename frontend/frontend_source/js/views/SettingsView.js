@@ -30,8 +30,7 @@ export default class extends AbstractView {
             theme: "light",
             font_size: "medium",
             language: "eng",
-            players: Array(4).fill().map((_, index) => ({ player_name: '', position: index + 1 }))
-        };
+            players: Array(4).fill().map((_, index) => ({ player_name: '', avatar: '../../css/perry.jpg', position: index + 1 }))        };
 
         try {
             console.log("Fetching settings from /pong_api/pong_settings/");
@@ -142,10 +141,17 @@ export default class extends AbstractView {
                         <div class="player-settings">
                             ${settingsData.players.map((player, index) => `
                                 <div class="player-box player${index + 1}">
-                                    <h3>${player.player_name || `Player ${index + 1}`}</h3>
+                                    <div class="player-name" data-name="${player.player_name || `Player ${index + 1}`}">${player.player_name || `Player ${index + 1}`}</div>
+                                    <div class="player-avatar">
+                                        <img src="${player.avatar || 'default-avatar.png'}" alt="Avatar" class="avatar-image" />
+                                    </div>
                                     <div class="player-config player${index + 1}-config">
                                         <label for="player${index + 1}_name" data-i18n="settings.player_name">Name</label>
                                         <input type="text" id="player${index + 1}_name" data-i18n-placeholder="settings.player_placeholder" placeholder="Enter name" value="${player.player_name || ''}" />
+                                    </div>
+                                    <div class="avatar-container">
+                                        <input type="file" id="player${index + 1}_avatar" accept="image/*" class="avatar-upload" />
+                                        <label for="player${index + 1}_avatar" class="avatar-upload-label" data-i18n="settings.upload_avatar">Upload Avatar</label>
                                     </div>
                                 </div>
                             `).join('')}
@@ -219,10 +225,12 @@ export default class extends AbstractView {
         const getValue = (id) => document.getElementById(id)?.value || "";
         const players = [1, 2, 3, 4].map(player => {
             const name = getValue(`player${player}_name`);
+            const avatarInput = document.getElementById(`avatar${player}`);
+            const avatar = avatarInput?.files[0] ? URL.createObjectURL(avatarInput.files[0]) : getValue(`player${player}_avatar`) || '../../css/perry.jpg';
             if (name.trim()) {
-                return { player_name: name, position: player };
+                return { player_name: name, avatar: avatar, position: player };
             }
-        }).filter(player => player); // Only include non-empty players
+        }).filter(player => player);
 
         const settings = {
             game_speed: getValue("game_speed"),
@@ -254,8 +262,8 @@ export default class extends AbstractView {
         })
         .then(data => {
             if (data.ok) {
-               alert(translations.settings?.alert_saved || "Settings saved successfully!");
-               setTimeout(() => {
+                alert(translations.settings?.alert_saved || "Settings saved successfully!");
+                setTimeout(() => {
                     this.goToView();
                 }, 1000); // 1-second delay
             } else {

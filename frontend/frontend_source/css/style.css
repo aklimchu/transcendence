@@ -485,6 +485,8 @@ a {
 }
 
 .player-box {
+    position: relative;
+    overflow: visible; /* Ensure child elements aren't clipped */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -499,6 +501,7 @@ a {
     cursor: pointer;
     background-color: var(--bg-primary);
     transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
+    text-align: center;
 }
 
 .player-box:hover {
@@ -509,6 +512,69 @@ a {
 
 .player-box:hover .player-config {
     display: block;
+}
+
+.player-box .player-avatar {
+    width: 80px;  /* Adjust to fit the card design */
+    height: 80px;
+    border-radius: 50%;  /* Circular avatars */
+    object-fit: cover;
+    margin: 10px auto;  /* Center and add spacing */
+    border: 2px solid #ffd700;  /* Gold border to match the theme */
+}
+.player-box:hover .player-avatar {
+    display: none;
+}
+.player-box .avatar-upload {
+    display: none; /* Hide the file input */
+}
+/* .player-box:hover .avatar-upload {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+} */
+.player-box .avatar-upload-label {
+    display: none;
+    padding: 5px 10px;
+    background-color: #006461;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+.player-box:hover .avatar-upload-label {
+    display: inline-block;
+}
+/* .avatar-upload-label:hover {
+    background-color: #004d4d;
+}
+.avatar-container {
+    margin-bottom: 10px;
+} */
+
+.player-box .player-name {
+    display: block;
+    padding: 10px;
+    text-align: center;
+}
+.player-box .player-avatar {
+    display: block;
+    padding: 5px;
+    text-align: center;
+}
+.player-box .player-avatar img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+.player-box:hover .player-name {
+    display: none;
+}
+.player-box:hover .player-avatar {
+    display: none;
 }
 
 .player1:hover { background-color: #ff9999; }

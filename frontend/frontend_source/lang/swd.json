@@ -58,7 +58,8 @@
 	"player_3": "Spelare 3:",
 	"player_4": "Spelare 4:",
 	"start_tournament": "Starta turnering",
-	"language_label": "Språk:"
+	"language_label": "Språk:",
+    "upload_avatar": "Bifoga Avatar"
 	},
     "lobby": {
 	"title": "Väntrum",
