@@ -1,31 +1,11 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch } from "../auth.js";
-import { TranslationManager } from "../utils.js";
+import { TranslationManager, extractErrorMessage } from "../utils.js";
 
 export default class extends AbstractView {
     constructor(params) {
         super(params);
         this.translationManager = new TranslationManager(); // Initialize TranslationManager
-    }
-
-    extractErrorMessage(text, status) {
-        try {
-            const cleanedText = text.trim().replace(/^\uFEFF/, '');
-            const data = JSON.parse(cleanedText);
-            return data.error || `HTTP ${status} error`;
-        } catch (e) {
-            console.error("Parse error:", e, "Response status:", status, "Response text:", text);
-            const errorMatch = text.match(/"error"\s*:\s*"([^"]+)"/i);
-            console.log("Error match: ", errorMatch);
-            if (errorMatch && errorMatch[1]) {
-                return errorMatch[1];
-            }
-            const plainText = text.trim().substring(0, 100);
-            if (plainText) {
-                return `Server error (HTTP ${status}): ${plainText}${text.length > 100 ? '...' : ''}`;
-            }
-            return `Server error (HTTP ${status}): No error message available`;
-        }
     }
 
     async goToView() {
@@ -63,7 +43,7 @@ export default class extends AbstractView {
             const responseText = await response.text();
             console.log("Response text:", responseText);
             if (!response.ok) {
-                throw new Error(this.extractErrorMessage(responseText, response.status));
+                throw new Error(extractErrorMessage(responseText, response.status));
             }
             const data = JSON.parse(responseText);
             console.log("Settings data:", data);
@@ -267,16 +247,17 @@ export default class extends AbstractView {
         .then(response => {
             if (!response.ok) {
                 return response.text().then(text => {
-                    throw new Error(this.extractErrorMessage(text, response.status));
+                    throw new Error(extractErrorMessage(text, response.status));
                 });
             }
             return response.json();
         })
         .then(data => {
             if (data.ok) {
-                this.applyTheme(settings.theme); // Apply the new theme after successful save
-                this.applyFontSize(settings.font_size); // Apply the new font size after successful save
-                alert(translations.settings?.alert_saved || "Settings saved successfully!");
+               alert(translations.settings?.alert_saved || "Settings saved successfully!");
+               setTimeout(() => {
+                    this.goToView();
+                }, 1000); // 1-second delay
             } else {
                 alert(`${translations.settings?.alert_error || "Error saving settings"}: ${data.error}`);
             }
