@@ -24,7 +24,7 @@ export async function register_func(user, pwd) {
 			showErrorMessage(errorMsg, 0);
 			return false;
 		}
-		showSuccessMessage("User registered successfully! Please scan the QR code with your Authenticator app to enable 2FA.", 0);
+		showSuccessMessage("User registered successfully! Please scan the QR code with your Authenticator app to enable 2FA.", 1);
 
 		await new Promise(resolve => setTimeout(resolve, 750));
 
