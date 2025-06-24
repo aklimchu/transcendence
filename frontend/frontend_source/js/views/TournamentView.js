@@ -1,5 +1,5 @@
 import GameView from "./GameView.js";
-import { resetSettingsToDefault, TranslationManager, extractErrorMessage } from "../utils.js";
+import { resetSettingsToDefault, TranslationManager } from "../utils.js";
 import { authFetch } from "../auth.js";
 
 export default class extends GameView {
@@ -35,7 +35,7 @@ export default class extends GameView {
             const responseText = await response.text();
             console.log("Response text:", responseText);
             if (!response.ok) {
-                throw new Error(extractErrorMessage(responseText, response.status));
+                throw new Error(this.extractErrorMessage(responseText, response.status));
             }
             const data = JSON.parse(responseText);
             console.log("Settings data:", data);
@@ -248,7 +248,7 @@ export default class extends GameView {
             const responseText = await response.text();
             console.log("Response text:", responseText);
             if (!response.ok) {
-                throw new Error(extractErrorMessage(responseText, response.status));
+                throw new Error(this.extractErrorMessage(responseText, response.status));
             }
             const data = JSON.parse(responseText);
             console.log("Settings data:", data);

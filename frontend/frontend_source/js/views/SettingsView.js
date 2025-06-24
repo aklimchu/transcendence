@@ -1,11 +1,31 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch } from "../auth.js";
-import { TranslationManager, extractErrorMessage } from "../utils.js";
+import { TranslationManager } from "../utils.js";
 
 export default class extends AbstractView {
     constructor(params) {
         super(params);
-        this.translationManager = new TranslationManager();
+        this.translationManager = new TranslationManager(); // Initialize TranslationManager
+    }
+
+    extractErrorMessage(text, status) {
+        try {
+            const cleanedText = text.trim().replace(/^\uFEFF/, '');
+            const data = JSON.parse(cleanedText);
+            return data.error || `HTTP ${status} error`;
+        } catch (e) {
+            console.error("Parse error:", e, "Response status:", status, "Response text:", text);
+            const errorMatch = text.match(/"error"\s*:\s*"([^"]+)"/i);
+            console.log("Error match: ", errorMatch);
+            if (errorMatch && errorMatch[1]) {
+                return errorMatch[1];
+            }
+            const plainText = text.trim().substring(0, 100);
+            if (plainText) {
+                return `Server error (HTTP ${status}): ${plainText}${text.length > 100 ? '...' : ''}`;
+            }
+            return `Server error (HTTP ${status}): No error message available`;
+        }
     }
 
     async goToView() {
@@ -30,11 +50,7 @@ export default class extends AbstractView {
             theme: "light",
             font_size: "medium",
             language: "eng",
-            players: Array(4).fill().map((_, index) => ({
-                player_name: '',
-                avatar: null, // Default avatar (null or placeholder URL)
-                position: index + 1
-            }))
+            players: Array(4).fill().map((_, index) => ({ player_name: '', position: index + 1 }))
         };
 
         try {
@@ -47,7 +63,7 @@ export default class extends AbstractView {
             const responseText = await response.text();
             console.log("Response text:", responseText);
             if (!response.ok) {
-                throw new Error(extractErrorMessage(responseText, response.status));
+                throw new Error(this.extractErrorMessage(responseText, response.status));
             }
             const data = JSON.parse(responseText);
             console.log("Settings data:", data);
@@ -56,11 +72,7 @@ export default class extends AbstractView {
                     ...data.settings,
                     players: Array(4).fill().map((_, index) => {
                         const player = data.settings.players?.find(p => p.position === index + 1);
-                        return {
-                            player_name: player?.player_name || '',
-                            avatar: player?.avatar || null, // Avatar from server or null
-                            position: index + 1
-                        };
+                        return { player_name: player?.player_name || '', position: index + 1 };
                     })
                 };
             } else {
@@ -77,7 +89,7 @@ export default class extends AbstractView {
         this.applyTheme(settingsData.theme);
         this.applyFontSize(settingsData.font_size);
 
-        // Construct content with player names, avatars, and upload options
+        // Construct content with player names and translatable elements
         const content = `
             <div class="settings-wrapper">
                 <div class="settings-header">
@@ -151,11 +163,6 @@ export default class extends AbstractView {
                             ${settingsData.players.map((player, index) => `
                                 <div class="player-box player${index + 1}">
                                     <h3>${player.player_name || `Player ${index + 1}`}</h3>
-                                    <div class="avatar-container">
-                                        <img src="${player.avatar || `../../css/perry.jpg`}" alt="Avatar for ${player.player_name || `Player ${index + 1}`}" class="player-avatar" />
-                                        <input type="file" id="player${index + 1}_avatar" accept="image/*" class="avatar-upload" />
-                                        <label for="player${index + 1}_avatar" class="avatar-upload-label" data-i18n="settings.upload_avatar">Upload Avatar</label>
-                                    </div>
                                     <div class="player-config player${index + 1}-config">
                                         <label for="player${index + 1}_name" data-i18n="settings.player_name">Name</label>
                                         <input type="text" id="player${index + 1}_name" data-i18n-placeholder="settings.player_placeholder" placeholder="Enter name" value="${player.player_name || ''}" />
@@ -207,7 +214,6 @@ export default class extends AbstractView {
             'settings.save_settings',
             'settings.player_name',
             'settings.player_placeholder',
-            'settings.upload_avatar',
             'settings.alert_saved',
             'settings.alert_error'
         ]);
@@ -221,27 +227,22 @@ export default class extends AbstractView {
 
     applyTheme(theme) {
         document.body.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme); // Optional: store locally for quick access
     }
 
     applyFontSize(fontSize) {
         document.documentElement.setAttribute('data-font-size', fontSize);
+        localStorage.setItem('font-size', fontSize); // Optional: store locally for quick access
     }
 
     push_Settings(translations) {
         const getValue = (id) => document.getElementById(id)?.value || "";
-        const getFile = (id) => document.getElementById(id)?.files[0] || null;
-
         const players = [1, 2, 3, 4].map(player => {
             const name = getValue(`player${player}_name`);
-            const avatarFile = getFile(`player${player}_avatar`);
-            if (name.trim() || avatarFile) {
-                return {
-                    player_name: name,
-                    position: player,
-                    avatar: avatarFile // Send raw file object, not base64
-                };
+            if (name.trim()) {
+                return { player_name: name, position: player };
             }
-        }).filter(player => player);
+        }).filter(player => player); // Only include non-empty players
 
         const settings = {
             game_speed: getValue("game_speed"),
@@ -255,42 +256,27 @@ export default class extends AbstractView {
             players: players
         };
 
-        // Prepare FormData for file upload
-        const formData = new FormData();
-        Object.keys(settings).forEach(key => {
-            if (key === "players") {
-                settings.players.forEach(player => {
-                    if (player.player_name) formData.append(`players[${player.position - 1}][player_name]`, player.player_name);
-                    if (player.avatar) formData.append(`players[${player.position - 1}][avatar]`, player.avatar); // Append file object
-                });
-            } else {
-                formData.append(key, settings[key]);
-            }
-        });
-
         authFetch('/pong_api/pong_settings/', {
             method: 'POST',
             headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
-            body: formData // Use FormData with raw file
+            body: JSON.stringify(settings)
         })
         .then(response => {
             if (!response.ok) {
                 return response.text().then(text => {
-                    throw new Error(extractErrorMessage(text, response.status));
+                    throw new Error(this.extractErrorMessage(text, response.status));
                 });
             }
             return response.json();
         })
         .then(data => {
             if (data.ok) {
-                /* this.applyTheme(settings.theme);
-                this.applyFontSize(settings.font_size); */
+                this.applyTheme(settings.theme); // Apply the new theme after successful save
+                this.applyFontSize(settings.font_size); // Apply the new font size after successful save
                 alert(translations.settings?.alert_saved || "Settings saved successfully!");
-                setTimeout(() => {
-                    this.goToView();
-                }, 1000); // 1-second delay
             } else {
                 alert(`${translations.settings?.alert_error || "Error saving settings"}: ${data.error}`);
             }

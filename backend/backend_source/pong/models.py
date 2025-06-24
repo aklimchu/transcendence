@@ -48,7 +48,6 @@ def create_game_settings(sender, instance, created, **kwargs):
 class PongPlayer(models.Model):
     player_session = models.ForeignKey(PongSession, on_delete=models.CASCADE)
     player_name = models.CharField(max_length=30, blank=True, null=True)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     class Meta:
         constraints = [models.UniqueConstraint(fields=['player_session', 'player_name'], name='Unique player names for each session')]
 	
