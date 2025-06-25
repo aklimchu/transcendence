@@ -291,35 +291,45 @@ export default class extends AbstractView {
     }
 
     push_Settings(translations) {
+        const formData = new FormData();
         const getValue = (id) => document.getElementById(id)?.value || "";
-        const players = [1, 2, 3, 4].map(player => {
-            const name = getValue(`player${player}_name`);
-            const avatarInput = document.getElementById(`avatar${player}`);
-            const avatar = avatarInput?.files[0] ? URL.createObjectURL(avatarInput.files[0]) : getValue(`player${player}_avatar`) || '../../css/default-avatar.png';
-            if (name.trim()) {
-                return { player_name: name, avatar: avatar, position: player };
+
+        // Add non-file settings
+        formData.append("game_speed", getValue("game_speed"));
+        formData.append("ball_size", getValue("ball_size"));
+        formData.append("paddle_size", getValue("paddle_size"));
+        formData.append("power_jump", getValue("power_jump"));
+        formData.append("theme", getValue("theme"));
+        formData.append("font_size", getValue("font_size"));
+        formData.append("language", getValue("language"));
+        formData.append("password", getValue("password"));
+
+        // Handle player data and avatar uploads
+        const players = [1, 2, 3, 4].map(playerId => {
+            const name = getValue(`player${playerId}_name`);
+            const avatarInput = document.getElementById(`player${playerId}_avatar`);
+            const avatarFile = avatarInput?.files[0];
+
+            if (name.trim() || avatarFile) {
+                formData.append(`players[${playerId - 1}][player_name]`, name);
+                formData.append(`players[${playerId - 1}][position]`, playerId);
+                if (avatarFile) {
+                    formData.append(`players[${playerId - 1}][avatar]`, avatarFile);
+                }
+                return { player_name: name, position: playerId, avatar: avatarFile ? URL.createObjectURL(avatarFile) : null };
             }
         }).filter(player => player);
 
-        const settings = {
-            game_speed: getValue("game_speed"),
-            ball_size: getValue("ball_size"),
-            paddle_size: getValue("paddle_size"),
-            power_jump: getValue("power_jump"),
-            theme: getValue("theme"),
-            font_size: getValue("font_size"),
-            language: getValue("language"),
-            password: getValue("password"),
-            players: players
-        };
+        // Append players array length for server-side processing
+        formData.append("players_length", players.length);
 
         authFetch('/pong_api/pong_settings/', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
+                // Note: Don't set Content-Type, let the browser set it to multipart/form-data
             },
-            body: JSON.stringify(settings)
+            body: formData
         })
         .then(response => {
             if (!response.ok) {
@@ -333,7 +343,7 @@ export default class extends AbstractView {
             if (data.ok) {
                 alert(translations.settings?.alert_saved || "Settings saved successfully!");
                 setTimeout(() => {
-                    this.goToView();
+                    this.goToView(); // Refresh to reflect updated settings
                 }, 1000); // 1-second delay
             } else {
                 alert(`${translations.settings?.alert_error || "Error saving settings"}: ${data.error}`);

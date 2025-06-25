@@ -1,8 +1,8 @@
 from django.db import models, transaction
 from django.contrib.auth.models import User
-
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.conf import settings  # For media-related defaults
 
 # Create your models here.
 
@@ -22,10 +22,10 @@ def create_pong_session(sender, instance, created, **kwargs):
         with transaction.atomic():
             session, session_created = PongSession.objects.get_or_create(user=instance)
             if session_created or not session.active_player_1:
-                session.active_player_1 = PongPlayer.objects.create(player_session=session, player_name="Player 1")
-                session.active_player_2 = PongPlayer.objects.create(player_session=session, player_name="Player 2")
-                session.active_player_3 = PongPlayer.objects.create(player_session=session, player_name="Player 3")
-                session.active_player_4 = PongPlayer.objects.create(player_session=session, player_name="Player 4")
+                session.active_player_1 = PongPlayer.objects.create(player_session=session, player_name="Player 1", avatar=settings.MEDIA_ROOT / 'default-avatar.png' if settings.MEDIA_ROOT else '../../css/default-avatar.png')
+                session.active_player_2 = PongPlayer.objects.create(player_session=session, player_name="Player 2", avatar=settings.MEDIA_ROOT / 'default-avatar.png' if settings.MEDIA_ROOT else '../../css/default-avatar.png')
+                session.active_player_3 = PongPlayer.objects.create(player_session=session, player_name="Player 3", avatar=settings.MEDIA_ROOT / 'default-avatar.png' if settings.MEDIA_ROOT else '../../css/default-avatar.png')
+                session.active_player_4 = PongPlayer.objects.create(player_session=session, player_name="Player 4", avatar=settings.MEDIA_ROOT / 'default-avatar.png' if settings.MEDIA_ROOT else '../../css/default-avatar.png')
                 session.save()
 
 # Signal to create GameSettings
@@ -34,20 +34,21 @@ def create_game_settings(sender, instance, created, **kwargs):
     if created:
         GameSettings.objects.get_or_create(user=instance)
 
-# Do we need this?
-#def change_player_names(sender, instance, created, **kwargs):
-    #if created:
-        # session = PongSession.objects.create(user=instance)
-       # session.active_player_1 = PongPlayer.objects.change(player_session = session, player_name = kwargs)
-        # session.active_player_2 = PongPlayer.objects.change(player_session = session, player_name = "Player 2")
-        # session.active_player_3 = PongPlayer.objects.change(player_session = session, player_name = "Player 3")
-        # session.active_player_4 = PongPlayer.objects.change(player_session = session, player_name = "Player 4")
-   # instance.pongsession.save()
-
+# Commented out as it seems incomplete and unused
+# def change_player_names(sender, instance, created, **kwargs):
+#     if created:
+#         session = PongSession.objects.create(user=instance)
+#         session.active_player_1 = PongPlayer.objects.change(player_session=session, player_name=kwargs)
+#         session.active_player_2 = PongPlayer.objects.change(player_session=session, player_name="Player 2")
+#         session.active_player_3 = PongPlayer.objects.change(player_session=session, player_name="Player 3")
+#         session.active_player_4 = PongPlayer.objects.change(player_session=session, player_name="Player 4")
+#     instance.pongsession.save()
 
 class PongPlayer(models.Model):
     player_session = models.ForeignKey(PongSession, on_delete=models.CASCADE)
     player_name = models.CharField(max_length=30, blank=True, null=True)
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, default='../../css/default-avatar.png')
+
     class Meta:
         constraints = [models.UniqueConstraint(fields=['player_session', 'player_name'], name='Unique player names for each session')]
 	
