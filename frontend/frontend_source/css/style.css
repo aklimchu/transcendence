@@ -427,6 +427,10 @@ a {
     box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.3);
     border: 4px solid var(--border-color);
     font-size: var(--base-font-size);
+    min-height: 600px; /* Set a minimum height based on content; adjust as needed */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 #save_settings {
@@ -468,31 +472,37 @@ a {
 }
 
 .player-settings-container {
-    width: 490px;
     background-color: var(--bg-secondary);
     padding: 30px;
     border-radius: 20px;
     box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.3);
     border: 4px solid var(--border-color);
     font-size: var(--base-font-size);
+    min-height: 600px; /* Match General Settings min-height */
+    width: 600px; /* Square shape: width equals height */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .player-settings {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    justify-content: center;
+    padding: 10px;
     font-size: var(--base-font-size);
 }
 
 .player-box {
     position: relative;
-    overflow: visible; /* Ensure child elements aren't clipped */
+    overflow: visible;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 200px;
-    height: 200px;
+    width: 220px; /* Increased from 200px to scale proportionally */
+    height: 220px; /* Increased from 200px to match width */
     border: 3px solid var(--bg-accent);
     border-radius: 18px;
     font-weight: bold;
@@ -515,27 +525,22 @@ a {
 }
 
 .player-box .player-avatar {
-    width: 80px;  /* Adjust to fit the card design */
-    height: 80px;
-    border-radius: 50%;  /* Circular avatars */
+    width: 90px; /* Increased from 80px */
+    height: 90px; /* Increased from 80px */
+    border-radius: 50%;
     object-fit: cover;
-    margin: 10px auto;  /* Center and add spacing */
-    border: 2px solid #ffd700;  /* Gold border to match the theme */
+    margin: 10px auto;
+    border: 2px solid #ffd700;
 }
+
 .player-box:hover .player-avatar {
     display: none;
 }
+
 .player-box .avatar-upload {
-    display: none; /* Hide the file input */
+    display: none;
 }
-/* .player-box:hover .avatar-upload {
-    display: block;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-} */
+
 .player-box .avatar-upload-label {
     display: none;
     padding: 5px 10px;
@@ -545,34 +550,27 @@ a {
     cursor: pointer;
     margin-top: 5px;
 }
+
 .player-box:hover .avatar-upload-label {
     display: inline-block;
 }
-/* .avatar-upload-label:hover {
-    background-color: #004d4d;
-}
-.avatar-container {
-    margin-bottom: 10px;
-} */
 
 .player-box .player-name {
     display: block;
     padding: 10px;
     text-align: center;
 }
-.player-box .player-avatar {
-    display: block;
-    padding: 5px;
-    text-align: center;
-}
+
 .player-box .player-avatar img {
     width: 50px;
     height: 50px;
     border-radius: 50%;
 }
+
 .player-box:hover .player-name {
     display: none;
 }
+
 .player-box:hover .player-avatar {
     display: none;
 }

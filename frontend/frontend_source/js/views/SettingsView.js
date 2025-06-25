@@ -30,7 +30,7 @@ export default class extends AbstractView {
             theme: "light",
             font_size: "medium",
             language: "eng",
-            players: Array(4).fill().map((_, index) => ({ player_name: '', avatar: '../../css/perry.jpg', position: index + 1 }))        };
+            players: Array(4).fill().map((_, index) => ({ player_name: '', avatar: '../../css/default-avatar.png', position: index + 1 }))        };
 
         try {
             console.log("Fetching settings from /pong_api/pong_settings/");
@@ -143,7 +143,7 @@ export default class extends AbstractView {
                                 <div class="player-box player${index + 1}">
                                     <div class="player-name" data-name="${player.player_name || `Player ${index + 1}`}">${player.player_name || `Player ${index + 1}`}</div>
                                     <div class="player-avatar">
-                                        <img src="${player.avatar || 'default-avatar.png'}" alt="Avatar" class="avatar-image" />
+                                        <img src="${player.avatar || '../../css/default-avatar.png'}" alt="Avatar" class="avatar-image" />
                                     </div>
                                     <div class="player-config player${index + 1}-config">
                                         <label for="player${index + 1}_name" data-i18n="settings.player_name">Name</label>
@@ -152,6 +152,7 @@ export default class extends AbstractView {
                                     <div class="avatar-container">
                                         <input type="file" id="player${index + 1}_avatar" accept="image/*" class="avatar-upload" />
                                         <label for="player${index + 1}_avatar" class="avatar-upload-label" data-i18n="settings.upload_avatar">Upload Avatar</label>
+                                        <span id="player${index + 1}_avatar_error" class="error-message" style="display: none; font-size: var(--base-font-size);"></span>
                                     </div>
                                 </div>
                             `).join('')}
@@ -163,6 +164,74 @@ export default class extends AbstractView {
 
         this.unhideNavbar();
         await this.setContent(content);
+
+        // Add validation for avatar uploads with success message and hover behavior
+        settingsData.players.forEach((_, index) => {
+            const playerId = index + 1;
+            const fileInput = document.getElementById(`player${playerId}_avatar`);
+            const errorSpan = document.getElementById(`player${playerId}_avatar_error`);
+            const playerBox = document.querySelector(`.player${playerId}`);
+        
+            fileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!validTypes.includes(file.type)) {
+                        errorSpan.textContent = 'Please upload a valid image file.';
+                        errorSpan.style.color = 'red';
+                        errorSpan.style.display = 'block';
+                        fileInput.value = '';
+                        setTimeout(() => {
+                            errorSpan.style.display = 'none';
+                        }, 1000); // 1-second delay
+                        return;
+                    }
+                    const maxSize = 2 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                        errorSpan.textContent = 'File size must be less than 2MB.';
+                        errorSpan.style.color = 'red';
+                        errorSpan.style.display = 'block';
+                        fileInput.value = '';
+                        setTimeout(() => {
+                            errorSpan.style.display = 'none';
+                        }, 1000); // 1-second delay
+                        return;
+                    }
+                    // Validation successful
+                    errorSpan.textContent = 'Image file is valid';
+                    errorSpan.style.color = 'green';
+                    errorSpan.style.display = 'block';
+                } else {
+                    // No file selected, hide the message
+                    errorSpan.style.display = 'none';
+                }
+            });
+        
+            // Hide message on hover, show again on mouseout if file is selected
+            playerBox.addEventListener('mouseover', () => {
+                if (fileInput.files.length > 0) {
+                    errorSpan.style.display = 'none';
+                }
+            });
+        
+            playerBox.addEventListener('mouseout', () => {
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    if (validTypes.includes(file.type) && file.size <= 2 * 1024 * 1024) {
+                        errorSpan.textContent = 'Image file is valid';
+                        errorSpan.style.color = 'green';
+                    } /* else if (!validTypes.includes(file.type)) {
+                        errorSpan.textContent = 'Please upload a valid image file.';
+                        errorSpan.style.color = 'red';
+                    } else {
+                        errorSpan.textContent = 'File size must be less than 2MB.';
+                        errorSpan.style.color = 'red';
+                    } */
+                    errorSpan.style.display = 'block';
+                }
+            });
+        });
 
         // Apply translations
         const translations = await this.translationManager.initLanguage(settingsData.language, [
@@ -226,7 +295,7 @@ export default class extends AbstractView {
         const players = [1, 2, 3, 4].map(player => {
             const name = getValue(`player${player}_name`);
             const avatarInput = document.getElementById(`avatar${player}`);
-            const avatar = avatarInput?.files[0] ? URL.createObjectURL(avatarInput.files[0]) : getValue(`player${player}_avatar`) || '../../css/perry.jpg';
+            const avatar = avatarInput?.files[0] ? URL.createObjectURL(avatarInput.files[0]) : getValue(`player${player}_avatar`) || '../../css/default-avatar.png';
             if (name.trim()) {
                 return { player_name: name, avatar: avatar, position: player };
             }
