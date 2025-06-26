@@ -22,8 +22,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import GameSettingsSerializer
-
 from rest_framework.permissions import IsAuthenticated
 
 from django.contrib.auth.decorators import login_required
@@ -451,19 +449,22 @@ def pong_update_settings(request):
             except (PongSession.DoesNotExist, AttributeError) as e:
                 logger.warning(f"No PongSession for user {request.user.username}: {str(e)}")
 
-            # Construct players array
+            # Construct players array with avatar as URL
             players = []
             for position in range(1, 5):
                 player_name = ""
+                avatar_url = f"{settings.default_avatar_url}"  # Use the default avatar URL from settings.py
                 try:
                     player_field = getattr(session, f"active_player_{position}", None)
                     if player_field and hasattr(player_field, "player_name"):
                         player_name = player_field.player_name
+                        if hasattr(player_field, "avatar") and player_field.avatar:
+                            avatar_url = player_field.avatar.url  # Use .url directly, which includes MEDIA_URL
                     elif player_field:
                         logger.error(f"PongPlayer at position {position} has no player_name attribute")
                 except Exception as e:
                     logger.error(f"Error accessing active_player_{position}: {str(e)}")
-                players.append({"player_name": player_name, "position": position, "avatar": getattr(player_field, "avatar", "../../css/default-avatar.png") if player_field else "../../css/default-avatar.png"})
+                players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
 
             # Prepare settings response
             settings_data = {
@@ -486,7 +487,7 @@ def pong_update_settings(request):
             # Get user and related models
             user = request.user
             try:
-                settings = user.gamesettings
+                settings = GameSettings.objects.get(user=request.user)
             except GameSettings.DoesNotExist:
                 logger.info(f"Creating default GameSettings for user {user.username}")
                 settings = GameSettings.objects.create(user=user)
@@ -581,12 +582,14 @@ def pong_update_settings(request):
                         # Generate unique filename with player position and timestamp
                         extension = avatar_file.name.split('.')[-1]
                         unique_filename = f"avatar_player{position}_{uuid.uuid4()}.{extension}"
-                        fs = FileSystemStorage(location=settings.MEDIA_ROOT / 'avatars', base_url=f"{settings.MEDIA_URL}avatars/")
+                        fs = FileSystemStorage(location=settings.media_root + '/avatars', base_url=f"{settings.media_url}avatars/")
                         try:
+                            logger.info(f"Saving file to {settings.media_root}/avatars/{unique_filename}")
                             filename = fs.save(unique_filename, avatar_file)
-                            player.avatar = fs.url(filename)
-                            logger.info(f"Updated avatar to {player.avatar} for Player {position} by user {user.username}")
+                            player.avatar = fs.url(filename)  # Store and use URL
+                            logger.info(f"Avatar saved at {player.avatar}")
                         except Exception as e:
+                            logger.error(f"Avatar save failed: {str(e)}")
                             return JsonResponse({"ok": False, "error": f"Failed to save avatar for Player {position}: {str(e)}", "statusCode": 500}, status=500)
 
                     player.save()
@@ -594,14 +597,17 @@ def pong_update_settings(request):
             session.save()
             logger.info(f"Updated PongSession for user {user.username}")
 
-            # Fetch updated players for response
+            # Fetch updated players for response with avatar as URL
             players = []
             for position in range(1, 5):
                 player = getattr(session, f"active_player_{position}", None)
+                avatar_url = f"{settings.default_avatar_url}"  # Use the default avatar URL from settings.py
+                if player and hasattr(player, 'avatar') and player.avatar:
+                    avatar_url = player.avatar.url  # Use .url directly, which includes MEDIA_URL
                 players.append({
                     "player_name": player.player_name if player and hasattr(player, 'player_name') else "",
                     "position": position,
-                    "avatar": player.avatar if player and hasattr(player, 'avatar') else "../../css/default-avatar.png"
+                    "avatar": avatar_url
                 })
 
             settings_data = {

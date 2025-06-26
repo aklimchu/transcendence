@@ -158,5 +158,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Media settings for file uploads
 MEDIA_URL = '/media/'  # URL that serves the media files (e.g., http://localhost:8000/media/)
-MEDIA_ROOT = BASE_DIR / 'media'  # Absolute path to the directory where files are stored (e.g., /path/to/project/media/)
+MEDIA_ROOT = str(BASE_DIR / 'media')  # Ensure it's a string path  # Absolute path to the directory where files are stored (e.g., /path/to/project/media/)
 DEFAULT_AVATAR_URL = '/media/avatars/default-avatar.png'  # Optional, for fallback

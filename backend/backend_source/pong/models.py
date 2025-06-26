@@ -82,6 +82,9 @@ class PongTournament(models.Model):
     def __str__(self):
         return f"Tournament {self.id} ({self.tournament_type})"
 
+from django.db import models
+from django.conf import settings
+
 class GameSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     game_speed = models.CharField(max_length=10, choices=[('slow', 'Slow'), ('normal', 'Normal'), ('fast', 'Fast')], default='normal')
@@ -91,6 +94,22 @@ class GameSettings(models.Model):
     theme = models.CharField(max_length=10, choices=[('light', 'Light'), ('dark', 'Dark')], default='light')
     font_size = models.CharField(max_length=10, choices=[('small', 'Small'), ('medium', 'Medium'), ('large', 'Large')], default='medium')
     language = models.CharField(max_length=10, choices=[('eng', 'English'), ('fin', 'Finnish'), ('swd', 'Swedish')], default='eng')
+    # Optional media configuration
+    custom_media_root = models.CharField(max_length=255, blank=True, null=True, help_text="Custom media root path (optional)")
+    custom_media_url = models.CharField(max_length=255, blank=True, null=True, help_text="Custom media URL (optional)")
+    default_avatar_url = models.CharField(max_length=255, blank=True, null=True, help_text="Custom default avatar URL (optional)")
 
     def __str__(self):
         return f"Settings for {self.user.username}"
+
+    @property
+    def media_root(self):
+        return self.custom_media_root if self.custom_media_root else settings.MEDIA_ROOT
+
+    @property
+    def media_url(self):
+        return self.custom_media_url if self.custom_media_url else settings.MEDIA_URL
+
+    @property
+    def default_avatar_url(self):
+        return self.default_avatar_url if self.default_avatar_url else f"{self.media_url}avatars/default-avatar.png"
