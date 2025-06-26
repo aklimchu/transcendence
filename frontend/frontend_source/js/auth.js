@@ -38,9 +38,6 @@ export async function register_func(user, pwd) {
 		showErrorMessage(`Registration error: ${err.message}`, 0);
 		return false;
 	}
-	const data = await response.json();		
-	const loginResult = await login_func(user, pwd);
-	return loginResult;
 
 }
 

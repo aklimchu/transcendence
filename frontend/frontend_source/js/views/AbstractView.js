@@ -36,6 +36,12 @@ export default class
 
 	async setContent(content)
 	{
+		const qr = document.getElementById("twofa-qr");
+		if (qr) {
+		  qr.style.display = "none";
+		  qr.src = "";
+		}
+
 		document.querySelector("#content").style.opacity = 0;
 
 		await new Promise(r => setTimeout(r, 400));

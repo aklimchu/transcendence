@@ -203,9 +203,13 @@ export default class extends AbstractView {
 
 		const twofaSelect = document.getElementById("twofa-select");
 		const twofaSetupRow = document.getElementById("twofa-setup-row");
+		if (twofaSetupRow) {
+			twofaSetupRow.style.display = "none";
+		}
 
 		twofaSelect.addEventListener("change", async function () {
 			if (this.value === "enabled" && !twoFAEnabled) {
+				twofaSetupRow.style.display = "flex";
 				const resp = await authFetch("/pong_api/2fa/setup/", { method: "POST" });
 				if (resp.ok) {
 					const data = await resp.json();
