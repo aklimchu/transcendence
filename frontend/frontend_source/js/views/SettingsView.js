@@ -214,7 +214,8 @@ export default class extends AbstractView {
 
 					const verifyBtn = document.getElementById("verify-2fa-btn");
 					if (verifyBtn) {
-						verifyBtn.onclick = async () => {
+						verifyBtn.onclick = async (event) => {
+							event.preventDefault();
 							const code = document.getElementById("twofa-code").value;
 							const resp = await authFetch("/pong_api/2fa/verify/", {
 								method: "POST",
@@ -223,11 +224,11 @@ export default class extends AbstractView {
 							});
 							if (resp.ok) {
 								alert("2FA enabled!");
-								goToView();
+								window.location.reload();
 							} else {
 								const data = await resp.json();
 								alert(data.error || "Invalid code. Try again.");
-								goToView();								
+								window.location.reload();
 							}
 						};
 					}
