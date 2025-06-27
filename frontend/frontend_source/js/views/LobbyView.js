@@ -21,12 +21,12 @@ export default class extends AbstractView {
             return;
         }
 
-        // Fetch user settings to get the theme and language
+        // Fetch user settings to get the theme, language, and player avatars
         let settingsData = {
             theme: "light",
             font_size: "medium",
             language: "eng",
-            players: Array(4).fill().map((_, index) => ({ player_name: '', position: index + 1 }))
+            players: Array(4).fill().map((_, index) => ({ player_name: '', avatar: '/media/avatars/default-avatar.png', position: index + 1 }))
         };
         try {
             console.log("Fetching settings from /pong_api/pong_settings/");
@@ -47,7 +47,11 @@ export default class extends AbstractView {
                     ...data.settings,
                     players: Array(4).fill().map((_, index) => {
                         const player = data.settings.players?.find(p => p.position === index + 1);
-                        return { player_name: player?.player_name || '', position: index + 1 };
+                        return {
+                            player_name: player?.player_name || '',
+                            avatar: player?.avatar || '/media/avatars/default-avatar.png', // Include avatar
+                            position: index + 1
+                        };
                     })
                 };
             } else {
@@ -69,36 +73,48 @@ export default class extends AbstractView {
                 <div class="col">
                     <div class="lobby-card1 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p1"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p1"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p1"]["lost"]}</p>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p1"]["name"] || 'Player 1'}</h4>
+                            <div class="player-avatar">
+                                <img src="${settingsData.players[0].avatar}" alt="Avatar" class="avatar-image" />
+                            </div>
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p1"]["won"] || 0}</p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p1"]["lost"] || 0}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="lobby-card2 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p2"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p2"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p2"]["lost"]}</p>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p2"]["name"] || 'Player 2'}</h4>
+                            <div class="player-avatar">
+                                <img src="${settingsData.players[1].avatar}" alt="Avatar" class="avatar-image" />
+                            </div>
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p2"]["won"] || 0}</p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p2"]["lost"] || 0}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="lobby-card3 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p3"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p3"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p3"]["lost"]}</p>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p3"]["name"] || 'Player 3'}</h4>
+                            <div class="player-avatar">
+                                <img src="${settingsData.players[2].avatar}" alt="Avatar" class="avatar-image" />
+                            </div>
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p3"]["won"] || 0}</p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p3"]["lost"] || 0}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col">
                     <div class="lobby-card4 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p4"]["name"]}</h4>
-                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p4"]["won"]}</p>
-                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p4"]["lost"]}</p>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p4"]["name"] || 'Player 4'}</h4>
+                            <div class="player-avatar">
+                                <img src="${settingsData.players[3].avatar}" alt="Avatar" class="avatar-image" />
+                            </div>
+                            <p class="lobby-card-text text-success mt-4"><span class="fw-bold victory-text" data-i18n="lobby.victories">Victories</span>: ${json.data["players"]["p4"]["won"] || 0}</p>
+                            <p class="lobby-card-text text-danger"><span class="fw-bold defeat-text" data-i18n="lobby.defeats">Defeats</span>: ${json.data["players"]["p4"]["lost"] || 0}</p>
                         </div>
                     </div>
                 </div>

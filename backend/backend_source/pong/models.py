@@ -34,16 +34,6 @@ def create_game_settings(sender, instance, created, **kwargs):
     if created:
         GameSettings.objects.get_or_create(user=instance)
 
-# Commented out as it seems incomplete and unused
-# def change_player_names(sender, instance, created, **kwargs):
-#     if created:
-#         session = PongSession.objects.create(user=instance)
-#         session.active_player_1 = PongPlayer.objects.change(player_session=session, player_name=kwargs)
-#         session.active_player_2 = PongPlayer.objects.change(player_session=session, player_name="Player 2")
-#         session.active_player_3 = PongPlayer.objects.change(player_session=session, player_name="Player 3")
-#         session.active_player_4 = PongPlayer.objects.change(player_session=session, player_name="Player 4")
-#     instance.pongsession.save()
-
 class PongPlayer(models.Model):
     player_session = models.ForeignKey(PongSession, on_delete=models.CASCADE)
     player_name = models.CharField(max_length=30, blank=True, null=True)
@@ -97,7 +87,6 @@ class GameSettings(models.Model):
     # Optional media configuration
     custom_media_root = models.CharField(max_length=255, blank=True, null=True, help_text="Custom media root path (optional)")
     custom_media_url = models.CharField(max_length=255, blank=True, null=True, help_text="Custom media URL (optional)")
-    default_avatar_url = models.CharField(max_length=255, blank=True, null=True, help_text="Custom default avatar URL (optional)")
 
     def __str__(self):
         return f"Settings for {self.user.username}"
@@ -109,7 +98,3 @@ class GameSettings(models.Model):
     @property
     def media_url(self):
         return self.custom_media_url if self.custom_media_url else settings.MEDIA_URL
-
-    @property
-    def default_avatar_url(self):
-        return self.default_avatar_url if self.default_avatar_url else f"{self.media_url}avatars/default-avatar.png"

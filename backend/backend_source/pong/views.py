@@ -606,7 +606,6 @@ def pong_update_settings(request):
                 avatar_url = "/media/avatars/default-avatar.png"
                 if player and hasattr(player, 'avatar') and player.avatar:
                     avatar_url = player.avatar.url  # Use .url directly, which includes MEDIA_URL
-                    print(f"Avatar saved at {avatar_url}")
                 players.append({
                     "player_name": player.player_name if player and hasattr(player, 'player_name') else "",
                     "position": position,
