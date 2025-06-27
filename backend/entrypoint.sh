@@ -9,8 +9,8 @@ done
 echo "PostgreSQL started"
 
 # Manage migrations
-# python manage.py makemigrations
-# python manage.py migrate
+python manage.py makemigrations
+python manage.py migrate
 
 
 python manage.py createsuperuser --noinput
