@@ -479,17 +479,29 @@ a {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    padding: 10px;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end; /* Right-align the entire row */
+    width: 100%; /* Ensure full width of the container */
 }
 
 #settings-form label {
     font-weight: bold;
     color: var(--text-primary);
     font-size: var(--base-font-size);
+    white-space: nowrap;
+    margin-right: 5px;
+    flex-shrink: 0; /* Prevent label from shrinking */
 }
 
 #settings-form select,
 #settings-form input {
-    width: var(--settings-form-size);
+    width: var(--settings-form-size); /* Retain original size */
     padding: 10px;
     font-size: var(--base-font-size);
     border-radius: 12px;
@@ -497,6 +509,7 @@ a {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     background-color: var(--bg-primary);
     color: var(--text-primary);
+    flex-grow: 0; /* Prevent select from growing beyond its size */
 }
 
 #settings-form input::placeholder {
