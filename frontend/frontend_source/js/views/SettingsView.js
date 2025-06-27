@@ -5,7 +5,7 @@ import { TranslationManager, extractErrorMessage } from "../utils.js";
 export default class extends AbstractView {
     constructor(params) {
         super(params);
-        this.translationManager = new TranslationManager(); // Initialize TranslationManager
+        this.translationManager = new TranslationManager();
     }
 
     async goToView() {
@@ -30,7 +30,12 @@ export default class extends AbstractView {
             theme: "light",
             font_size: "medium",
             language: "eng",
-            players: Array(4).fill().map((_, index) => ({ player_name: '', avatar: '../../css/default-avatar.png', position: index + 1 }))        };
+            players: Array(4).fill().map((_, index) => ({
+                player_name: '',
+                avatar: '/media/avatars/default-avatar.png', // Align with backend's default
+                position: index + 1
+            }))
+        };
 
         try {
             console.log("Fetching settings from /pong_api/pong_settings/");
@@ -51,7 +56,11 @@ export default class extends AbstractView {
                     ...data.settings,
                     players: Array(4).fill().map((_, index) => {
                         const player = data.settings.players?.find(p => p.position === index + 1);
-                        return { player_name: player?.player_name || '', position: index + 1 };
+                        return {
+                            player_name: player?.player_name || '',
+                            avatar: player?.avatar || '/media/avatars/default-avatar.png', // Include avatar
+                            position: index + 1
+                        };
                     })
                 };
             } else {
@@ -143,7 +152,7 @@ export default class extends AbstractView {
                                 <div class="player-box player${index + 1}">
                                     <div class="player-name" data-name="${player.player_name || `Player ${index + 1}`}">${player.player_name || `Player ${index + 1}`}</div>
                                     <div class="player-avatar">
-                                        <img src="${player.avatar || '../../css/default-avatar.png'}" alt="Avatar" class="avatar-image" />
+                                        <img src="${player.avatar || '/media/avatars/default-avatar.png'}" alt="Avatar" class="avatar-image" />
                                     </div>
                                     <div class="player-config player${index + 1}-config">
                                         <label for="player${index + 1}_name" data-i18n="settings.player_name">Name</label>
@@ -171,7 +180,7 @@ export default class extends AbstractView {
             const fileInput = document.getElementById(`player${playerId}_avatar`);
             const errorSpan = document.getElementById(`player${playerId}_avatar_error`);
             const playerBox = document.querySelector(`.player${playerId}`);
-        
+
             fileInput.addEventListener('change', (event) => {
                 const file = event.target.files[0];
                 if (file) {
@@ -183,7 +192,7 @@ export default class extends AbstractView {
                         fileInput.value = '';
                         setTimeout(() => {
                             errorSpan.style.display = 'none';
-                        }, 1000); // 1-second delay
+                        }, 1000);
                         return;
                     }
                     const maxSize = 2 * 1024 * 1024;
@@ -194,7 +203,7 @@ export default class extends AbstractView {
                         fileInput.value = '';
                         setTimeout(() => {
                             errorSpan.style.display = 'none';
-                        }, 1000); // 1-second delay
+                        }, 1000);
                         return;
                     }
                     // Validation successful
@@ -202,18 +211,16 @@ export default class extends AbstractView {
                     errorSpan.style.color = 'green';
                     errorSpan.style.display = 'block';
                 } else {
-                    // No file selected, hide the message
                     errorSpan.style.display = 'none';
                 }
             });
-        
-            // Hide message on hover, show again on mouseout if file is selected
+
             playerBox.addEventListener('mouseover', () => {
                 if (fileInput.files.length > 0) {
                     errorSpan.style.display = 'none';
                 }
             });
-        
+
             playerBox.addEventListener('mouseout', () => {
                 if (fileInput.files.length > 0) {
                     const file = fileInput.files[0];
@@ -221,13 +228,7 @@ export default class extends AbstractView {
                     if (validTypes.includes(file.type) && file.size <= 2 * 1024 * 1024) {
                         errorSpan.textContent = 'Image file is valid';
                         errorSpan.style.color = 'green';
-                    } /* else if (!validTypes.includes(file.type)) {
-                        errorSpan.textContent = 'Please upload a valid image file.';
-                        errorSpan.style.color = 'red';
-                    } else {
-                        errorSpan.textContent = 'File size must be less than 2MB.';
-                        errorSpan.style.color = 'red';
-                    } */
+                    }
                     errorSpan.style.display = 'block';
                 }
             });
@@ -282,12 +283,12 @@ export default class extends AbstractView {
 
     applyTheme(theme) {
         document.body.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme); // Optional: store locally for quick access
+        localStorage.setItem('theme', theme);
     }
 
     applyFontSize(fontSize) {
         document.documentElement.setAttribute('data-font-size', fontSize);
-        localStorage.setItem('font-size', fontSize); // Optional: store locally for quick access
+        localStorage.setItem('font-size', fontSize);
     }
 
     push_Settings(translations) {
@@ -327,7 +328,6 @@ export default class extends AbstractView {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken')
-                // Note: Don't set Content-Type, let the browser set it to multipart/form-data
             },
             body: formData
         })
@@ -344,7 +344,7 @@ export default class extends AbstractView {
                 alert(translations.settings?.alert_saved || "Settings saved successfully!");
                 setTimeout(() => {
                     this.goToView(); // Refresh to reflect updated settings
-                }, 1000); // 1-second delay
+                }, 1000);
             } else {
                 alert(`${translations.settings?.alert_error || "Error saving settings"}: ${data.error}`);
             }

@@ -40,6 +40,8 @@ import json
 import logging
 from django.conf import settings
 
+import os
+
 #[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
 #[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
 
@@ -453,7 +455,7 @@ def pong_update_settings(request):
             players = []
             for position in range(1, 5):
                 player_name = ""
-                avatar_url = f"{settings.default_avatar_url}"  # Use the default avatar URL from settings.py
+                avatar_url = "/media/avatars/default-avatar.png"
                 try:
                     player_field = getattr(session, f"active_player_{position}", None)
                     if player_field and hasattr(player_field, "player_name"):
@@ -582,11 +584,11 @@ def pong_update_settings(request):
                         # Generate unique filename with player position and timestamp
                         extension = avatar_file.name.split('.')[-1]
                         unique_filename = f"avatar_player{position}_{uuid.uuid4()}.{extension}"
-                        fs = FileSystemStorage(location=settings.media_root + '/avatars', base_url=f"{settings.media_url}avatars/")
+                        fs = FileSystemStorage(location=os.path.join(settings.media_root, 'avatars'))  # Use os.path.join for path safety
                         try:
-                            logger.info(f"Saving file to {settings.media_root}/avatars/{unique_filename}")
-                            filename = fs.save(unique_filename, avatar_file)
-                            player.avatar = fs.url(filename)  # Store and use URL
+                            logger.info(f"Saving file to {os.path.join(settings.media_root, 'avatars', unique_filename)}")
+                            filename = fs.save(unique_filename, avatar_file)  # Save file, returns relative path
+                            player.avatar = os.path.join('avatars', filename)  # Store relative path
                             logger.info(f"Avatar saved at {player.avatar}")
                         except Exception as e:
                             logger.error(f"Avatar save failed: {str(e)}")
@@ -601,9 +603,10 @@ def pong_update_settings(request):
             players = []
             for position in range(1, 5):
                 player = getattr(session, f"active_player_{position}", None)
-                avatar_url = f"{settings.default_avatar_url}"  # Use the default avatar URL from settings.py
+                avatar_url = "/media/avatars/default-avatar.png"
                 if player and hasattr(player, 'avatar') and player.avatar:
                     avatar_url = player.avatar.url  # Use .url directly, which includes MEDIA_URL
+                    print(f"Avatar saved at {avatar_url}")
                 players.append({
                     "player_name": player.player_name if player and hasattr(player, 'player_name') else "",
                     "position": position,
