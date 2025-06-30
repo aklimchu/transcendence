@@ -253,3 +253,33 @@ export async function authFetch(url, options = {}) {
 	}
 	return response;
 }
+
+export async function handleCredentialResponse(response) {
+	console.log("Encoded JWT ID token: " + response.credential);
+	const responseData = await authFetch("/pong_api/google_login/", {
+		method: "POST",
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ id_token: response.credential })
+	});
+
+	if (!responseData.ok) {
+		let errorMsg = `Google login failed (${responseData.status}).`;
+		try {
+			const errorData = await responseData.json();
+			if (errorData && errorData.error)
+				errorMsg = `Google login failed: ${errorData.error} (${responseData.status})`;
+			else if (errorData && errorData.detail)
+				errorMsg = `Google login failed: ${errorData.detail} (${responseData.status})`;
+		} catch (e) {
+			errorMsg += " (Could not parse error details)";
+		}
+		showErrorMessage(errorMsg, 0);
+		return false;
+	}
+
+	const data = await responseData.json();
+	localStorage.setItem("access", data.access);
+	localStorage.setItem("refresh", data.refresh);
+	showSuccessMessage("Login successful!", 0);
+	return true;
+}
