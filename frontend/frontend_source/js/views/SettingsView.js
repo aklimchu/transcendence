@@ -13,7 +13,7 @@ export default class extends AbstractView {
         try {
             json = await this.fetchSessionData();
             if (!json || !json.data) {
-                await this.goToNoAuth("Session expired. Please log in again.");
+                await this.goToNoAuth();
                 return;
             }
         } catch (err) {
@@ -72,6 +72,17 @@ export default class extends AbstractView {
             alert("Error loading settings: " + error.message);
             // Fall back to defaults defined above
         }
+
+		let twoFAEnabled = false;
+		try {
+			const resp = await authFetch("/pong_api/2fa/status/");
+			if (resp.ok) {
+				const data = await resp.json();
+				twoFAEnabled = data["2fa_enabled"];
+			}
+		} catch (e) {
+			console.warn("Could not fetch 2FA status:", e);
+		}
 
         // Apply the current theme and font
         this.applyTheme(settingsData.theme);
@@ -142,6 +153,24 @@ export default class extends AbstractView {
                                 <label for="password" data-i18n="settings.password">Change Password</label>
                                 <input type="password" id="password" data-i18n-placeholder="settings.password_placeholder" placeholder="Enter new password" />
                             </div>
+							<div class="form-row">
+								<label for="twofa-select">Two-Factor Authentication</label>
+								<select id="twofa-select">
+									<option value="disabled" ${!twoFAEnabled ? "selected" : ""}>Disabled</option>
+									<option value="enabled" ${twoFAEnabled ? "selected" : ""}>Enabled</option>
+								</select>
+							</div>
+							<div class="form-row" id="twofa-setup-row" style="display:none;">
+								<label></label>
+								<div>
+									<p>Scan this QR code with your Authenticator app:</p>
+									<img id="twofa-qr" src="" alt="2FA QR Code" style="max-width:200px;"/>
+									<p>Enter the 6-digit code from your app:</p>
+									<input type="text" id="twofa-code" maxlength="6" class="form-control form-control-sm" style="width:100px;display:inline-block;" />
+									<button id="verify-2fa-btn" class="btn btn-success btn-sm" style="margin-left:0.5em;">Verify</button>
+									<div id="twofa-verify-msg"></div>
+								</div>
+							</div>
                         </form>
                         <button type="button" id="save_settings" class="btn btn-secondary mb-4" data-i18n="settings.save_settings">Save Settings</button>
                     </div>
@@ -171,8 +200,10 @@ export default class extends AbstractView {
             </div>
         `;
 
-        this.unhideNavbar();
-        await this.setContent(content);
+		const container = document.createElement("div");
+		container.innerHTML = content;
+		this.unhideNavbar();
+		await this.setContent(container.innerHTML);
 
         // Add validation for avatar uploads with success message and hover behavior
         settingsData.players.forEach((_, index) => {
@@ -280,6 +311,59 @@ export default class extends AbstractView {
 
         document.getElementById("save_settings").addEventListener("click", this.push_Settings.bind(this, translations));
     }
+
+		const twofaSelect = document.getElementById("twofa-select");
+		const twofaSetupRow = document.getElementById("twofa-setup-row");
+		if (twofaSetupRow) {
+			twofaSetupRow.style.display = "none";
+		}
+
+		twofaSelect.addEventListener("change", async function () {
+			if (this.value === "enabled" && !twoFAEnabled) {
+				twofaSetupRow.style.display = "flex";
+				const resp = await authFetch("/pong_api/2fa/setup/", { method: "POST" });
+				if (resp.ok) {
+					const data = await resp.json();
+					twofaSetupRow.style.display = "flex";
+					document.getElementById("twofa-qr").src = "data:image/png;base64," + data.qr_code;
+
+					const verifyBtn = document.getElementById("verify-2fa-btn");
+					if (verifyBtn) {
+						verifyBtn.onclick = async (event) => {
+							event.preventDefault();
+							const code = document.getElementById("twofa-code").value;
+							const resp = await authFetch("/pong_api/2fa/verify/", {
+								method: "POST",
+								headers: { "Content-Type": "application/json" },
+								body: JSON.stringify({ token: code })
+							});
+							if (resp.ok) {
+								alert("2FA enabled!");
+								window.location.reload();
+							} else {
+								const data = await resp.json();
+								alert(data.error || "Invalid code. Try again.");
+								window.location.reload();
+							}
+						};
+					}
+				}
+			} else if (this.value === "disabled" && twoFAEnabled) {
+				if (!confirm("Are you sure you want to disable 2FA?")) {
+					this.value = "enabled";
+					return;
+				}
+				const resp = await authFetch("/pong_api/2fa/disable/", { method: "POST" });
+				if (resp.ok) {
+					alert("2FA disabled!");
+					window.location.reload();
+				} else {
+					alert("Failed to disable 2FA.");
+					this.value = "enabled";
+				}
+			}
+		});
+	}
 
     applyTheme(theme) {
         document.body.setAttribute('data-theme', theme);

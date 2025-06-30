@@ -2,3 +2,7 @@ Django==5.1.5
 psycopg==3.2.4
 djangorestframework
 djangorestframework-simplejwt
+django-two-factor-auth>=1.17.0
+django-otp
+phonenumbers
+qrcode

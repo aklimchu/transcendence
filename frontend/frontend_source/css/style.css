@@ -134,12 +134,37 @@ body::before {
     background-color: var(--bg-accent);
     color: var(--text-secondary);
     font-size: var(--base-font-size);
+	min-width: 200px;
+	max-width: 90vw;
+	padding: 16px;
+	word-break: break-word;
+	white-space: pre-line;
+	box-sizing: border-box;	
 }
 
 #error-message {
     margin-right: 20px;
     font-size: var(--base-font-size);
 }
+
+#success-alert {
+	justify-content: space-between;
+	align-items: center;
+	position: fixed;
+	padding-right: 40px;
+	z-index: 1000;
+	min-width: 200px;
+	max-width: 90vw;
+	padding: 16px;
+	word-break: break-word;
+	white-space: pre-line;
+	box-sizing: border-box;
+}
+
+#success-message {
+	margin-right: 20px;
+}
+
 
 .btn-close {
     position: absolute;

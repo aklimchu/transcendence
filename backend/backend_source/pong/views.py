@@ -1,28 +1,29 @@
 import logging
 import json
 from django.http import JsonResponse
-
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-
 from django.core.exceptions import BadRequest
-
 from django.utils.html import escape
 from django.utils import timezone
-
 from django.db import IntegrityError
 from django.db.models import Q
 from .models import *
-
 from functools import wraps
 from random import shuffle
+from django_otp.plugins.otp_totp.models import TOTPDevice
+import qrcode
+import base64
+from io import BytesIO
 
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 
-from rest_framework.permissions import IsAuthenticated
+from .serializers import GameSettingsSerializer
+
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
@@ -42,6 +43,26 @@ from django.conf import settings
 
 import os
 
+from urllib.parse import urlencode, urlparse, parse_qs
+
+logger = logging.getLogger(__name__)
+
+def build_custom_totp_uri(device, user, issuer="ft_transcendence"):
+    label = f"{issuer}:{user.username}"
+    uri = device.config_url
+    parsed = urlparse(uri)
+    qs = parse_qs(parsed.query)
+    qs["issuer"] = [issuer]
+    new_query = urlencode(qs, doseq=True)
+    return f"otpauth://totp/{label}?{new_query}"
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def TwoFAStatus(request):
+    user = request.user
+    TwoFA_enabled = user.totpdevice_set.filter(confirmed=True, name="default").exists()
+    return Response({"2fa_enabled": TwoFA_enabled})
+
 #[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
 #[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
 
@@ -49,303 +70,264 @@ import os
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def pong_register(request):
-    try:
-        if not request.body:
-            return JsonResponse({"ok": False, "error": "Request without body", "statusCode": 400}, status=400)
+    username = request.data.get("username")
+    password = request.data.get("password")
+    if not username or not password:
+        return Response({"error": "Missing username or password"}, status=400)
+    if User.objects.filter(username=username).exists():
+        return Response({"error": "Username already exists"}, status=400)
+    user = User.objects.create_user(username=username, password=password)
+    device, _ = TOTPDevice.objects.get_or_create(user=user, name="default", defaults={"confirmed": True})
+    custom_uri = build_custom_totp_uri(device, user)
+    qr = qrcode.make(custom_uri)
+    buf = BytesIO()
+    qr.save(buf)
+    qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    return Response({
+        "success": True,
+        "qr_code": qr_b64,
+        "secret": device.key
+    }, status=201)
 
-        data = json.loads(request.body)
-        username = escape(data.get("username"))
-        password = data.get("password")
-        email = escape(data.get("email", ""))
+class TwoFAStatusView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        username = request.data.get('username')
+        user = User.objects.filter(username=username).first()
+        if not user:
+            return Response({"2fa_enabled": False})
+        twofa_enabled = TOTPDevice.objects.filter(user=user, confirmed=True, name="default").exists()
+        return Response({"2fa_enabled": twofa_enabled})
 
-        if not username or not password:
-            return JsonResponse({"ok": False, "error": "Both username and password required", "statusCode": 400}, status=400)
+class TwoFASetupView(APIView):
+    permission_classes = [IsAuthenticated]
 
-        if User.objects.filter(username=username).exists():
-            return JsonResponse({"ok": False, "error": "Username already exists", "statusCode": 400}, status=400)
+    def post(self, request):
+        user = request.user
+        device, _ = TOTPDevice.objects.get_or_create(user=user, name="default", defaults={"confirmed": False})
+        custom_uri = build_custom_totp_uri(device, user)
+        qr = qrcode.make(custom_uri)
+        buf = BytesIO()
+        qr.save(buf)
+        qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+        return Response({'qr_code': qr_b64, 'secret': device.key})
 
-        with transaction.atomic():
-            # Create user
-            user = User.objects.create_user(username=username, password=password, email=email)
-            # Create or get PongSession
-            session, created = PongSession.objects.get_or_create(user=user)
-            if created or not session.active_player_1:
-                # Create players
-                session.active_player_1 = PongPlayer.objects.create(player_session=session, player_name="Player 1")
-                session.active_player_2 = PongPlayer.objects.create(player_session=session, player_name="Player 2")
-                session.active_player_3 = PongPlayer.objects.create(player_session=session, player_name="Player 3")
-                session.active_player_4 = PongPlayer.objects.create(player_session=session, player_name="Player 4")
-                session.save()
-            # Create GameSettings
-            GameSettings.objects.get_or_create(user=user)
-            # Generate tokens
-            refresh = RefreshToken.for_user(user)
+class TwoFAVerifyView(APIView):
+    permission_classes = [IsAuthenticated]
 
-        return JsonResponse({
-            "ok": True,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-            "user": {"id": user.id, "username": user.username},
-            "message": "User created successfully",
-            "statusCode": 201
-        }, status=201)
+    def post(self, request):
+        user = request.user
+        token = request.data.get('token')
+        try:
+            device = TOTPDevice.objects.get(user=user, name="default")
+        except TOTPDevice.DoesNotExist:
+            return Response({'error': 'No 2FA device found.'}, status=400)
+        if device.verify_token(token):
+            device.confirmed = True
+            device.save()
+            return Response({'success': True})
+        return Response({'error': 'Invalid code.'}, status=400)
 
-    except IntegrityError as e:
-        return JsonResponse({"ok": False, "error": f"Database error: {str(e)}", "statusCode": 400}, status=400)
-    except Exception as e:
-        return JsonResponse({"ok": False, "error": f"Registration failed: {str(e)}", "statusCode": 400}, status=400)
+class TwoFADisableView(APIView):
+    permission_classes = [IsAuthenticated]
 
-
-
+    def post(self, request):
+        user = request.user
+        try:
+            device = user.totpdevice_set.get(name="default")
+            device.confirmed = False
+            device.save()
+            return Response({'success': True})
+        except TOTPDevice.DoesNotExist:
+            return Response({'error': 'No 2FA device to disable.'}, status=400)
 
 
 def get_player_data(player_id):
-
-	name = PongPlayer.objects.get(id=player_id).player_name
-	
-	q_won = PongGame.objects.filter(Q(game_winner_1=player_id) | Q(game_winner_2=player_id))
-	q_lost = PongGame.objects.filter(Q(game_loser_1=player_id) | Q(game_loser_2=player_id))
-
-	return {"name": name, "won": q_won.count(), "lost": q_lost.count()}
-
+    name = PongPlayer.objects.get(id=player_id).player_name
+    q_won = PongGame.objects.filter(Q(game_winner_1=player_id) | Q(game_winner_2=player_id))
+    q_lost = PongGame.objects.filter(Q(game_loser_1=player_id) | Q(game_loser_2=player_id))
+    return {"name": name, "won": q_won.count(), "lost": q_lost.count()}
 
 def get_session_games(session_id):
-
-	q_games = PongGame.objects.filter(Q(game_session=session_id)).order_by("-id")
-
-	games_list = []
-
-	for game in q_games:
-		game_data = {
-			"game_type": game.game_type,
-			"score": game.game_score,
-			"winner_1": game.game_winner_1.player_name if game.game_winner_1 is not None else None,
-			"winner_2": game.game_winner_2.player_name if game.game_winner_2 is not None else None,
-			"loser_1": game.game_loser_1.player_name if game.game_loser_1 is not None else None,
-			"loser_2": game.game_loser_2.player_name if game.game_loser_2 is not None else None
-		}
-
-		games_list.append(game_data)
-	
-	return games_list
-
+    q_games = PongGame.objects.filter(Q(game_session=session_id)).order_by("-id")
+    games_list = []
+    for game in q_games:
+        game_data = {
+            "game_type": game.game_type,
+            "score": game.game_score,
+            "winner_1": game.game_winner_1.player_name if game.game_winner_1 is not None else None,
+            "winner_2": game.game_winner_2.player_name if game.game_winner_2 is not None else None,
+            "loser_1": game.game_loser_1.player_name if game.game_loser_1 is not None else None,
+            "loser_2": game.game_loser_2.player_name if game.game_loser_2 is not None else None
+        }
+        games_list.append(game_data)
+    return games_list
 
 def get_session_tournaments(session_id):
-		
-		session_tournaments = PongTournament.objects.filter(Q(tournament_session=session_id)).order_by("-id")
-		unfinished_tournament = None
-		finished_tournaments = []
-
-		for t in session_tournaments:
-			t_data = {
-				"tournament_type": t.tournament_type,
-				"semi1_score": t.tournament_game_1.game_score if t.tournament_game_1 is not None else None,
-				"semi1_winner": t.tournament_game_1.game_winner_1.player_name if t.tournament_game_1 is not None else None,
-				"semi1_loser": t.tournament_game_1.game_loser_1.player_name if t.tournament_game_1 is not None else None,
-				"semi2_score": t.tournament_game_2.game_score if t.tournament_game_2 is not None else None,
-				"semi2_winner": t.tournament_game_2.game_winner_1.player_name if t.tournament_game_2 is not None else None,
-				"semi2_loser": t.tournament_game_2.game_loser_1.player_name if t.tournament_game_2 is not None else None,
-				"final_score": t.tournament_game_3.game_score if t.tournament_game_3 is not None else None,
-				"final_winner": t.tournament_game_3.game_winner_1.player_name if t.tournament_game_3 is not None else None,
-				"final_loser": t.tournament_game_3.game_loser_1.player_name if t.tournament_game_3 is not None else None
-			}
-			
-			if t.tournament_game_3 is None:
-				t_data["tournament_type"] = t.tournament_type
-				t_data["semi_one_p1"] = t.semi_one_p1.player_name
-				t_data["semi_one_p2"] = t.semi_one_p2.player_name
-				t_data["semi_two_p1"] = t.semi_two_p1.player_name
-				t_data["semi_two_p2"] = t.semi_two_p2.player_name
-				unfinished_tournament = t_data
-			else:
-				finished_tournaments.append(t_data)
-
-		return unfinished_tournament, finished_tournaments
-
-
+    session_tournaments = PongTournament.objects.filter(Q(tournament_session=session_id)).order_by("-id")
+    unfinished_tournament = None
+    finished_tournaments = []
+    for t in session_tournaments:
+        t_data = {
+            "tournament_type": t.tournament_type,
+            "semi1_score": t.tournament_game_1.game_score if t.tournament_game_1 is not None else None,
+            "semi1_winner": t.tournament_game_1.game_winner_1.player_name if t.tournament_game_1 is not None else None,
+            "semi1_loser": t.tournament_game_1.game_loser_1.player_name if t.tournament_game_1 is not None else None,
+            "semi2_score": t.tournament_game_2.game_score if t.tournament_game_2 is not None else None,
+            "semi2_winner": t.tournament_game_2.game_winner_1.player_name if t.tournament_game_2 is not None else None,
+            "semi2_loser": t.tournament_game_2.game_loser_1.player_name if t.tournament_game_2 is not None else None,
+            "final_score": t.tournament_game_3.game_score if t.tournament_game_3 is not None else None,
+            "final_winner": t.tournament_game_3.game_winner_1.player_name if t.tournament_game_3 is not None else None,
+            "final_loser": t.tournament_game_3.game_loser_1.player_name if t.tournament_game_3 is not None else None
+        }
+        if t.tournament_game_3 is None:
+            t_data["tournament_type"] = t.tournament_type
+            t_data["semi_one_p1"] = t.semi_one_p1.player_name
+            t_data["semi_one_p2"] = t.semi_one_p2.player_name
+            t_data["semi_two_p1"] = t.semi_two_p1.player_name
+            t_data["semi_two_p2"] = t.semi_two_p2.player_name
+            unfinished_tournament = t_data
+        else:
+            finished_tournaments.append(t_data)
+    return unfinished_tournament, finished_tournaments
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def pong_session_data(request):
     user = request.user
-
     if not hasattr(user, "pongsession"):
         return JsonResponse({
             "ok": False,
             "error": "No active session for user",
             "statusCode": 404
         }, status=404)
-
     session = user.pongsession
-
     try:
         active_players = {
-            "p1": get_player_data(session.active_player_1.id) if session.active_player_1 else None,
-            "p2": get_player_data(session.active_player_2.id) if session.active_player_2 else None,
-            "p3": get_player_data(session.active_player_3.id) if session.active_player_3 else None,
-            "p4": get_player_data(session.active_player_4.id) if session.active_player_4 else None,
+            "p1": get_player_data(session.active_player_1.id),
+            "p2": get_player_data(session.active_player_2.id),
+            "p3": get_player_data(session.active_player_3.id),
+            "p4": get_player_data(session.active_player_4.id)
         }
-
         unfinished_tournament, finished_tournaments = get_session_tournaments(session.id)
-
         data = {
             "players": active_players,
             "games": get_session_games(session.id),
             "unfinished_tournament": unfinished_tournament,
             "finished_tournaments": finished_tournaments
         }
-
         return JsonResponse({
             "ok": True,
-            "message": "Session data successfully retrieved",
+            "message": "Session data successfuly retrieved",
             "data": data,
             "statusCode": 200
         }, status=200)
-
     except Exception as err:
         return JsonResponse({
             "ok": False,
             "error": str(err),
             "statusCode": 400
         }, status=400)
-	
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def pong_stats_data(request):
-	try:
-		users = User.objects.all()
-
-		user_names = []
-		for u in users:
-			user_names.append(u.username)
-			
-		total_games = PongGame.objects.all().count()
-	
-
-		data = {
-			"total_games": total_games,
-			"user_names": user_names
-		}
-
-		return Response({"ok": True, "message": "Session data successfuly retrieved", "data": data, "statusCode": 200}, status=200)
-	
-	except Exception as err:
-		return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+    try:
+        users = User.objects.all()
+        user_names = [u.username for u in users]
+        total_games = PongGame.objects.all().count()
+        data = {
+            "total_games": total_games,
+            "user_names": user_names
+        }
+        return Response({"ok": True, "message": "Session data successfuly retrieved", "data": data, "statusCode": 200}, status=200)
+    except Exception as err:
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def pong_push_game(request):
-	try:
-		if not request.body:
-			raise BadRequest("Request without body")
+    try:
+        if not request.body:
+            raise BadRequest("Request without body")
+        user = request.user
+        session = user.pongsession
+        data = json.loads(request.body)
+        game_type = data.get("game_type")
+        tournament = data.get("tournament")
+        w1 = data.get("winner1")
+        w2 = data.get("winner2")
+        l1 = data.get("loser1")
+        l2 = data.get("loser2")
+        score = data.get("score")
+        pong_game = None
+        tournament_index = None
 
-		user = request.user
-		session = user.pongsession
-		
-		data = json.loads(request.body)
-		game_type = data.get("game_type")
-		tournament = data.get("tournament")
-		w1 = data.get("winner1")
-		w2 = data.get("winner2")
-		l1 = data.get("loser1")
-		l2 = data.get("loser2")
-		score = data.get("score")
-		pong_game = None
-		tournament_index = None
+        if game_type not in ['pong', 'snek']:
+            return JsonResponse({"ok": False, "error": "Incorrect game type", "statusCode": 400}, status=400)
 
-		if game_type not in ['pong', 'snek']:
-			return JsonResponse({"ok": False, "error": "Incorrect game type", "statusCode": 400}, status=400)
-
-		if ((w1 is None) != (w2 is None)) and ((l1 is None) != (l2 is None)) and score:
-
-			winner = w1 if w1 is not None else w2
-			loser = l1 if l1 is not None else l2
-
-			if winner == loser:
-				return JsonResponse({"ok": False, "error": "Can't push game with duplicate players", "statusCode": 400}, status=400)
-
-			winner_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=winner))
-			loser_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=loser))
-
-			if tournament is not None:
-				tournament_index = int(tournament) - 1
-				if tournament_index not in [0, 1, 2]:
-					return JsonResponse({"ok": False, "error": "Incorrect tournament index", "statusCode": 400}, status=400)
-				
-				tournament_object = PongTournament.objects.get(Q(tournament_session=session.id) & Q(tournament_game_3=None))
-				tournament_games = [tournament_object.tournament_game_1, tournament_object.tournament_game_2,tournament_object.tournament_game_3]
-
-				# Check if tournament and game types match
-				if tournament_object.tournament_type != game_type:
-					return JsonResponse({"ok": False, "error": "Tournament and game types don't match", "statusCode": 400}, status=400)
-
-				# Check semifinals are completed before final
-				if tournament_index == 2 and None in tournament_games[:2]:
-					return JsonResponse({"ok": False, "error": "Can't push final before semifinals", "statusCode": 400}, status=400)
-
-				# Check if players from request match the expected ones
-				if tournament_index == 0 and {winner_object, loser_object} != {tournament_object.semi_one_p1, tournament_object.semi_one_p2}:
-					return JsonResponse({"ok": False, "error": "Incorrect players for tournament game", "statusCode": 400}, status=400)
-				if tournament_index == 1 and {winner_object, loser_object} != {tournament_object.semi_two_p1, tournament_object.semi_two_p2}:
-					return JsonResponse({"ok": False, "error": "Incorrect players for tournament game", "statusCode": 400}, status=400)
-				if tournament_index == 2 and {winner_object, loser_object} != {tournament_object.tournament_game_1.game_winner_1, tournament_object.tournament_game_2.game_winner_1}:
-					return JsonResponse({"ok": False, "error": "Incorrect players for tournament game", "statusCode": 400}, status=400)
-				
-				# Check if game doesn't already exist
-				if (tournament_games[tournament_index] is not None):
-					return JsonResponse({"ok": False, "error": "Can't overwrite tournament game", "statusCode": 400}, status=400)
-
-			pong_game = PongGame.objects.create(
-				game_type = game_type,
-				game_score = score,
-				game_session = session,
-				game_winner_1 = winner_object,
-				game_winner_2 = None,
-				game_loser_1 = loser_object,
-				game_loser_2 = None)
-
-			if tournament is None:
-				return JsonResponse({"ok": True, "message": "Pong 1v1 game - data successfuly pushed", "statusCode": 200}, status=200)
-			
-			else:
-				if tournament_index == 0: tournament_object.tournament_game_1 = pong_game
-				elif tournament_index == 1: tournament_object.tournament_game_2 = pong_game
-				else: tournament_object.tournament_game_3 = pong_game
-				tournament_object.save()
-
-				return JsonResponse({"ok": True, "message": f"Successfuly pushed game {tournament_index + 1} of tournament", "statusCode": 200}, status=200)
-		
-
-		elif None not in (w1, w2, l1, l2) and score:
-
-			if tournament is not None:
-				return JsonResponse({"ok": False, "error": "Can't push a 2v2 game as part of a tournament", "statusCode": 400}, status=400)
-			
-			if len(set([w1, w2, l1, l2])) != 4:
-				return JsonResponse({"ok": False, "error": "Can't push game with duplicate players", "statusCode": 400}, status=400)
-
-			winner1_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=w1))
-			winner2_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=w2))
-			loser1_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=l1))
-			loser2_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=l2))
-
-			pong_game = PongGame.objects.create(
-				game_score = score,
-				game_session = session,
-				game_winner_1 = winner1_object,
-				game_winner_2 = winner2_object,
-				game_loser_1 = loser1_object,
-				game_loser_2 = loser2_object)
-
-			return JsonResponse({"ok": True, "message": "Pong 2v2 game - data successfuly pushed", "statusCode": 200}, status=200)
-		
-		
-		else:
-			return JsonResponse({"ok": False, "error": "Incomplete game data", "statusCode": 400}, status=400)
-	
-
-	except Exception as err:
-		return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+        if ((w1 is None) != (w2 is None)) and ((l1 is None) != (l2 is None)) and score:
+            winner = w1 if w1 is not None else w2
+            loser = l1 if l1 is not None else l2
+            if winner == loser:
+                return JsonResponse({"ok": False, "error": "Can't push game with duplicate players", "statusCode": 400}, status=400)
+            winner_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=winner))
+            loser_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=loser))
+            if tournament is not None:
+                tournament_index = int(tournament) - 1
+                if tournament_index not in [0, 1, 2]:
+                    return JsonResponse({"ok": False, "error": "Incorrect tournament index", "statusCode": 400}, status=400)
+                tournament_object = PongTournament.objects.get(Q(tournament_session=session.id) & Q(tournament_game_3=None))
+                tournament_games = [tournament_object.tournament_game_1, tournament_object.tournament_game_2, tournament_object.tournament_game_3]
+                if tournament_object.tournament_type != game_type:
+                    return JsonResponse({"ok": False, "error": "Tournament and game types don't match", "statusCode": 400}, status=400)
+                if tournament_index == 2 and None in tournament_games[:2]:
+                    return JsonResponse({"ok": False, "error": "Can't push final before semifinals", "statusCode": 400}, status=400)
+                if tournament_index == 0 and {winner_object, loser_object} != {tournament_object.semi_one_p1, tournament_object.semi_one_p2}:
+                    return JsonResponse({"ok": False, "error": "Incorrect players for tournament game", "statusCode": 400}, status=400)
+                if tournament_index == 1 and {winner_object, loser_object} != {tournament_object.semi_two_p1, tournament_object.semi_two_p2}:
+                    return JsonResponse({"ok": False, "error": "Incorrect players for tournament game", "statusCode": 400}, status=400)
+                if tournament_index == 2 and {winner_object, loser_object} != {tournament_object.tournament_game_1.game_winner_1, tournament_object.tournament_game_2.game_winner_1}:
+                    return JsonResponse({"ok": False, "error": "Incorrect players for tournament game", "statusCode": 400}, status=400)
+                if (tournament_games[tournament_index] is not None):
+                    return JsonResponse({"ok": False, "error": "Can't overwrite tournament game", "statusCode": 400}, status=400)
+            pong_game = PongGame.objects.create(
+                game_type = game_type,
+                game_score = score,
+                game_session = session,
+                game_winner_1 = winner_object,
+                game_winner_2 = None,
+                game_loser_1 = loser_object,
+                game_loser_2 = None)
+            if tournament is None:
+                return JsonResponse({"ok": True, "message": "Pong 1v1 game - data successfuly pushed", "statusCode": 200}, status=200)
+            else:
+                if tournament_index == 0: tournament_object.tournament_game_1 = pong_game
+                elif tournament_index == 1: tournament_object.tournament_game_2 = pong_game
+                else: tournament_object.tournament_game_3 = pong_game
+                tournament_object.save()
+                return JsonResponse({"ok": True, "message": f"Successfuly pushed game {tournament_index + 1} of tournament", "statusCode": 200}, status=200)
+        elif None not in (w1, w2, l1, l2) and score:
+            if tournament is not None:
+                return JsonResponse({"ok": False, "error": "Can't push a 2v2 game as part of a tournament", "statusCode": 400}, status=400)
+            if len(set([w1, w2, l1, l2])) != 4:
+                return JsonResponse({"ok": False, "error": "Can't push game with duplicate players", "statusCode": 400}, status=400)
+            winner1_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=w1))
+            winner2_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=w2))
+            loser1_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=l1))
+            loser2_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=l2))
+            pong_game = PongGame.objects.create(
+                game_score = score,
+                game_session = session,
+                game_winner_1 = winner1_object,
+                game_winner_2 = winner2_object,
+                game_loser_1 = loser1_object,
+                game_loser_2 = loser2_object)
+            return JsonResponse({"ok": True, "message": "Pong 2v2 game - data successfuly pushed", "statusCode": 200}, status=200)
+        else:
+            return JsonResponse({"ok": False, "error": "Incomplete game data", "statusCode": 400}, status=400)
+    except Exception as err:
+        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
 
 logger = logging.getLogger(__name__)
@@ -428,23 +410,18 @@ def pong_create_tournament(request):
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# New settings view
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
 def pong_update_settings(request):
     try:
         if not request.user.is_authenticated:
             return JsonResponse({"ok": False, "error": "Authentication required", "statusCode": 401}, status=401)
-
         if request.method == "GET":
-            # Fetch GameSettings
             try:
                 settings = GameSettings.objects.get(user=request.user)
             except GameSettings.DoesNotExist:
                 logger.info(f"Creating default GameSettings for user {request.user.username}")
                 settings = GameSettings.objects.create(user=request.user)
-
-            # Fetch PongSession for players
             session = None
             try:
                 session = request.user.pongsession
@@ -480,7 +457,6 @@ def pong_update_settings(request):
                 "players": players
             }
             return JsonResponse({"ok": True, "settings": settings_data, "statusCode": 200}, status=200)
-
         elif request.method == "POST":
             # Handle multipart/form-data
             form_data = request.POST
@@ -493,14 +469,11 @@ def pong_update_settings(request):
             except GameSettings.DoesNotExist:
                 logger.info(f"Creating default GameSettings for user {user.username}")
                 settings = GameSettings.objects.create(user=user)
-
             try:
                 session = user.pongsession
             except (PongSession.DoesNotExist, AttributeError) as e:
                 logger.info(f"No PongSession for user {user.username}: {str(e)}")
                 return JsonResponse({"ok": False, "error": "No active session found. Please start a session first.", "statusCode": 400}, status=400)
-
-            # Validate game settings
             valid_game_settings = {
                 'game_speed': ['slow', 'normal', 'fast'],
                 'ball_size': ['small', 'medium', 'large'],
@@ -625,7 +598,6 @@ def pong_update_settings(request):
             return JsonResponse({"ok": True, "message": "Settings updated successfully", "settings": settings_data, "statusCode": 200}, status=200)
 
         return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
-
     except GameSettings.DoesNotExist:
         return JsonResponse({"ok": False, "error": "Game settings not found for user", "statusCode": 400}, status=400)
     except PongSession.DoesNotExist:
@@ -633,3 +605,29 @@ def pong_update_settings(request):
     except Exception as err:
         logger.error(f"Unexpected error in pong_update_settings: {str(err)}")
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_with_2fa(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+    token = request.data.get("token")
+    if not username or not password:
+        return Response({"error": "Missing credentials"}, status=400)
+    user = authenticate(username=username, password=password)
+    if user is None:
+        return Response({"error": "Invalid credentials"}, status=401)
+    device_qs = user.totpdevice_set.filter(confirmed=True, name="default")
+    if device_qs.exists():
+        if not token:
+            return Response({"error": "2FA token required"}, status=401)
+        device = device_qs.first()
+        if not device.verify_token(token):
+            return Response({"error": "Invalid 2FA token"}, status=401)
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+        "user_id": user.id,
+        "username": user.username,
+    })

@@ -19,6 +19,8 @@ from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenBlacklistView
 from django.conf import settings
 from django.conf.urls.static import static
+from two_factor import urls as two_factor_urls
+from pong.views import TwoFAStatusView, TwoFASetupView, TwoFAVerifyView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,4 +28,8 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist'),
+	path('twofactor/', include(two_factor_urls.urlpatterns, 'two_factor')),
+	path('pong_api/2fa/status/', TwoFAStatusView.as_view()),
+	path('pong_api/2fa/setup/', TwoFASetupView.as_view()),
+	path('pong_api/2fa/verify/', TwoFAVerifyView.as_view()),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

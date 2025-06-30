@@ -39,7 +39,12 @@ ALLOWED_HOSTS = [
 	"127.0.0.1:8042",
 ]
 
-# Application definition
+CSRF_TRUSTED_ORIGINS = [
+	"https://localhost:8042",
+	"https://127.0.1:8042",
+	"https://[::1]:8042",
+	"https://localhost:8042/admin"
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -51,7 +56,11 @@ INSTALLED_APPS = [
     'pong',
 	'rest_framework',
 	'rest_framework_simplejwt',
-	'rest_framework_simplejwt.token_blacklist'
+	'rest_framework_simplejwt.token_blacklist',
+	'django_otp',
+	'django_otp.plugins.otp_static',
+	'django_otp.plugins.otp_totp',
+	'two_factor',
 ]
 
 REST_FRAMEWORK = {
@@ -77,6 +86,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'django_otp.middleware.OTPMiddleware',
 ]
 
 ROOT_URLCONF = 'transcendence.urls'

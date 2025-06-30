@@ -12,7 +12,7 @@ export default class
 		try
 		{
 			var response = await authFetch("pong_api/pong_session_data/", {method: "GET"});
-			if (!response) {
+			if (!response || response.status === 401) {
 				this.goToNoAuth("Session expired. Please log in again.");
 				return;
 			}
@@ -24,11 +24,7 @@ export default class
 		}
 		catch(err)
 		{
-//			console.error(err.message);
-			if (err.message === "No response from server")
-				this.goToNoAuth("Session expired. Please log in again.");
-			else
-				this.goToError();
+			this.goToNoAuth("Session expired. Please log in again.");
 			throw err;
 		}
 	}
@@ -40,6 +36,12 @@ export default class
 
 	async setContent(content)
 	{
+		const qr = document.getElementById("twofa-qr");
+		if (qr) {
+		  qr.style.display = "none";
+		  qr.src = "";
+		}
+
 		document.querySelector("#content").style.opacity = 0;
 
 		await new Promise(r => setTimeout(r, 400));
