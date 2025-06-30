@@ -150,26 +150,22 @@ export default class extends AbstractView {
                                 </select>
                             </div>
                             <div class="form-row">
-                                <label for="password" data-i18n="settings.password">Change Password</label>
-                                <input type="password" id="password" data-i18n-placeholder="settings.password_placeholder" placeholder="Enter new password" />
-                            </div>
-							<div class="form-row">
-								<label for="twofa-select">Two-Factor Authentication</label>
-								<select id="twofa-select">
-									<option value="disabled" ${!twoFAEnabled ? "selected" : ""}>Disabled</option>
-									<option value="enabled" ${twoFAEnabled ? "selected" : ""}>Enabled</option>
-								</select>
+							    <label for="twofa-select" data-i18n="settings.twofa_label">Two-Factor Authentication</label>
+							    <select id="twofa-select">
+							        <option value="disabled" ${!twoFAEnabled ? "selected" : ""} data-i18n="settings.twofa_disabled">Disabled</option>
+							        <option value="enabled" ${twoFAEnabled ? "selected" : ""} data-i18n="settings.twofa_enabled">Enabled</option>
+							    </select>
 							</div>
 							<div class="form-row" id="twofa-setup-row" style="display:none;">
-								<label></label>
-								<div>
-									<p>Scan this QR code with your Authenticator app:</p>
-									<img id="twofa-qr" src="" alt="2FA QR Code" style="max-width:200px;"/>
-									<p>Enter the 6-digit code from your app:</p>
-									<input type="text" id="twofa-code" maxlength="6" class="form-control form-control-sm" style="width:100px;display:inline-block;" />
-									<button id="verify-2fa-btn" class="btn btn-success btn-sm" style="margin-left:0.5em;">Verify</button>
-									<div id="twofa-verify-msg"></div>
-								</div>
+							    <label></label>
+							    <div>
+							        <p data-i18n="settings.twofa_qr_instruction">Scan this QR code with your Authenticator app:</p>
+							        <img id="twofa-qr" src="" alt="2FA QR Code" data-i18n-alt="settings.twofa_qr_alt" style="max-width:200px;"/>
+							        <p data-i18n="settings.twofa_code_instruction">Enter the 6-digit code from your app:</p>
+							        <input type="text" id="twofa-code" maxlength="6" class="form-control form-control-sm" style="width:100px;display:inline-block;" />
+							        <button id="verify-2fa-btn" class="btn btn-success btn-sm" style="margin-left:0.5em;" data-i18n="settings.twofa_verify">Verify</button>
+							        <div id="twofa-verify-msg"></div>
+							    </div>
 							</div>
                         </form>
                         <button type="button" id="save_settings" class="btn btn-secondary mb-4" data-i18n="settings.save_settings">Save Settings</button>
@@ -302,7 +298,14 @@ export default class extends AbstractView {
             'settings.player_name',
             'settings.player_placeholder',
             'settings.alert_saved',
-            'settings.alert_error'
+            'settings.alert_error',
+			'settings.twofa_label',
+    		'settings.twofa_disabled',
+    		'settings.twofa_enabled',
+    		'settings.twofa_qr_instruction',
+    		'settings.twofa_code_instruction',
+    		'settings.twofa_verify',
+    		'settings.twofa_qr_alt'
         ]);
 
         // Set translated page title

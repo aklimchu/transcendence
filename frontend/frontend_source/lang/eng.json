@@ -20,7 +20,7 @@
 	"pick_right_player_2": "Pick right player 2:",
     "play_pong": "Play Pong",
     "play_snek": "Play Snek",
-	"reset_settings": "Reset Settings to Default",
+	"reset_settings": "Reset Game Settings to Default",
 	"go_back": "Go back",
 	"game_completed": "Game Completed!"
     },
@@ -36,7 +36,7 @@
 	"pick_right_player_2": "Pick right player 2:",
 	"play_pong": "Play Pong",
 	"play_snek": "Play Snek",
-	"reset_settings": "Reset Settings to Default",
+	"reset_settings": "Reset Game Settings to Default",
 	"tournament_title": "Tournament",
 	"tournament_mode": "Tournament Mode",
 	"create_pong_tournament": "Create Pong Tournament",
@@ -101,7 +101,14 @@
 	  "player_placeholder": "Enter name",
 	  "alert_saved": "Settings saved successfully!",
 	  "alert_error": "Error saving settings",
-      "upload_avatar": "Attach Avatar"
+      "upload_avatar": "Attach Avatar",
+	  "twofa_label": "Two-Factor Authentication",
+      "twofa_disabled": "Disabled",
+      "twofa_enabled": "Enabled",
+      "twofa_qr_instruction": "Scan this QR code with your Authenticator app:",
+      "twofa_code_instruction": "Enter the 6-digit code from your app:",
+      "twofa_verify": "Verify",
+      "twofa_qr_alt": "2FA QR Code"
 	},
     "stats": {
 	"page_title": "Stats",

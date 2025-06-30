@@ -112,83 +112,120 @@ export class TranslationManager {
     }
 }
 
-export async function resetSettingsToDefault()
-    {
-        try {
-            // Fetch current settings
-            console.log("Fetching current settings from /pong_api/pong_settings/");
-            const getResponse = await authFetch("/pong_api/pong_settings/", {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            });
-            console.log("GET Response status:", getResponse.status);
-            const getResponseText = await getResponse.text();
-            console.log("GET Response text:", getResponseText);
-            if (!getResponse.ok) {
-                throw new Error(this.extractErrorMessage(getResponseText, getResponse.status));
-            }
-            const getData = JSON.parse(getResponseText);
-            console.log("Current settings data:", getData);
-            if (!getData.ok || !getData.settings || typeof getData.settings !== "object") {
-                throw new Error("Invalid settings data received");
-            }
+export async function resetSettingsToDefault() {
+    try {
+        /* // Initialize TranslationManager
+        const translationManager = new TranslationManager();
+        const translations = await translationManager.initLanguage('eng', [
+            'settings.alert_saved',
+            'settings.alert_error'
+        ]); */
 
-            // Update only the specified settings
-            const updatedSettings = {
-                ...getData.settings,
-                game_speed: "normal",
-                paddle_size: "normal",
-                ball_size: "medium",
-                power_jump: "on"
-            };
-
-            // Send updated settings to the server
-            console.log("Sending updated settings to /pong_api/pong_settings/");
-            const postResponse = await authFetch("/pong_api/pong_settings/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updatedSettings)
-            });
-            console.log("POST Response status:", postResponse.status);
-            const postResponseText = await postResponse.text();
-            console.log("POST Response text:", postResponseText);
-            if (!postResponse.ok) {
-                throw new Error(this.extractErrorMessage(postResponseText, postResponse.status));
-            }
-            const postData = JSON.parse(postResponseText);
-            console.log("Settings update response:", postData);
-            if (postData.ok) {
-                if (updatedSettings.language == "eng")
-					alert("Settings have been reset to default!");
-				else if (updatedSettings.language == "fin")
-					alert("Asetukset on palautettu oletusasetuksiin!");
-				else
-					alert("Inställningarna har återställts till standar dinställningarna!");
-            } else {
-                throw new Error("Failed to reset settings");
-            }
-        } catch (error) {
-            console.error("Failed to reset settings:", error);
-            alert("Error resetting settings: " + error.message);
+        // Fetch current settings
+        console.log("Fetching current settings from /pong_api/pong_settings/");
+        const getResponse = await authFetch("/pong_api/pong_settings/", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        });
+        console.log("GET Response status:", getResponse.status);
+        const getResponseText = await getResponse.text();
+        console.log("GET Response text:", getResponseText);
+        if (!getResponse.ok) {
+            throw new Error(extractErrorMessage(getResponseText, getResponse.status));
         }
+        const getData = JSON.parse(getResponseText);
+        console.log("Current settings data:", getData);
+        if (!getData.ok || !getData.settings || typeof getData.settings !== "object") {
+            throw new Error("Invalid settings data received");
+        }
+
+        // Prepare FormData with default settings
+        const formData = new FormData();
+        formData.append("game_speed", "normal");
+        formData.append("paddle_size", "normal");
+        formData.append("ball_size", "medium");
+        formData.append("power_jump", "on");
+        // Include unchanged settings
+        formData.append("theme", getData.settings.theme || "light");
+        formData.append("font_size", getData.settings.font_size || "medium");
+        formData.append("language", getData.settings.language || "eng");
+        // Include players array (unchanged)
+        const players = getData.settings.players || Array(4).fill().map((_, index) => ({
+            player_name: '',
+            avatar: '/media/avatars/default-avatar.png',
+            position: index + 1
+        }));
+        players.forEach((player, index) => {
+            formData.append(`players[${index}][player_name]`, player.player_name || '');
+            formData.append(`players[${index}][position]`, player.position || index + 1);
+            // Avatars are not included unless resetting them
+        });
+        formData.append("players_length", players.length);
+
+        // Send updated settings to the server
+        console.log("Sending updated settings to /pong_api/pong_settings/");
+        const postResponse = await authFetch("/pong_api/pong_settings/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie('csrftoken')
+            },
+            body: formData
+        });
+        console.log("POST Response status:", postResponse.status);
+        const postResponseText = await postResponse.text();
+        console.log("POST Response text:", postResponseText);
+        if (!postResponse.ok) {
+            throw new Error(extractErrorMessage(postResponseText, postResponse.status));
+        }
+        const postData = JSON.parse(postResponseText);
+        console.log("Settings update response:", postData);
+        if (postData.ok) {
+            if (postData.settings.language == "eng")
+				alert("Settings have been reset to default!");
+			else if (postData.settings.language == "fin")
+				alert("Asetukset on palautettu oletusasetuksiin!");
+			else
+				alert("Inställningarna har återställts till standar dinställningarna!");
+		} else {
+			throw new Error("Failed to reset settings");
+		}
+    } catch (error) {
+        console.error("Failed to reset game settings:", error);
+        alert("Error resetting game settings: " + error.message);
     }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+}
     
-    export function extractErrorMessage(text, status) {
-        try {
-            const cleanedText = text.trim().replace(/^\uFEFF/, '');
-            const data = JSON.parse(cleanedText);
-            return data.error || `HTTP ${status} error`;
-        } catch (e) {
-            console.error("Parse error:", e, "Response status:", status, "Response text:", text);
-            const errorMatch = text.match(/"error"\s*:\s*"([^"]+)"/i);
-            console.log("Error match: ", errorMatch);
-            if (errorMatch && errorMatch[1]) {
-                return errorMatch[1];
-            }
-            const plainText = text.trim().substring(0, 100);
-            if (plainText) {
-                return `Server error (HTTP ${status}): ${plainText}${text.length > 100 ? '...' : ''}`;
-            }
-            return `Server error (HTTP ${status}): No error message available`;
-        }
-    }
+   export function extractErrorMessage(text, status) {
+       try {
+           const cleanedText = text.trim().replace(/^\uFEFF/, '');
+           const data = JSON.parse(cleanedText);
+           return data.error || `HTTP ${status} error`;
+       } catch (e) {
+           console.error("Parse error:", e, "Response status:", status, "Response text:", text);
+           const errorMatch = text.match(/"error"\s*:\s*"([^"]+)"/i);
+           console.log("Error match: ", errorMatch);
+           if (errorMatch && errorMatch[1]) {
+               return errorMatch[1];
+           }
+           const plainText = text.trim().substring(0, 100);
+           if (plainText) {
+               return `Server error (HTTP ${status}): ${plainText}${text.length > 100 ? '...' : ''}`;
+           }
+           return `Server error (HTTP ${status}): No error message available`;
+       }
+   }

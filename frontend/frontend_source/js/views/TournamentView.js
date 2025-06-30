@@ -61,7 +61,7 @@ export default class extends GameView {
                 </div>
                 <div class="row mt-4">
                     <div class="col text-center">
-                        <button type="button" id="reset-settings-btn" class="btn btn-primary" data-i18n="tournament.reset_settings">Reset Settings to Default</button>
+                        <button type="button" id="reset-settings-btn" class="btn btn-primary" data-i18n="tournament.reset_settings">Reset Game Settings to Default</button>
                     </div>
                 </div>
             </div>`;

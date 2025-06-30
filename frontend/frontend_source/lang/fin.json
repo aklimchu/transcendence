@@ -20,7 +20,7 @@
 	"pick_right_player_2": "Valitse oikea pelaaja 2:",
     "play_pong": "Pelaa Pong",
     "play_snek": "Pelaa Snek",
-	"reset_settings": "Palauta asetukset oletusarvoihin",
+	"reset_settings": "Palauta peliasetukset oletusarvoihin",
 	"go_back": "Palaa takaisin",
 	"game_completed": "Peli päättynyt!"
     },
@@ -37,7 +37,7 @@
 	"pick_right_player_2": "Valitse oikea pelaaja 2:",
 	"play_pong": "Pelaa Pongia",
 	"play_snek": "Pelaa Snekiä",
-	"reset_settings": "Palauta asetukset oletusarvoihin",
+	"reset_settings": "Palauta peliasetukset oletusarvoihin",
 	"tournament_title": "Turnaus",
 	"tournament_mode": "Turnaustila",
 	"create_pong_tournament": "Luo Pong-turnaus",
@@ -102,7 +102,14 @@
     "player_placeholder": "Syötä nimi",
     "alert_saved": "Asetukset tallennettu onnistuneesti!",
     "alert_error": "Virhe asetusten tallentamisessa",
-    "upload_avatar": "Liitä Avatar"
+    "upload_avatar": "Liitä Avatar",
+	"twofa_label": "2V tunnistautuminen",
+    "twofa_disabled": "Poistettu käytöstä",
+    "twofa_enabled": "Käytössä",
+    "twofa_qr_instruction": "Skannaa tämä QR-koodi autentikaattorisovelluksellasi:",
+    "twofa_code_instruction": "Syötä sovelluksesi 6-numeroinen koodi:",
+    "twofa_verify": "Vahvista",
+    "twofa_qr_alt": "2FA QR-koodi"
   	},
     "stats": {
 	"page_title": "Tilastot",

@@ -20,7 +20,7 @@
 	"pick_right_player_2": "Välj höger spelare 2:",
     "play_pong": "Spela Pong",
     "play_snek": "Spela Snek",
-	"reset_settings": "Återställ inställningar till standard",
+	"reset_settings": "Återställ spelinställningar till standard",
 	"go_back": "Gå tillbaka",
 	"game_completed": "Spelet är slutfört!"
     },
@@ -37,7 +37,7 @@
 	"pick_right_player_2": "Välj höger spelare 2:",
 	"play_pong": "Spela Pong",
 	"play_snek": "Spela Snek",
-	"reset_settings": "Återställ inställningar till standard",
+	"reset_settings": "Återställ spelinställningar till standard",
 	"tournament_title": "Turnering",
 	"tournament_mode": "Turneringsläge",
 	"create_pong_tournament": "Skapa Pong-turnering",
@@ -102,7 +102,14 @@
 	  "player_name": "Namn",
 	  "player_placeholder": "Ange namn",
 	  "alert_saved": "Inställningar sparade framgångsrikt!",
-	  "alert_error": "Fel vid sparande av inställningar"
+	  "alert_error": "Fel vid sparande av inställningar",
+	  "twofa_label": "Tvåfaktorsautentisering",
+      "twofa_disabled": "Inaktiverad",
+      "twofa_enabled": "Aktiverad",
+      "twofa_qr_instruction": "Skanna denna QR-kod med din autentiseringsapp:",
+      "twofa_code_instruction": "Ange den 6-siffriga koden från din app:",
+      "twofa_verify": "Verifiera",
+      "twofa_qr_alt": "2FA QR-kod"
 	},
     "stats": {
 	"page_title": "Statistik",
