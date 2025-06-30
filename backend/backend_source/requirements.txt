@@ -6,3 +6,5 @@ django-two-factor-auth>=1.17.0
 django-otp
 phonenumbers
 qrcode
+requests
+google-auth

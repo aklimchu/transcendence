@@ -103,25 +103,25 @@ export default class
 		history.replaceState({view : "lobby_view"}, null, null);
 		this.hideNavbar();
 		this.setTitle("Lobby");
-		this.setContent(content);
-
-		const renderGoogleButton = () => {
-			if (window.google && document.getElementById("g_id_signin")) {
-				google.accounts.id.initialize({
-					client_id: "551469698885-16b3l08qo9q3p3op45htm47rs6gn5n94.apps.googleusercontent.com",
-					callback: handleCredentialResponse
-				});
-				google.accounts.id.renderButton(
-					document.getElementById("g_id_signin"),
-					{ theme: "outline", size: "large" }
-				);
-			}
-		};
-		if (window.google) {
-			renderGoogleButton();
-		} else {
-			window.addEventListener("google-loaded", renderGoogleButton);
-		}
+		this.setContent(content).then(() => {
+            const renderGoogleButton = () => {
+                if (window.google && document.getElementById("g_id_signin")) {
+                    google.accounts.id.initialize({
+                        client_id: "551469698885-16b3l08qo9q3p3op45htm47rs6gn5n94.apps.googleusercontent.com",
+                        callback: handleCredentialResponse
+                    });
+                    google.accounts.id.renderButton(
+                        document.getElementById("g_id_signin"),
+                        { theme: "outline", size: "large" }
+                    );
+                }
+            };
+            if (window.google) {
+                renderGoogleButton();
+            } else {
+                window.addEventListener("google-loaded", renderGoogleButton, { once: true });
+            }
+        });
 	}
 
 	async goToError()

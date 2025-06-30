@@ -255,11 +255,10 @@ export async function authFetch(url, options = {}) {
 }
 
 export async function handleCredentialResponse(response) {
-	console.log("Encoded JWT ID token: " + response.credential);
 	const responseData = await authFetch("/pong_api/google_login/", {
 		method: "POST",
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ id_token: response.credential })
+		body: JSON.stringify({ credential: response.credential })
 	});
 
 	if (!responseData.ok) {
@@ -281,5 +280,10 @@ export async function handleCredentialResponse(response) {
 	localStorage.setItem("access", data.access);
 	localStorage.setItem("refresh", data.refresh);
 	showSuccessMessage("Login successful!", 0);
+	if (typeof router === "function") {
+		router(null);
+	} else {
+		window.location.reload();
+	}
 	return true;
 }
