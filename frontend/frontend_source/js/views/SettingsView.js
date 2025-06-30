@@ -310,7 +310,6 @@ export default class extends AbstractView {
         this.setTitle(title);
 
         document.getElementById("save_settings").addEventListener("click", this.push_Settings.bind(this, translations));
-    }
 
 		const twofaSelect = document.getElementById("twofa-select");
 		const twofaSetupRow = document.getElementById("twofa-setup-row");

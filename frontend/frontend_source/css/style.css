@@ -5,20 +5,28 @@
     --settings-form-size: 100%; /* Default settings form size */
     font-family: 'Quicksand', sans-serif;
     --transition-speed: 600ms;
+    --player-box-size: 220px; /* Default player box size */
+    --player-container-size: 600px; /* Default player container size */
 }
 
 /* Font Size Variations */
 [data-font-size="small"] {
     --base-font-size: 16px; /* Adjusted for readability */
-	--settings-form-size: 50%;
+    --settings-form-size: 50%;
+    --player-box-size: calc(220px * 0.8); /* Scale down to 80% of default */
+    --player-container-size: calc(600px * 0.8); /* Scale down to 80% of default */
 }
 
 [data-font-size="medium"] {
     --base-font-size: 20px; /* Matches original default */
+    --player-box-size: 220px; /* Default size */
+    --player-container-size: 600px; /* Default size */
 }
 
 [data-font-size="large"] {
     --base-font-size: 24px; /* Adjusted for layout stability */
+    --player-box-size: calc(220px * 1.1); /* Scale up to 120% of default */
+    --player-container-size: calc(600px * 1.3); /* Increase to 780px to fit two 264px boxes with gap */
 }
 
 /* Apply base font size globally */
@@ -549,11 +557,12 @@ a {
     box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.3);
     border: 4px solid var(--border-color);
     font-size: var(--base-font-size);
-    min-height: 600px; /* Match General Settings min-height */
-    width: 600px; /* Square shape: width equals height */
+    min-height: var(--player-container-size); /* Use dynamic size */
+    width: var(--player-container-size); /* Use dynamic size */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center; /* Change to center to reduce gap */
+    align-items: center; /* Ensure horizontal centering */
 }
 
 .player-settings {
@@ -563,6 +572,7 @@ a {
     justify-content: center;
     padding: 10px;
     font-size: var(--base-font-size);
+	max-width: var(--player-container-size); /* Limit to container width */
 }
 
 .player-box {
@@ -572,8 +582,8 @@ a {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 220px; /* Increased from 200px to scale proportionally */
-    height: 220px; /* Increased from 200px to match width */
+    width: var(--player-box-size); /* Use dynamic size */
+    height: var(--player-box-size); /* Use dynamic size */
     border: 3px solid var(--bg-accent);
     border-radius: 18px;
     font-weight: bold;
@@ -596,8 +606,8 @@ a {
 }
 
 .player-box .player-avatar {
-    width: 130px;
-    height: 130px;
+    width: calc(var(--player-box-size) * 0.59); /* 130px / 220px ≈ 0.59 */
+    height: calc(var(--player-box-size) * 0.59); /* 130px / 220px ≈ 0.59 */
     border-radius: 50%;
     object-fit: cover;
     margin: 10px auto;
@@ -633,8 +643,8 @@ a {
 }
 
 .player-box .player-avatar img {
-    width: 130px;
-    height: 130px;
+    width: calc(var(--player-box-size) * 0.59); /* 130px / 220px ≈ 0.59 */
+    height: calc(var(--player-box-size) * 0.59); /* 130px / 220px ≈ 0.59 */
     border-radius: 50%;
 }
 
