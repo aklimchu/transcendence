@@ -115,7 +115,14 @@
 	"page_title": "Statistik",
     "title": "🏓Översikt över spelarens prestationer🐍",
     "total_games": "Totalt antal spelade spel:",
-    "users": "Registrerade användare:"
+    "users": "Registrerade användare:",
+    "match_history": "Matchhistorik",
+    "game_type": "Speltyp",
+    "date": "Datum",
+    "opponent": "Motståndare",
+    "score": "Poäng",
+    "outcome": "Resultat",
+    "no_history": "Ingen matchhistorik tillgänglig"
     },
 	"nav": {
     "title": "Pong",

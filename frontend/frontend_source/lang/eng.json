@@ -114,7 +114,14 @@
 	"page_title": "Stats",
     "title": "🏓Player Performance Overview🐍",
     "total_games": "Total games played:",
-    "users": "Registered users:"
+    "users": "Registered users:",
+    "match_history": "Match History",
+    "game_type": "Game Type",
+    "date": "Date",
+    "opponent": "Opponent",
+    "score": "Score",
+    "outcome": "Outcome",
+    "no_history": "No match history available"
     },
 	"nav": {
     "title": "Pong",

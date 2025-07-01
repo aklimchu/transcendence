@@ -115,7 +115,14 @@
 	"page_title": "Tilastot",
     "title": "🏓Pelaajaan suorituskyvyn yleiskatsaus🐍",
     "total_games": "Pelejä pelattu yhteensä:",
-    "users": "Rekisteröidyt käyttäjät:"
+    "users": "Rekisteröidyt käyttäjät:",
+    "match_history": "Otteluhistoria",
+    "game_type": "Pelityyppi",
+    "date": "Päivämäärä",
+    "opponent": "Vastustaja",
+    "score": "Pisteet",
+    "outcome": "Tulos",
+    "no_history": "Ei otteluhistoriaa saatavilla"
     },
 	"nav": {
     "title": "Pong",

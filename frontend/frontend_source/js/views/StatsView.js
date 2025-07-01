@@ -9,7 +9,36 @@ export default class extends AbstractView
     	super(params);
 		this.translationManager = new TranslationManager(); // Initialize TranslationManager
         this.matchHistories = { p1: [], p2: [], p3: [], p4: [] }; // Initialize matchHistories
+        this.tooltipStates = { p1: false, p2: false, p3: false, p4: false }; // Track tooltip visibility
 	}
+
+    // Function to generate Match History table
+    generateMatchHistoryTable(history, translations) {
+        if (!history || history.length === 0) {
+            return `<p>${translations['stats.no_history'] || 'No match history available'}</p>`;
+        }
+        let table = `
+            <table class="match-history-table">
+                <tr>
+                    <th>${translations['stats.game_type'] || 'Game Type'}</th>
+                    <th>${translations['stats.date'] || 'Date'}</th>
+                    <th>${translations['stats.opponent'] || 'Opponent'}</th>
+                    <th>${translations['stats.score'] || 'Score'}</th>
+                    <th>${translations['stats.outcome'] || 'Outcome'}</th>
+                </tr>`;
+        history.forEach(game => {
+            table += `
+                <tr>
+                    <td>${game.game_type}</td>
+                    <td>${game.date}</td>
+                    <td>${game.opponent}</td>
+                    <td>${game.score}</td>
+                    <td>${game.outcome}</td>
+                </tr>`;
+        });
+        table += '</table>';
+        return table;
+    }
 
     async goToView()
     {
@@ -105,14 +134,69 @@ export default class extends AbstractView
         }
 
         const content = `
+        <style>
+            .match-history-tooltip {
+                position: absolute;
+                background: ${settingsData.theme === 'dark' ? '#333' : '#fff'};
+                color: ${settingsData.theme === 'dark' ? '#fff' : '#333'};
+                border: 1px solid #ccc;
+                padding: 10px;
+                z-index: 1000;
+                display: none;
+                max-width: 400px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                border-radius: 5px;
+            }
+            .match-history-button {
+                margin-top: 10px;
+                padding: 5px 10px;
+                background: ${settingsData.theme === 'dark' ? '#00cc99' : '#005252'};
+                color: #fff;
+                border: none;
+                border-radius: 3px;
+                cursor: pointer;
+            }
+            .match-history-button:hover {
+                background: ${settingsData.theme === 'dark' ? '#00b386' : '#003838'};
+            }
+            .match-history-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: ${settingsData.font_size === 'small' ? '12px' : settingsData.font_size === 'large' ? '16px' : '14px'};
+            }
+            .match-history-table th, .match-history-table td {
+                padding: 5px;
+                border-bottom: 1px solid ${settingsData.theme === 'dark' ? '#555' : '#ddd'};
+                text-align: left;
+            }
+            .match-history-table th {
+                background: ${settingsData.theme === 'dark' ? '#444' : '#f0f0f0'};
+            }
+        </style>
         <div class="stats-container my-2">
             <div class="stats-card text-center">
                 <h3 class="stats-title mb-3" data-i18n="stats.title">🏓Player Performance Overview🐍</h3>
                 <div class="row row-cols-1 row-cols-md-2 g-4">
-                    <div class="col"><canvas id="chartP1"></canvas></div>
-                    <div class="col"><canvas id="chartP2"></canvas></div>
-                    <div class="col"><canvas id="chartP3"></canvas></div>
-                    <div class="col"><canvas id="chartP4"></canvas></div>
+                    <div class="col">
+                        <canvas id="chartP1" data-player-key="p1"></canvas>
+                        <button class="match-history-button" data-player-key="p1" data-i18n="stats.match_history">Match History</button>
+                        <div class="match-history-tooltip" id="tooltip-p1"></div>
+                    </div>
+                    <div class="col">
+                        <canvas id="chartP2" data-player-key="p2"></canvas>
+                        <button class="match-history-button" data-player-key="p2" data-i18n="stats.match_history">Match History</button>
+                        <div class="match-history-tooltip" id="tooltip-p2"></div>
+                    </div>
+                    <div class="col">
+                        <canvas id="chartP3" data-player-key="p3"></canvas>
+                        <button class="match-history-button" data-player-key="p3" data-i18n="stats.match_history">Match History</button>
+                        <div class="match-history-tooltip" id="tooltip-p3"></div>
+                    </div>
+                    <div class="col">
+                        <canvas id="chartP4" data-player-key="p4"></canvas>
+                        <button class="match-history-button" data-player-key="p4" data-i18n="stats.match_history">Match History</button>
+                        <div class="match-history-tooltip" id="tooltip-p4"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -121,11 +205,63 @@ export default class extends AbstractView
         await this.setContent(content);
 
 		// Apply translations
-		const translations = await this.translationManager.initLanguage(settingsData.language, ['stats.title', 'lobby.victories', 'lobby.defeats']);
+		const translations = await this.translationManager.initLanguage(settingsData.language, [
+            'stats.title',
+            'lobby.victories',
+            'lobby.defeats',
+            'stats.game_type',
+            'stats.date',
+            'stats.opponent',
+            'stats.score',
+            'stats.outcome',
+            'stats.no_history'
+        ]);
 		
 		// Set translated page title
 		const title = translations.stats?.page_title || 'Stats';
 		this.setTitle(title);
+
+        // Add click event listeners for Match History buttons
+        const buttons = document.querySelectorAll('.match-history-button');
+        buttons.forEach(button => {
+            const playerKey = button.getAttribute('data-player-key');
+            const tooltip = document.getElementById(`tooltip-${playerKey}`);
+
+            button.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevent click from bubbling to document
+                // Toggle visibility state for this button
+                this.tooltipStates[playerKey] = !this.tooltipStates[playerKey];
+                if (this.tooltipStates[playerKey]) {
+                    // Generate and show tooltip content
+                    tooltip.innerHTML = this.generateMatchHistoryTable(this.matchHistories[playerKey], translations);
+                    tooltip.style.display = 'block';
+                    // Position tooltip near button
+                    const rect = button.getBoundingClientRect();
+                    tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
+                    tooltip.style.left = `${rect.left + window.scrollX}px`;
+                } else {
+                    tooltip.style.display = 'none';
+                }
+            });
+        });
+
+        // Hide tooltips when clicking outside, without resetting button states
+        document.addEventListener('click', (event) => {
+            const tooltips = document.querySelectorAll('.match-history-tooltip');
+            tooltips.forEach(tooltip => {
+                if (!event.target.closest('.match-history-button')) {
+                    tooltip.style.display = 'none';
+                    // Update tooltipStates for all buttons with visible tooltips
+                    Object.keys(this.tooltipStates).forEach(key => {
+                        const tooltip = document.getElementById(`tooltip-${key}`);
+                        if (tooltip.style.display === 'none') {
+                            this.tooltipStates[key] = false;
+                        }
+                    });
+                }
+            });
+        });
+
 
         // Update createChart to use translations
 		function createChart(id, player, translations) {
