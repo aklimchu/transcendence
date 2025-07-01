@@ -8,6 +8,7 @@ export default class extends AbstractView
 	{
     	super(params);
 		this.translationManager = new TranslationManager(); // Initialize TranslationManager
+        this.matchHistories = { p1: [], p2: [], p3: [], p4: [] }; // Initialize matchHistories
 	}
 
     async goToView()
@@ -67,6 +68,42 @@ export default class extends AbstractView
             this.goToError();
             return;
         }
+
+        // Fetch Match History for each player
+        try {
+            const playerIds = [
+                { key: "p1", id: players.p1.id },
+                { key: "p2", id: players.p2.id },
+                { key: "p3", id: players.p3.id },
+                { key: "p4", id: players.p4.id }
+            ];
+
+            const fetchPromises = playerIds.map(async ({ key, id }) => {
+                try {
+                    const response = await authFetch(`/pong_api/player_match_history/${id}/`, {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" }
+                    });
+                    const data = await response.json();
+                    if (data.ok) {
+                        this.matchHistories[key] = data.data || [];
+                    } else {
+                        console.error(`Failed to fetch match history for ${key} (ID: ${id}):`, data.error);
+                        this.matchHistories[key] = [];
+                    }
+                } catch (error) {
+                    console.error(`Error fetching match history for ${key} (ID: ${id}):`, error);
+                    this.matchHistories[key] = [];
+                }
+            });
+
+            await Promise.all(fetchPromises);
+            console.log("Match Histories:", this.matchHistories);
+        } catch (error) {
+            console.error("Failed to fetch match histories:", error);
+            // Continue rendering the page even if match history fails
+        }
+
         const content = `
         <div class="stats-container my-2">
             <div class="stats-card text-center">
@@ -150,9 +187,4 @@ export default class extends AbstractView
 		createChart("chartP3", players["p3"], translations);
 		createChart("chartP4", players["p4"], translations);
 	}
-
-/*     // Assume this method exists in AbstractView.js
-    applyTheme(theme) {
-        document.body.setAttribute('data-theme', theme);
-    } */
 }

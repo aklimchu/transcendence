@@ -143,10 +143,18 @@ class TwoFADisableView(APIView):
 
 
 def get_player_data(player_id):
-    name = PongPlayer.objects.get(id=player_id).player_name
-    q_won = PongGame.objects.filter(Q(game_winner_1=player_id) | Q(game_winner_2=player_id))
-    q_lost = PongGame.objects.filter(Q(game_loser_1=player_id) | Q(game_loser_2=player_id))
-    return {"name": name, "won": q_won.count(), "lost": q_lost.count()}
+    try:
+        player = PongPlayer.objects.get(id=player_id)
+        q_won = PongGame.objects.filter(Q(game_winner_1=player_id) | Q(game_winner_2=player_id))
+        q_lost = PongGame.objects.filter(Q(game_loser_1=player_id) | Q(game_loser_2=player_id))
+        return {
+            "id": player_id,
+            "name": player.player_name,
+            "won": q_won.count(),
+            "lost": q_lost.count()
+        }
+    except PongPlayer.DoesNotExist:
+        return None
 
 def get_session_games(session_id):
     q_games = PongGame.objects.filter(Q(game_session=session_id)).order_by("-id")
@@ -190,6 +198,75 @@ def get_session_tournaments(session_id):
         else:
             finished_tournaments.append(t_data)
     return unfinished_tournament, finished_tournaments
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def player_match_history(request, player_id):
+    """
+    Retrieve 1v1 match history for a specific player.
+    Returns game type, date, opponent, score, and outcome for each game.
+    """
+    try:
+        # Get the user's session
+        user = request.user
+        if not hasattr(user, "pongsession"):
+            return JsonResponse({
+                "ok": False,
+                "error": "No active session for user",
+                "statusCode": 400
+            }, status=400)
+
+        session = user.pongsession
+
+        # Verify the player belongs to the user's session
+        player = PongPlayer.objects.filter(id=player_id, player_session=session).first()
+        if not player:
+            return JsonResponse({
+                "ok": False,
+                "error": "Player not found or not associated with your session",
+                "statusCode": 403
+            }, status=403)
+
+        # Fetch 1v1 games where the player is either winner or loser
+        games = PongGame.objects.filter(
+            Q(game_session=session) &
+            Q(game_winner_2__isnull=True, game_loser_2__isnull=True) &
+            (Q(game_winner_1=player) | Q(game_loser_1=player))
+        ).select_related('game_winner_1', 'game_loser_1').order_by('-id')[:10]
+
+        # Format match history
+        match_history = []
+        for game in games:
+            opponent = game.game_loser_1 if game.game_winner_1 == player else game.game_winner_1
+            outcome = "win" if game.game_winner_1 == player else "loss"
+            match_history.append({
+                "game_type": game.game_type,
+                "date": "N/A",  # Placeholder since no created_at field
+                "opponent": opponent.player_name if opponent else "Unknown",
+                "score": game.game_score or "N/A",
+                "outcome": outcome
+            })
+
+        return JsonResponse({
+            "ok": True,
+            "message": "Match history retrieved successfully",
+            "data": match_history,
+            "statusCode": 200
+        }, status=200)
+
+    except PongPlayer.DoesNotExist:
+        return JsonResponse({
+            "ok": False,
+            "error": "Player not found",
+            "statusCode": 404
+        }, status=404)
+    except Exception as err:
+        logger.error(f"Error in player_match_history for player_id {player_id}: {str(err)}")
+        return JsonResponse({
+            "ok": False,
+            "error": str(err),
+            "statusCode": 400
+        }, status=400)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
