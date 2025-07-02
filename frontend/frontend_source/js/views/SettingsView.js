@@ -171,9 +171,13 @@ export default class extends AbstractView {
 								</div>
 							</div>
 						</form>
-						<button type="button" id="save_settings" class="btn btn-secondary mb-4">
-							Save Settings
-						</button>
+						<button type="button" id="save_settings" class="btn btn-secondary mb-4" style="width: 100%;">Save Settings</button>
+						<div style="display: flex; justify-content: center;">
+							<div id="google-auth-btn" class="g_id_signin" style="margin-top: 1em; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid #dadce0; border-radius: 4px; background: #fff; color: #3c4043; font-size: 16px; font-weight: 500; height: 40px; min-width: 200px;">
+								<img id="google-auth-icon" src="https://developers.google.com/identity/images/g-logo.png" style="height:20px; margin-right:12px;" alt="Google logo"/>
+								<span id="google-auth-label">Sign in with Google</span>
+							</div>
+						</div>
 					</div>
 					<div class="player-settings-container">
 						<h2 class="head">Player Settings</h2>
@@ -252,6 +256,84 @@ export default class extends AbstractView {
 				}
 			}
 		});
+
+		const googleAuthBtn = document.getElementById("google-auth-btn");
+		const googleAuthLabel = document.getElementById("google-auth-label");
+		const googleAuthIcon = document.getElementById("google-auth-icon");
+
+		let googleLinked = false;
+		try {
+			if (settingsData.google_linked !== undefined) {
+				googleLinked = settingsData.google_linked;
+			}
+		} catch (e) {}
+
+		async function linkGoogleAccount(credentialResponse) {
+			try {
+				const resp = await authFetch("/pong_api/auth/google/link/", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ token: credentialResponse.credential })
+				});
+				if (resp.ok) {
+					googleLinked = true;
+					setGoogleButtonState();
+					alert("Google account linked successfully!");
+				} else {
+					const data = await resp.json();
+					alert(data.error || "Failed to link Google account.");
+				}
+			} catch (e) {
+				alert("Error linking Google account.");
+			}
+		}
+
+		async function unlinkGoogleAccount() {
+			try {
+				const resp = await authFetch("/pong_api/auth/google/unlink/", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" }
+				});
+				if (resp.ok) {
+					googleLinked = false;
+					setGoogleButtonState();
+					alert("Google account unlinked successfully!");
+				} else {
+					const data = await resp.json();
+					alert(data.error || "Failed to unlink Google account.");
+				}
+			} catch (e) {
+				alert("Error unlinking Google account.");
+			}
+		}
+
+		function setGoogleButtonState() {
+			if (googleLinked) {
+				googleAuthLabel.textContent = "Sign out of Google";
+				googleAuthBtn.onclick = async () => {
+					await unlinkGoogleAccount();
+				};
+			} else {
+				googleAuthLabel.textContent = "Sign in with Google";
+				googleAuthBtn.onclick = () => {
+					if (window.google && window.google.accounts && window.google.accounts.id) {
+						window.google.accounts.id.prompt();
+					} else {
+						alert("Google Sign-In not loaded.");
+					}
+				};
+			}
+		}
+
+		if (window.google && window.google.accounts && window.google.accounts.id) {
+			window.google.accounts.id.initialize({
+				client_id: window.GOOGLE_CLIENT_ID,
+				callback: linkGoogleAccount,
+				auto_select: false,
+				cancel_on_tap_outside: false
+			});
+		}
+		setGoogleButtonState();
 	}
 
 	push_Settings() {

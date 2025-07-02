@@ -107,7 +107,7 @@ export default class
             const renderGoogleButton = () => {
                 if (window.google && document.getElementById("g_id_signin")) {
                     google.accounts.id.initialize({
-                        client_id: "551469698885-16b3l08qo9q3p3op45htm47rs6gn5n94.apps.googleusercontent.com",
+                        client_id: window.GOOGLE_CLIENT_ID,
                         callback: handleCredentialResponse
                     });
                     google.accounts.id.renderButton(
