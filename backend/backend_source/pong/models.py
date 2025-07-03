@@ -53,7 +53,8 @@ class PongGame(models.Model):
     game_winner_2 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_winner_2")
     game_loser_1 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_loser_1")
     game_loser_2 = models.ForeignKey(PongPlayer, null=True, blank=True, on_delete=models.SET_NULL, related_name="game_loser_2")
-	
+    created_at = models.DateTimeField(auto_now_add=True)  # Automatically set to creation time
+
     def __str__(self):
         return f"Game {self.id} ({self.game_type})"
 

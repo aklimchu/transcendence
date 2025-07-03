@@ -241,7 +241,7 @@ def player_match_history(request, player_id):
             outcome = "win" if game.game_winner_1 == player else "loss"
             match_history.append({
                 "game_type": game.game_type,
-                "date": "N/A",  # Placeholder since no created_at field
+                "date": game.created_at.strftime("%d.%m.%Y"),  # Format as dd.mm.yyyy, e.g., 03.07.2025
                 "opponent": opponent.player_name if opponent else "Unknown",
                 "score": game.game_score or "N/A",
                 "outcome": outcome

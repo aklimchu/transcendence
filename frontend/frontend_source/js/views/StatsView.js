@@ -53,10 +53,14 @@ export default class extends AbstractView
                 console.warn(`Invalid score format for game: ${game.score}, cleanScore=${cleanScore}`);
             }
             const formattedScore = `${playerScore}-${opponentScore}`;
+            // Validate date; use "Unknown" if invalid or missing
+            const formattedDate = game.date && typeof game.date === 'string' && game.date.match(/^\d{2}\.\d{2}\.\d{4}$/) 
+                ? game.date 
+                : translations['stats.unknown_date'] || 'Unknown';
             table += `
                 <tr>
                     <td>${game.game_type}</td>
-                    <td>${game.date}</td>
+                    <td>${formattedDate}</td>
                     <td>${game.opponent}</td>
                     <td>${formattedScore}</td>
                     <td>${game.outcome}</td>
