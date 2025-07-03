@@ -27,12 +27,38 @@ export default class extends AbstractView
                     <th>${translations['stats.outcome'] || 'Outcome'}</th>
                 </tr>`;
         history.forEach(game => {
+            // Parse game.score (e.g., "5 - 0") and format as [player_score]-[opponent_score]
+            let playerScore, opponentScore;
+            // Remove spaces around hyphen
+            const cleanScore = game.score.replace(/\s/g, '');
+            const scoreParts = cleanScore.split('-').map(Number);
+            console.log(`Processing game: score=${game.score}, cleanScore=${cleanScore}, outcome=${game.outcome}`);
+            if (scoreParts.length === 2 && !isNaN(scoreParts[0]) && !isNaN(scoreParts[1])) {
+                if (game.outcome.toLowerCase() === 'win') {
+                    // For a win, player has the higher score
+                    [playerScore, opponentScore] = scoreParts[0] >= scoreParts[1] ? scoreParts : [scoreParts[1], scoreParts[0]];
+                    console.log(`Win: playerScore=${playerScore}, opponentScore=${opponentScore}`);
+                } else if (game.outcome.toLowerCase() === 'loss') {
+                    // For a loss, player has the lower score
+                    [playerScore, opponentScore] = scoreParts[0] < scoreParts[1] ? scoreParts : [scoreParts[1], scoreParts[0]];
+                    console.log(`Loss: playerScore=${playerScore}, opponentScore=${opponentScore}`);
+                } else {
+                    // Fallback for unexpected outcome
+                    playerScore = opponentScore = 0;
+                    console.warn(`Unexpected outcome for game: ${game.outcome}, setting score to 0-0`);
+                }
+            } else {
+                // Fallback if score format is invalid
+                playerScore = opponentScore = 0;
+                console.warn(`Invalid score format for game: ${game.score}, cleanScore=${cleanScore}`);
+            }
+            const formattedScore = `${playerScore}-${opponentScore}`;
             table += `
                 <tr>
                     <td>${game.game_type}</td>
                     <td>${game.date}</td>
                     <td>${game.opponent}</td>
-                    <td>${game.score}</td>
+                    <td>${formattedScore}</td>
                     <td>${game.outcome}</td>
                 </tr>`;
         });
