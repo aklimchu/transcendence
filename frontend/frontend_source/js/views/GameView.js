@@ -89,27 +89,70 @@ export default class extends AbstractView {
             }
         }
 
-        // Determine the best opponent for Player 1 (p1)
+        // 1v1 Matchmaking: Determine the best opponent for Player 1 (p1)
         const defaultLeftPlayerId = json.data.players.p1.id;
         const defaultLeftRatio = playerStats[defaultLeftPlayerId].ratio;
         let bestOpponentId = null;
         let minRatioDiff = Infinity;
-        // Prioritize players other than p1
         for (const [id, stats] of Object.entries(playerStats)) {
             if (String(id) !== String(defaultLeftPlayerId)) {
                 const diff = Math.abs(stats.ratio - defaultLeftRatio);
                 if (diff < minRatioDiff) {
                     minRatioDiff = diff;
                     bestOpponentId = id;
-                    console.log(`Now id for Best Opponent is ${bestOpponentId} (type: ${typeof bestOpponentId})`);
+                    console.log(`1v1: Now id for Best Opponent is ${bestOpponentId} (type: ${typeof bestOpponentId})`);
                 }
             }
         }
-        // Fallback: Choose the first non-p1 player if no valid opponent is found
         if (!bestOpponentId) {
             bestOpponentId = players.find(p => String(p.id) !== String(defaultLeftPlayerId))?.id || json.data.players.p2.id;
         }
-        console.log(`Final bestOpponentId: ${bestOpponentId} (type: ${typeof bestOpponentId}), defaultLeftPlayerId: ${defaultLeftPlayerId} (type: ${typeof defaultLeftPlayerId})`);
+        console.log(`1v1: Final bestOpponentId: ${bestOpponentId} (type: ${typeof bestOpponentId}), defaultLeftPlayerId: ${defaultLeftPlayerId} (type: ${typeof defaultLeftPlayerId})`);
+
+        // 2v2 Matchmaking: Find best team combination with p1 as left_player_1
+        let defaultLeftPlayer2Id = null;
+        let defaultRightPlayer1Id = null;
+        let defaultRightPlayer2Id = null;
+        let minTeamRatioDiff = Infinity;
+
+        // Iterate through all possible combinations of players
+        for (let i = 0; i < players.length; i++) {
+            for (let j = 0; j < players.length; j++) {
+                for (let k = 0; k < players.length; k++) {
+                    for (let l = 0; l < players.length; l++) {
+                        const leftPlayer1Id = defaultLeftPlayerId; // Fixed as p1
+                        const leftPlayer2Id = players[i].id;
+                        const rightPlayer1Id = players[j].id;
+                        const rightPlayer2Id = players[k].id;
+
+                        // Ensure all players are distinct and leftPlayer1 is p1
+                        const playerSet = new Set([leftPlayer1Id, leftPlayer2Id, rightPlayer1Id, rightPlayer2Id]);
+                        if (playerSet.size === 4) {
+                            const leftTeamRatio = (playerStats[leftPlayer1Id].ratio + playerStats[leftPlayer2Id].ratio) / 2;
+                            const rightTeamRatio = (playerStats[rightPlayer1Id].ratio + playerStats[rightPlayer2Id].ratio) / 2;
+                            const diff = Math.abs(leftTeamRatio - rightTeamRatio);
+                            if (diff < minTeamRatioDiff) {
+                                minTeamRatioDiff = diff;
+                                defaultLeftPlayer2Id = leftPlayer2Id;
+                                defaultRightPlayer1Id = rightPlayer1Id;
+                                defaultRightPlayer2Id = rightPlayer2Id;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fallback: Choose any valid combination if none found
+        if (!defaultLeftPlayer2Id || !defaultRightPlayer1Id || !defaultRightPlayer2Id) {
+            const availablePlayers = players.filter(p => String(p.id) !== String(defaultLeftPlayerId));
+            defaultLeftPlayer2Id = availablePlayers[0]?.id || json.data.players.p2.id;
+            const remainingPlayers = availablePlayers.filter(p => String(p.id) !== String(defaultLeftPlayer2Id));
+            defaultRightPlayer1Id = remainingPlayers[0]?.id || json.data.players.p2.id;
+            defaultRightPlayer2Id = remainingPlayers[1]?.id || remainingPlayers[0]?.id || json.data.players.p2.id;
+        }
+        console.log(`2v2: Left Player 1 ID: ${defaultLeftPlayerId}, Left Player 2 ID: ${defaultLeftPlayer2Id}`);
+        console.log(`2v2: Right Player 1 ID: ${defaultRightPlayer1Id}, Right Player 2 ID: ${defaultRightPlayer2Id}`);
         console.log(`Player data: ${JSON.stringify(players)}`);
 
         var content = `
@@ -147,13 +190,17 @@ export default class extends AbstractView {
                         <div class="col">
                             <label for="left-select1" data-i18n="game.pick_left_player_1">Pick left player 1:</label>
                             <select name="LeftPlayer1" id="left-select1" class="form-select">
-                                ${players.map(p => `<option>${p.name}</option>`).join('')}
+                                ${players.map(p => `
+                                    <option value="${p.id}" ${String(p.id) === String(defaultLeftPlayerId) ? 'selected' : ''}>${p.name}</option>
+                                `).join('')}
                             </select>
                         </div>
                         <div class="col">
                             <label for="right-select1" data-i18n="game.pick_right_player_1">Pick right player 1:</label>
                             <select name="RightPlayer1" id="right-select1" class="form-select">
-                                ${players.map(p => `<option>${p.name}</option>`).join('')}
+                                ${players.map(p => `
+                                    <option value="${p.id}" ${String(p.id) === String(defaultRightPlayer1Id) ? 'selected' : ''}>${p.name}</option>
+                                `).join('')}
                             </select>
                         </div>
                     </div>
@@ -161,13 +208,17 @@ export default class extends AbstractView {
                         <div class="col">
                             <label for="left-select2" data-i18n="game.pick_left_player_2">Pick left player 2:</label>
                             <select name="LeftPlayer2" id="left-select2" class="form-select">
-                                ${players.map(p => `<option>${p.name}</option>`).join('')}
+                                ${players.map(p => `
+                                    <option value="${p.id}" ${String(p.id) === String(defaultLeftPlayer2Id) ? 'selected' : ''}>${p.name}</option>
+                                `).join('')}
                             </select>
                         </div>
                         <div class="col">
                             <label for="right-select2" data-i18n="game.pick_right_player_2">Pick right player 2:</label>
                             <select name="RightPlayer2" id="right-select2" class="form-select">
-                                ${players.map(p => `<option>${p.name}</option>`).join('')}
+                                ${players.map(p => `
+                                    <option value="${p.id}" ${String(p.id) === String(defaultRightPlayer2Id) ? 'selected' : ''}>${p.name}</option>
+                                `).join('')}
                             </select>
                         </div>
                     </div>
@@ -175,7 +226,7 @@ export default class extends AbstractView {
                         <button type="button" class="btn btn-warning play_game_btn pong 2v2 T0" data-i18n="game.play_pong">Play Pong</button>
                         <button type="button" class="btn btn-secondary play_game_btn snek 2v2 T0" data-i18n="game.play_snek">Play Snek</button>
                     </div>
-                </div>
+        </div>
             </div>
             <div class="row mt-4">
                 <div class="col text-center">
@@ -188,10 +239,22 @@ export default class extends AbstractView {
             document.addEventListener('DOMContentLoaded', function () {
                 const leftSelect = document.getElementById('left-select');
                 const rightSelect = document.getElementById('right-select');
+                const leftSelect1 = document.getElementById('left-select1');
+                const leftSelect2 = document.getElementById('left-select2');
+                const rightSelect1 = document.getElementById('right-select1');
+                const rightSelect2 = document.getElementById('right-select2');
                 leftSelect.value = '${defaultLeftPlayerId}';
                 rightSelect.value = '${bestOpponentId}';
-                console.log('Left select value:', leftSelect.value, 'type:', typeof leftSelect.value);
-                console.log('Right select value:', rightSelect.value, 'type:', typeof rightSelect.value);
+                leftSelect1.value = '${defaultLeftPlayerId}';
+                leftSelect2.value = '${defaultLeftPlayer2Id}';
+                rightSelect1.value = '${defaultRightPlayer1Id}';
+                rightSelect2.value = '${defaultRightPlayer2Id}';
+                console.log('1v1 Left select value:', leftSelect.value, 'type:', typeof leftSelect.value);
+                console.log('1v1 Right select value:', rightSelect.value, 'type:', typeof rightSelect.value);
+                console.log('2v2 Left Player 1 value:', leftSelect1.value, 'type:', typeof leftSelect1.value);
+                console.log('2v2 Left Player 2 value:', leftSelect2.value, 'type:', typeof leftSelect2.value);
+                console.log('2v2 Right Player 1 value:', rightSelect1.value, 'type:', typeof rightSelect1.value);
+                console.log('2v2 Right Player 2 value:', rightSelect2.value, 'type:', typeof rightSelect2.value);
             });
         </script>
         `;
