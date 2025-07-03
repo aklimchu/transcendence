@@ -68,12 +68,29 @@ export default class extends AbstractView {
         this.applyFontSize(settingsData.font_size);
 
         var content = `
+        <style>
+            .online-status {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 60px;
+                height: 20px;
+                background-color: #28a745;
+                border-radius: 10px;
+                color: white;
+                font-size: 12px;
+                font-weight: bold;
+                margin-left: 10px;
+                vertical-align: middle;
+                text-align: center;
+            }
+        </style>
         <div class="container my-4">
             <div class="row row-cols-1 row-cols-md-2 g-4">
                 <div class="col">
                     <div class="lobby-card1 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p1"]["name"] || 'Player 1'}</h4>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p1"]["name"] || 'Player 1'}<span class="online-status">Online</span></h4>
                             <div class="player-avatar">
                                 <img src="${settingsData.players[0].avatar}" alt="Avatar" class="avatar-image" />
                             </div>
@@ -85,7 +102,7 @@ export default class extends AbstractView {
                 <div class="col">
                     <div class="lobby-card2 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p2"]["name"] || 'Player 2'}</h4>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p2"]["name"] || 'Player 2'}<span class="online-status">Online</span></h4>
                             <div class="player-avatar">
                                 <img src="${settingsData.players[1].avatar}" alt="Avatar" class="avatar-image" />
                             </div>
@@ -97,7 +114,7 @@ export default class extends AbstractView {
                 <div class="col">
                     <div class="lobby-card3 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p3"]["name"] || 'Player 3'}</h4>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p3"]["name"] || 'Player 3'}<span class="online-status">Online</span></h4>
                             <div class="player-avatar">
                                 <img src="${settingsData.players[2].avatar}" alt="Avatar" class="avatar-image" />
                             </div>
@@ -109,7 +126,7 @@ export default class extends AbstractView {
                 <div class="col">
                     <div class="lobby-card4 h-100 text-center">
                         <div class="lobby-card-body">
-                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p4"]["name"] || 'Player 4'}</h4>
+                            <h4 class="lobby-card-title mt-1">${json.data["players"]["p4"]["name"] || 'Player 4'}<span class="online-status">Online</span></h4>
                             <div class="player-avatar">
                                 <img src="${settingsData.players[3].avatar}" alt="Avatar" class="avatar-image" />
                             </div>
