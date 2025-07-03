@@ -5,7 +5,7 @@ import { resetSettingsToDefault, TranslationManager, extractErrorMessage } from 
 export default class extends AbstractView {
     constructor(params) {
         super(params);
-        this.translationManager = new TranslationManager(); // Initialize TranslationManager
+        this.translationManager = new TranslationManager();
     }
 
     async goToView() {
@@ -63,6 +63,55 @@ export default class extends AbstractView {
             alert("Error loading settings: " + error.message);
         }
 
+        // Fetch win/loss data for all players
+        const playerStats = {};
+        const players = Object.values(json.data.players);
+        const playerIds = players.map(p => p.id);
+        for (const playerId of playerIds) {
+            try {
+                const response = await authFetch(`/pong_api/player_match_history/${playerId}/`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
+                });
+                const data = await response.json();
+                if (data.ok) {
+                    const wins = data.data.filter(game => game.outcome === "win").length;
+                    const losses = data.data.filter(game => game.outcome === "loss").length;
+                    const total = wins + losses;
+                    const ratio = total > 0 ? wins / total : 0;
+                    playerStats[playerId] = { wins, losses, ratio };
+                } else {
+                    playerStats[playerId] = { wins: 0, losses: 0, ratio: 0 };
+                }
+            } catch (error) {
+                console.error(`Failed to fetch stats for player ${playerId}:`, error);
+                playerStats[playerId] = { wins: 0, losses: 0, ratio: 0 };
+            }
+        }
+
+        // Determine the best opponent for Player 1 (p1)
+        const defaultLeftPlayerId = json.data.players.p1.id;
+        const defaultLeftRatio = playerStats[defaultLeftPlayerId].ratio;
+        let bestOpponentId = null;
+        let minRatioDiff = Infinity;
+        // Prioritize players other than p1
+        for (const [id, stats] of Object.entries(playerStats)) {
+            if (String(id) !== String(defaultLeftPlayerId)) {
+                const diff = Math.abs(stats.ratio - defaultLeftRatio);
+                if (diff < minRatioDiff) {
+                    minRatioDiff = diff;
+                    bestOpponentId = id;
+                    console.log(`Now id for Best Opponent is ${bestOpponentId} (type: ${typeof bestOpponentId})`);
+                }
+            }
+        }
+        // Fallback: Choose the first non-p1 player if no valid opponent is found
+        if (!bestOpponentId) {
+            bestOpponentId = players.find(p => String(p.id) !== String(defaultLeftPlayerId))?.id || json.data.players.p2.id;
+        }
+        console.log(`Final bestOpponentId: ${bestOpponentId} (type: ${typeof bestOpponentId}), defaultLeftPlayerId: ${defaultLeftPlayerId} (type: ${typeof defaultLeftPlayerId})`);
+        console.log(`Player data: ${JSON.stringify(players)}`);
+
         var content = `
         <div class="container-fluid py-4">
             <div class="row teal-container">
@@ -71,19 +120,17 @@ export default class extends AbstractView {
                     <div class="mb-3">
                         <label for="left-select" data-i18n="game.pick_left">Pick left player:</label>
                         <select name="LeftPlayer" id="left-select" class="form-select">
-                            <option>${json.data["players"]["p1"]["name"]}</option>
-                            <option>${json.data["players"]["p2"]["name"]}</option>
-                            <option>${json.data["players"]["p3"]["name"]}</option>
-                            <option>${json.data["players"]["p4"]["name"]}</option>
+                            ${players.map(p => `
+                                <option value="${p.id}" ${String(p.id) === String(defaultLeftPlayerId) ? 'selected' : ''}>${p.name}</option>
+                            `).join('')}
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="right-select" data-i18n="game.pick_right">Pick right player:</label>
                         <select name="RightPlayer" id="right-select" class="form-select">
-                            <option>${json.data["players"]["p1"]["name"]}</option>
-                            <option>${json.data["players"]["p2"]["name"]}</option>
-                            <option>${json.data["players"]["p3"]["name"]}</option>
-                            <option>${json.data["players"]["p4"]["name"]}</option>
+                            ${players.map(p => `
+                                <option value="${p.id}" ${String(p.id) === String(bestOpponentId) ? 'selected' : ''}>${p.name}</option>
+                            `).join('')}
                         </select>
                     </div>
                     <div class="d-flex gap-3">
@@ -100,19 +147,13 @@ export default class extends AbstractView {
                         <div class="col">
                             <label for="left-select1" data-i18n="game.pick_left_player_1">Pick left player 1:</label>
                             <select name="LeftPlayer1" id="left-select1" class="form-select">
-                                <option>${json.data["players"]["p1"]["name"]}</option>
-                                <option>${json.data["players"]["p2"]["name"]}</option>
-                                <option>${json.data["players"]["p3"]["name"]}</option>
-                                <option>${json.data["players"]["p4"]["name"]}</option>
+                                ${players.map(p => `<option>${p.name}</option>`).join('')}
                             </select>
                         </div>
                         <div class="col">
                             <label for="right-select1" data-i18n="game.pick_right_player_1">Pick right player 1:</label>
                             <select name="RightPlayer1" id="right-select1" class="form-select">
-                                <option>${json.data["players"]["p1"]["name"]}</option>
-                                <option>${json.data["players"]["p2"]["name"]}</option>
-                                <option>${json.data["players"]["p3"]["name"]}</option>
-                                <option>${json.data["players"]["p4"]["name"]}</option>
+                                ${players.map(p => `<option>${p.name}</option>`).join('')}
                             </select>
                         </div>
                     </div>
@@ -120,19 +161,13 @@ export default class extends AbstractView {
                         <div class="col">
                             <label for="left-select2" data-i18n="game.pick_left_player_2">Pick left player 2:</label>
                             <select name="LeftPlayer2" id="left-select2" class="form-select">
-                                <option>${json.data["players"]["p1"]["name"]}</option>
-                                <option>${json.data["players"]["p2"]["name"]}</option>
-                                <option>${json.data["players"]["p3"]["name"]}</option>
-                                <option>${json.data["players"]["p4"]["name"]}</option>
+                                ${players.map(p => `<option>${p.name}</option>`).join('')}
                             </select>
                         </div>
                         <div class="col">
                             <label for="right-select2" data-i18n="game.pick_right_player_2">Pick right player 2:</label>
                             <select name="RightPlayer2" id="right-select2" class="form-select">
-                                <option>${json.data["players"]["p1"]["name"]}</option>
-                                <option>${json.data["players"]["p2"]["name"]}</option>
-                                <option>${json.data["players"]["p3"]["name"]}</option>
-                                <option>${json.data["players"]["p4"]["name"]}</option>
+                                ${players.map(p => `<option>${p.name}</option>`).join('')}
                             </select>
                         </div>
                     </div>
@@ -148,6 +183,17 @@ export default class extends AbstractView {
                 </div>
             </div>
         </div>
+        <script>
+            // Ensure correct dropdown selections after rendering
+            document.addEventListener('DOMContentLoaded', function () {
+                const leftSelect = document.getElementById('left-select');
+                const rightSelect = document.getElementById('right-select');
+                leftSelect.value = '${defaultLeftPlayerId}';
+                rightSelect.value = '${bestOpponentId}';
+                console.log('Left select value:', leftSelect.value, 'type:', typeof leftSelect.value);
+                console.log('Right select value:', rightSelect.value, 'type:', typeof rightSelect.value);
+            });
+        </script>
         `;
         this.setTitle("Game");
         this.unhideNavbar();
@@ -261,28 +307,15 @@ export default class extends AbstractView {
         // Apply translations
         const translations = await this.translationManager.initLanguage(settingsData.language, ['game.game_completed', 'game.go_back']);
 		
-		// Set translated page title
+        // Set translated page title
         const title = translations.game?.title || 'Game';
         this.setTitle(title);
-	}
-
-    /* -------------------------------------------------------------------------------------------------------------------------------------------- */
-    /*                                                                                                                                              */
-    /*                                   ██████╗  ██████╗ ███╗   ██╗ ██████╗      ██████╗  █████╗ ███╗   ███╗███████╗                               */
-    /*                                   ██╔══██╗██╔═══██╗████╗  ██║██╔════╝     ██╔════╝ ██╔══██╗████╗ ████║██╔════╝                               */
-    /*                                   ██████╔╝██║   ██║██╔██╗ ██║██║  ███╗    ██║  ███╗███████║██╔████╔██║█████╗                                 */
-    /*                                   ██╔═══╝ ██║   ██║██║╚██╗██║██║   ██║    ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝                                 */
-    /*                                   ██║     ╚██████╔╝██║ ╚████║╚██████╔╝    ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗                               */
-    /*                                   ╚═╝      ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝      ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝                               */                                                           
-    /*                                                                                                                                              */
-    /* -------------------------------------------------------------- Main game function ---------------------------------------------------------- */
+    }
 
     async play_pong(player_left1, player_left2, player_right1, player_right2, tournament)
     {
-        // Set canvas
         await this.goToGameView();
 
-        // Fetch current settings from the server
         let settingsData = {
             game_speed: "normal",
             ball_size: "medium",
@@ -323,7 +356,6 @@ export default class extends AbstractView {
         } catch (error) {
             console.error("Failed to load settings:", error);
             alert("Error loading settings: " + error.message);
-            // Fall back to defaults defined above
         }
 
         var game_data = {};
@@ -355,7 +387,6 @@ export default class extends AbstractView {
             ball_speed = 5;
 
         this.create_pong_ball(game_data, 'ball1', 0.5, 0.5, ball_speed, 'left', settingsData.ball_size);
-        //this.create_pong_ball(game_data, 'ball2', 0.5, 0.5, 7, 'right');
 
         if (player_left2 === null && player_right2 === null)
         {
@@ -375,28 +406,18 @@ export default class extends AbstractView {
         return await new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.pong_loop.bind(this, game_data));
     }
 
-    /* ------------------------------------------------------------ Game loop ------------------------------------------------------------ */
-
     async pong_loop(game_data)
     {
         game_data.canvas.focus();
 
         if (!game_data.paused)
         {
-            // move players
             game_data.players.forEach(this.move_pong_player.bind(null, game_data));
-
-            // move balls
             game_data.balls.forEach(this.move_pong_ball.bind(this, game_data));
-
-            // check collisions
             game_data.players.forEach(this.handle_pong_players.bind(this, game_data));
-
-            // draw frame    
             this.draw_pong_frame(game_data);
         }
 
-        // end or new frame
         if (game_data.end)
             return this.handle_game_end.bind(this, game_data)();
         else
@@ -405,8 +426,6 @@ export default class extends AbstractView {
             return new Promise(resolve => {requestAnimationFrame(resolve);}).then(this.pong_loop.bind(this, game_data));
         }
     }
-
-    /* -------------------------------------------------------------- Game helpers ---------------------------------------------------------- */
 
     create_pong_ball(game_data, name, x, y, speed, left, size)
     {
@@ -464,9 +483,9 @@ export default class extends AbstractView {
     move_pong_player(game_data, player) {
         const newY = player.y + player.dy;
         if (newY < game_data.grid) {
-            player.y = game_data.grid; // Top border
+            player.y = game_data.grid;
         } else if (newY + player.height > game_data.canvas.height - game_data.grid) {
-            player.y = game_data.canvas.height - game_data.grid - player.height; // Bottom border
+            player.y = game_data.canvas.height - game_data.grid - player.height;
         } else {
             player.y = newY;
         }
@@ -479,9 +498,9 @@ export default class extends AbstractView {
 
         if (ball.y < game_data.grid || ball.y + ball.height > game_data.canvas.height - game_data.grid) {
             if (ball.y < game_data.grid) {
-                ball.y = game_data.grid; // Top border
+                ball.y = game_data.grid;
             } else {
-                ball.y = game_data.canvas.height - game_data.grid - ball.height; // Bottom border
+                ball.y = game_data.canvas.height - game_data.grid - ball.height;
             }
             ball.dy *= -1;
         }
@@ -508,24 +527,17 @@ export default class extends AbstractView {
         {
             ball.dx *= -1;
             if (player.side === "left") {
-                ball.x = player.x + player.width; // Place ball just to the right of left paddle
+                ball.x = player.x + player.width;
             } else {
-                ball.x = player.x - ball.width; // Place ball's right edge at paddle's left edge
+                ball.x = player.x - ball.width;
             }
         }
     }
 
-    /* ---------------------------------------------------------------- Draw helpers ---------------------------------------------------------------- */    
-
     draw_pong_frame(game_data)
     {
-        // draw background
         this.draw_pong_background(game_data);
-
-        // draw players
         game_data.players.forEach(this.draw_pong_object.bind(null, game_data));
-
-        // draw balls
         game_data.balls.forEach(this.draw_pong_object.bind(null, game_data));
     }
 
@@ -534,19 +546,16 @@ export default class extends AbstractView {
         var ctx = game_data.context;
         var cnv = game_data.canvas;
 
-        // reset background
         ctx.fillStyle = 'black';
         ctx.clearRect(0, 0, cnv.width, cnv.height);
         ctx.fillRect(0, 0, cnv.width, cnv.height);
 
-        // draw walls and middle line
         ctx.fillStyle = 'orange';
         ctx.fillRect(0, 0, cnv.width, game_data.grid);
         ctx.fillRect(0, cnv.height - game_data.grid, cnv.width, cnv.height);
         for (let i = game_data.grid; i < cnv.height - game_data.grid; i += game_data.grid * 2)
             ctx.fillRect(cnv.width / 2 - game_data.grid / 2, i, game_data.grid, game_data.grid);
 
-        // draw score
         ctx.textAlign = 'center', ctx.font = '50px "Press Start 2P", Arial, sans-serif', ctx.fillStyle = 'white';
         ctx.fillText(game_data.score[0] + '  ' + game_data.score[1], cnv.width / 2, cnv.height * 0.2);
     }
@@ -556,8 +565,6 @@ export default class extends AbstractView {
         game_data.context.fillStyle = 'white';
         game_data.context.fillRect(object.x, object.y, object.width, object.height);
     }
-
-    /* ------------------------------------------------------------ Key press listeners ------------------------------------------------------------ */
 
     add_pong_player_listeners(player, up, down)
     {
@@ -579,8 +586,6 @@ export default class extends AbstractView {
             player.dy = 0;
     }
 
-    /* ----------------------------------------------------------- Reset ball or end function ----------------------------------------------------------- */    
-
     reset_pong_ball(ball, game_data)
     {
         if (game_data.score[0] >= game_data.max_score || game_data.score[1] >= game_data.max_score)
@@ -593,23 +598,10 @@ export default class extends AbstractView {
         }
     }
 
-    /* -------------------------------------------------------------------------------------------------------------------------------------------- */
-    /*                                                                                                                                              */
-    /*                                   ███████╗███╗   ██╗███████╗██╗  ██╗       ██████╗  █████╗ ███╗   ███╗███████╗                               */
-    /*                                   ██╔════╝████╗  ██║██╔════╝██║ ██╔╝      ██╔════╝ ██╔══██╗████╗ ████║██╔════╝                               */
-    /*                                   ███████╗██╔██╗ ██║█████╗  █████╔╝       ██║  ███╗███████║██╔████╔██║█████╗                                 */
-    /*                                   ╚════██║██║╚██╗██║██╔══╝  ██╔═██╗       ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝                                 */
-    /*                                   ███████║██║ ╚████║███████╗██║  ██╗      ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗                               */
-    /*                                   ╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝       ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝                               */                                                           
-    /*                                                                                                                                              */
-    /* -------------------------------------------------------------- Snek game function ---------------------------------------------------------- */
-
     async play_snek(player_left1, player_left2, player_right1, player_right2, tournament)
     {
-        // Set canvas
         await this.goToGameView();
 
-        // Fetch current settings from the server
         let settingsData = {
             game_speed: "normal",
             ball_size: "medium",
@@ -650,7 +642,6 @@ export default class extends AbstractView {
         } catch (error) {
             console.error("Failed to load settings:", error);
             alert("Error loading settings: " + error.message);
-            // Fall back to defaults defined above
         }
 
         var game_data = {};
@@ -701,11 +692,8 @@ export default class extends AbstractView {
         console.log('---------- END ----------');
     }
 
-    /* ------------------------------------------------------- Snek Game loop ------------------------------------------------------------ */
-
     async snek_loop(game_data)
     {
-
         game_data.canvas.focus();
 
         if (!game_data.paused)
@@ -718,8 +706,8 @@ export default class extends AbstractView {
         }
         else
         {
-            game_data.score[0] = game_data.players.filter(player => player.dead === false && player.side === 'left').length; // no. left alive
-            game_data.score[1] = game_data.players.filter(player => player.dead === false && player.side === 'right').length; // no. right alive
+            game_data.score[0] = game_data.players.filter(player => player.dead === false && player.side === 'left').length;
+            game_data.score[1] = game_data.players.filter(player => player.dead === false && player.side === 'right').length;
 
             if (game_data.score[0] !== game_data.score[1])
             {
@@ -741,16 +729,13 @@ export default class extends AbstractView {
 
         if (!player.dead)
         {
-            // Draw
             game_data.context.fillStyle = player.color;
             game_data.context.fillRect(player.x * game_data.grid, player.y * game_data.grid, game_data.grid, game_data.grid);
             game_data.context.strokeStyle = 'black';
             game_data.context.strokeRect(player.x * game_data.grid, player.y * game_data.grid, game_data.grid, game_data.grid);
-
-            // Move
             player.x += player.dx;
             player.y += player.dy;
-        };
+        }
     }
 
     snek_move_to_cell(game_data, player)
@@ -764,8 +749,6 @@ export default class extends AbstractView {
         game_data.visited_cells.add(current_cell);
         return true;
     }
-
-    /* ---------------------------------------------------------- Snek Game helpers ---------------------------------------------------------- */
 
     create_snek_player(game_data, name, side, color, y, x, dx, dy, up, down, left, right, jump, bool_jump)
     {
@@ -804,7 +787,7 @@ export default class extends AbstractView {
         game_data.context.fillRect(player.x * grd, player.y * grd, game_data.grid, game_data.grid);
         game_data.context.strokeStyle = 'black';
         game_data.context.strokeRect(player.x * grd, player.y * grd, game_data.grid, game_data.grid);
-    };
+    }
 
     draw_snek_background(game_data)
     {
@@ -833,7 +816,7 @@ export default class extends AbstractView {
             ctx.lineTo(cnv.width, row * game_data.grid);
             ctx.stroke();
         }
-    };
+    }
 
     reset_snek_game(game_data)
     {
@@ -852,8 +835,6 @@ export default class extends AbstractView {
         player.dy = player.start_dy;
         player.dead = false;
     }
-
-    /* ------------------------------------------------------------ Key press listeners ------------------------------------------------------------ */
 
     add_snek_player_listeners(player, up, down, left, right, jump, bool_jump)
     {
@@ -892,20 +873,7 @@ export default class extends AbstractView {
         }
     }
 
-    /* -------------------------------------------------------------------------------------------------------------------------------------------- */
-    /*                                                                                                                                              */
-    /*                                                ███████╗██╗  ██╗ █████╗ ██████╗ ███████╗██████╗                                               */
-    /*                                                ██╔════╝██║  ██║██╔══██╗██╔══██╗██╔════╝██╔══██╗                                              */
-    /*                                                ███████╗███████║███████║██████╔╝█████╗  ██║  ██║                                              */
-    /*                                                ╚════██║██╔══██║██╔══██║██╔══██╗██╔══╝  ██║  ██║                                              */
-    /*                                                ███████║██║  ██║██║  ██║██║  ██║███████╗██████╔╝                                              */
-    /*                                                ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═════╝                                               */
-    /*                                                                                                                                              */
-    /* ----------------------------------------------------------- Shared game functions ---------------------------------------------------------- */
-
-    /* ------------------------------------------------------- Post game handling functions ------------------------------------------------------- */
-
-     async handle_game_end(game_data)
+    async handle_game_end(game_data)
     {
        try
         {
@@ -961,21 +929,18 @@ export default class extends AbstractView {
         }
         catch(err)
         {
-//            console.error(err.message);
             if (err.message === "No response from server")
                 this.goToNoAuth("Session expired. Please log in again.");
             else
                 this.goToError();
             throw err;
         }
-    };
+    }
 
     async display_result()
     {
         await this.goToResult();
-    };
-
-    /* ------------------------------------------------------------ Key press listeners ------------------------------------------------------------ */
+    }
 
     pause_listener(e, game_data)
     {
