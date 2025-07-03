@@ -18,6 +18,7 @@ from io import BytesIO
 
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -508,5 +509,33 @@ def google_login(request):
 			'2fa_enabled': twofa_enabled,
 			'username': user.username,
 		})
+	except Exception as e:
+		return Response({'error': str(e)}, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def google_link(request):
+    token = request.data.get('token')
+    if not token:
+        return Response({'error': 'Missing Google token'}, status=400)
+    try:
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
+        email = idinfo.get('email')
+        if not email:
+            return Response({'error': 'No email in Google token'}, status=400)
+        user = request.user
+        user.save()
+        return Response({'message': 'Google account linked successfully'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def google_unlink(request):
+	user = request.user
+	try:
+		user.email = None 
+		user.save()
+		return Response({'message': 'Google account unlinked successfully'})
 	except Exception as e:
 		return Response({'error': str(e)}, status=400)

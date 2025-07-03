@@ -16,4 +16,6 @@ urlpatterns = [
 	path("2fa/verify/", TwoFAVerifyView.as_view(), name="2fa_verify"),
     path("login_with_2fa/", login_with_2fa, name="login_with_2fa"),
 	path("google_login/", views.google_login, name="google_login"),
+	path("auth/google/link/", views.google_link, name="google_link"),
+	path("auth/google/unlink/", views.google_unlink, name="google_unlink"),
 ]
