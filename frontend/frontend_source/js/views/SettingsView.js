@@ -1,5 +1,5 @@
 import AbstractView from "./AbstractView.js";
-import { authFetch } from "../auth.js";
+import { authFetch, handleCredentialResponse } from "../auth.js";
 
 export default class extends AbstractView {
 	constructor(params) {
@@ -261,79 +261,63 @@ export default class extends AbstractView {
 		const googleAuthLabel = document.getElementById("google-auth-label");
 		const googleAuthIcon = document.getElementById("google-auth-icon");
 
-		let googleLinked = false;
-		try {
-			if (settingsData.google_linked !== undefined) {
-				googleLinked = settingsData.google_linked;
-			}
-		} catch (e) {}
+	   let googleLinked = false;
+	   try {
+		   if (typeof data !== 'undefined' && data.google_linked !== undefined) {
+			   googleLinked = data.google_linked;
+		   }
+	   } catch (e) {}
 
-		async function linkGoogleAccount(credentialResponse) {
-			try {
-				const resp = await authFetch("/pong_api/auth/google/link/", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ token: credentialResponse.credential })
-				});
-				if (resp.ok) {
-					googleLinked = true;
-					setGoogleButtonState();
-					alert("Google account linked successfully!");
-				} else {
-					const data = await resp.json();
-					alert(data.error || "Failed to link Google account.");
-				}
-			} catch (e) {
-				alert("Error linking Google account.");
-			}
-		}
+	   async function setGoogleButtonState() {
+		   if (!googleAuthBtn || !googleAuthLabel) return;
+		   googleAuthBtn.disabled = true;
+		   try {
+			   const resp = await authFetch("/pong_api/pong_settings/", {
+				   method: "GET",
+				   headers: { "Content-Type": "application/json" }
+			   });
+			   if (resp.ok) {
+				   const data = await resp.json();
+				   googleLinked = !!data.google_linked;
+			   }
+		   } catch (e) {
+			   console.error("Failed to refresh settings for Google button", e);
+		   }
+		   if (googleLinked) {
+			   googleAuthLabel.textContent = "Sign out of Google";
+			   googleAuthBtn.onclick = async () => {
+				   googleAuthBtn.disabled = true;
+				   await unlinkGoogleAccount();
+				   await setGoogleButtonState();
+				   googleAuthBtn.disabled = false;
+			   };
+		   } else {
+			   googleAuthLabel.textContent = "Sign in with Google";
+			   googleAuthBtn.onclick = () => {
+				   if (window.google && window.google.accounts && window.google.accounts.id) {
+					   window.google.accounts.id.prompt();
+				   } else {
+					   alert("Google Sign-In not loaded.");
+				   }
+			   };
+		   }
+		   googleAuthBtn.disabled = false;
+	   }
 
-		async function unlinkGoogleAccount() {
-			try {
-				const resp = await authFetch("/pong_api/auth/google/unlink/", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" }
-				});
-				if (resp.ok) {
-					googleLinked = false;
-					setGoogleButtonState();
-					alert("Google account unlinked successfully!");
-				} else {
-					const data = await resp.json();
-					alert(data.error || "Failed to unlink Google account.");
-				}
-			} catch (e) {
-				alert("Error unlinking Google account.");
-			}
-		}
-
-		function setGoogleButtonState() {
-			if (googleLinked) {
-				googleAuthLabel.textContent = "Sign out of Google";
-				googleAuthBtn.onclick = async () => {
-					await unlinkGoogleAccount();
-				};
-			} else {
-				googleAuthLabel.textContent = "Sign in with Google";
-				googleAuthBtn.onclick = () => {
-					if (window.google && window.google.accounts && window.google.accounts.id) {
-						window.google.accounts.id.prompt();
-					} else {
-						alert("Google Sign-In not loaded.");
-					}
-				};
-			}
-		}
-
-		if (window.google && window.google.accounts && window.google.accounts.id) {
-			window.google.accounts.id.initialize({
-				client_id: window.GOOGLE_CLIENT_ID,
-				callback: linkGoogleAccount,
-				auto_select: false,
-				cancel_on_tap_outside: false
-			});
-		}
-		setGoogleButtonState();
+	   if (window.google && window.google.accounts && window.google.accounts.id) {
+		   window.google.accounts.id.initialize({
+			   client_id: window.GOOGLE_CLIENT_ID,
+			   callback: async (response) => {
+				   const success = await handleCredentialResponse(response);
+				   if (success) {
+					   await setGoogleButtonState();
+				   }
+			   },
+			   auto_select: false,
+			   cancel_on_tap_outside: false
+		   });
+	   }
+	   setTimeout(() => { setGoogleButtonState(); }, 0);
 	}
 
 	push_Settings() {
@@ -343,7 +327,7 @@ export default class extends AbstractView {
 			if (name.trim()) {
 				return { player_name: name, position: player };
 			}
-		}).filter(player => player); // Only include non-empty players
+		}).filter(player => player); 
 
 		const settings = {
 			game_speed: getValue("game_speed"),

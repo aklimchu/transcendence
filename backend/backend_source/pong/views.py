@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.db import IntegrityError
 from django.db.models import Q
 from .models import *
+from .models import UserProfile
 from functools import wraps
 from random import shuffle
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -498,9 +499,17 @@ def google_login(request):
 	try:
 		idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
 		email = idinfo.get('email')
-		if not email:
-			return Response({'error': 'No email in Google token'}, status=400)
+		sub = idinfo.get('sub')
+		name = idinfo.get('name')
+		picture = idinfo.get('picture')
+		if not email or not sub:
+			return Response({'error': 'No email or sub in Google token'}, status=400)
 		user, created = User.objects.get_or_create(username=email, defaults={'email': email})
+		profile, _ = UserProfile.objects.get_or_create(user=user)
+		profile.google_id = sub
+		profile.google_name = name
+		profile.google_photo_url = picture
+		profile.save()
 		twofa_enabled = user.totpdevice_set.filter(confirmed=True, name="default").exists()
 		refresh = RefreshToken.for_user(user)
 		return Response({
@@ -521,10 +530,17 @@ def google_link(request):
 	try:
 		idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
 		email = idinfo.get('email')
-		if not email:
-			return Response({'error': 'No email in Google token'}, status=400)
+		sub = idinfo.get('sub')  
+		name = idinfo.get('name')
+		picture = idinfo.get('picture')
+		if not email or not sub:
+			return Response({'error': 'No email or sub in Google token'}, status=400)
 		user = request.user
-		user.save()
+		profile, _ = UserProfile.objects.get_or_create(user=user)
+		profile.google_id = sub
+		profile.google_name = name
+		profile.google_photo_url = picture
+		profile.save()
 		return Response({'message': 'Google account linked successfully'})
 	except Exception as e:
 		return Response({'error': str(e)}, status=400)
@@ -540,3 +556,47 @@ def google_unlink(request):
 		return Response({'message': 'Google account unlinked successfully'})
 	except Exception as e:
 		return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def pong_settings(request):
+	user = request.user
+	try:
+		settings = GameSettings.objects.get(user=user)
+	except GameSettings.DoesNotExist:
+		logger.info(f"Creating default GameSettings for user {user.username}")
+		settings = GameSettings.objects.create(user=user)
+	session = None
+	try:
+		session = request.user.pongsession
+	except (PongSession.DoesNotExist, AttributeError) as e:
+		logger.warning(f"No PongSession for user {request.user.username}: {str(e)}")
+	players = []
+	for position in range(1, 5):
+		player_name = ""
+		try:
+			player_field = getattr(session, f"active_player_{position}", None)
+			if player_field and hasattr(player_field, "player_name"):
+				player_name = player_field.player_name
+			elif player_field:
+				logger.error(f"PongPlayer at position {position} has no player_name attribute")
+		except Exception as e:
+			logger.error(f"Error accessing active_player_{position}: {str(e)}")
+		players.append({"player_name": player_name, "position": position})
+	settings_dict = {
+		"game_speed": settings.game_speed,
+		"ball_size": settings.ball_size,
+		"paddle_size": settings.paddle_size,
+		"theme": settings.theme,
+		"font_size": settings.font_size,
+		"language": settings.language,
+		"players": players
+	}
+	google_linked = hasattr(user, "userprofile") and bool(getattr(user.userprofile, "google_id", None))
+	response_data = {
+		"ok": True,
+		"settings": settings_dict,
+		"google_linked": google_linked,
+	}
+	# ...existing code...
+	return JsonResponse(response_data)
