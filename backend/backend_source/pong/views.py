@@ -63,10 +63,6 @@ def TwoFAStatus(request):
     TwoFA_enabled = user.totpdevice_set.filter(confirmed=True, name="default").exists()
     return Response({"2fa_enabled": TwoFA_enabled})
 
-#[print(f"User: {f.name}\n") for f in User._meta.get_fields()]
-#[print(f"PongSession: {f.name}\n") for f in PongSession._meta.get_fields()]
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def pong_register(request):
@@ -101,7 +97,6 @@ class TwoFAStatusView(APIView):
 
 class TwoFASetupView(APIView):
     permission_classes = [IsAuthenticated]
-
     def post(self, request):
         user = request.user
         device, _ = TOTPDevice.objects.get_or_create(user=user, name="default", defaults={"confirmed": False})
@@ -114,7 +109,6 @@ class TwoFASetupView(APIView):
 
 class TwoFAVerifyView(APIView):
     permission_classes = [IsAuthenticated]
-
     def post(self, request):
         user = request.user
         token = request.data.get('token')
@@ -130,7 +124,6 @@ class TwoFAVerifyView(APIView):
 
 class TwoFADisableView(APIView):
     permission_classes = [IsAuthenticated]
-
     def post(self, request):
         user = request.user
         try:
@@ -140,7 +133,6 @@ class TwoFADisableView(APIView):
             return Response({'success': True})
         except TOTPDevice.DoesNotExist:
             return Response({'error': 'No 2FA device to disable.'}, status=400)
-
 
 def get_player_data(player_id):
     try:
@@ -202,12 +194,7 @@ def get_session_tournaments(session_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def player_match_history(request, player_id):
-    """
-    Retrieve 1v1 match history for a specific player.
-    Returns game type, date, opponent, score, and outcome for each game.
-    """
     try:
-        # Get the user's session
         user = request.user
         if not hasattr(user, "pongsession"):
             return JsonResponse({
@@ -215,10 +202,7 @@ def player_match_history(request, player_id):
                 "error": "No active session for user",
                 "statusCode": 400
             }, status=400)
-
         session = user.pongsession
-
-        # Verify the player belongs to the user's session
         player = PongPlayer.objects.filter(id=player_id, player_session=session).first()
         if not player:
             return JsonResponse({
@@ -226,34 +210,28 @@ def player_match_history(request, player_id):
                 "error": "Player not found or not associated with your session",
                 "statusCode": 403
             }, status=403)
-
-        # Fetch 1v1 games where the player is either winner or loser
         games = PongGame.objects.filter(
             Q(game_session=session) &
             Q(game_winner_2__isnull=True, game_loser_2__isnull=True) &
             (Q(game_winner_1=player) | Q(game_loser_1=player))
         ).select_related('game_winner_1', 'game_loser_1').order_by('-id')[:10]
-
-        # Format match history
         match_history = []
         for game in games:
             opponent = game.game_loser_1 if game.game_winner_1 == player else game.game_winner_1
             outcome = "win" if game.game_winner_1 == player else "loss"
             match_history.append({
                 "game_type": game.game_type,
-                "date": game.created_at.strftime("%d.%m.%Y"),  # Format as dd.mm.yyyy, e.g., 03.07.2025
+                "date": game.created_at.strftime("%d.%m.%Y"),
                 "opponent": opponent.player_name if opponent else "Unknown",
                 "score": game.game_score or "N/A",
                 "outcome": outcome
             })
-
         return JsonResponse({
             "ok": True,
             "message": "Match history retrieved successfully",
             "data": match_history,
             "statusCode": 200
         }, status=200)
-
     except PongPlayer.DoesNotExist:
         return JsonResponse({
             "ok": False,
@@ -339,10 +317,8 @@ def pong_push_game(request):
         score = data.get("score")
         pong_game = None
         tournament_index = None
-
         if game_type not in ['pong', 'snek']:
             return JsonResponse({"ok": False, "error": "Incorrect game type", "statusCode": 400}, status=400)
-
         if ((w1 is None) != (w2 is None)) and ((l1 is None) != (l2 is None)) and score:
             winner = w1 if w1 is not None else w2
             loser = l1 if l1 is not None else l2
@@ -369,13 +345,13 @@ def pong_push_game(request):
                 if (tournament_games[tournament_index] is not None):
                     return JsonResponse({"ok": False, "error": "Can't overwrite tournament game", "statusCode": 400}, status=400)
             pong_game = PongGame.objects.create(
-                game_type = game_type,
-                game_score = score,
-                game_session = session,
-                game_winner_1 = winner_object,
-                game_winner_2 = None,
-                game_loser_1 = loser_object,
-                game_loser_2 = None)
+                game_type=game_type,
+                game_score=score,
+                game_session=session,
+                game_winner_1=winner_object,
+                game_winner_2=None,
+                game_loser_1=loser_object,
+                game_loser_2=None)
             if tournament is None:
                 return JsonResponse({"ok": True, "message": "Pong 1v1 game - data successfuly pushed", "statusCode": 200}, status=200)
             else:
@@ -394,20 +370,17 @@ def pong_push_game(request):
             loser1_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=l1))
             loser2_object = PongPlayer.objects.get(Q(player_session=session.id) & Q(player_name=l2))
             pong_game = PongGame.objects.create(
-                game_score = score,
-                game_session = session,
-                game_winner_1 = winner1_object,
-                game_winner_2 = winner2_object,
-                game_loser_1 = loser1_object,
-                game_loser_2 = loser2_object)
+                game_score=score,
+                game_session=session,
+                game_winner_1=winner1_object,
+                game_winner_2=winner2_object,
+                game_loser_1=loser1_object,
+                game_loser_2=loser2_object)
             return JsonResponse({"ok": True, "message": "Pong 2v2 game - data successfuly pushed", "statusCode": 200}, status=200)
         else:
             return JsonResponse({"ok": False, "error": "Incomplete game data", "statusCode": 400}, status=400)
     except Exception as err:
         return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
-
-
-logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -436,6 +409,7 @@ def pong_create_tournament(request):
                 "statusCode": 400
             }, status=400)
 
+        # Get players and calculate win-loss ratios
         session_players_list = [
             session.active_player_1,
             session.active_player_2,
@@ -443,16 +417,40 @@ def pong_create_tournament(request):
             session.active_player_4
         ]
 
-        shuffle(session_players_list)
+        # Ensure all players exist
+        if None in session_players_list:
+            return Response({
+                "ok": False,
+                "error": "Not enough players for tournament",
+                "statusCode": 400
+            }, status=400)
 
+        # Calculate win-loss ratios using get_player_data
+        player_ratios = []
+        for player in session_players_list:
+            player_data = get_player_data(player.id)
+            total_games = player_data['won'] + player_data['lost']
+            ratio = player_data['won'] / total_games if total_games > 0 else 0
+            player_ratios.append((player, ratio))
+
+        # Sort players by ratio in descending order (strongest first)
+        player_ratios.sort(key=lambda x: x[1], reverse=True)
+
+        # Assign strongest to Semifinal 1, weakest to Semifinal 2
+        strongest_players = player_ratios[:2]  # Top 2
+        weakest_players = player_ratios[2:]   # Bottom 2
+
+        # Create tournament
         tournament = PongTournament.objects.create(
             tournament_session=session,
             tournament_type=tournament_type,
-            semi_one_p1=session_players_list[0],
-            semi_one_p2=session_players_list[1],
-            semi_two_p1=session_players_list[2],
-            semi_two_p2=session_players_list[3]
+            semi_one_p1=strongest_players[0][0],
+            semi_one_p2=strongest_players[1][0],
+            semi_two_p1=weakest_players[0][0],
+            semi_two_p2=weakest_players[1][0]
         )
+
+        logger.info(f"Created tournament {tournament.id} with semi1: {tournament.semi_one_p1.player_name} vs {tournament.semi_one_p2.player_name}, semi2: {tournament.semi_two_p1.player_name} vs {tournament.semi_two_p2.player_name}")
 
         # Construct response similar to pong_session_data
         active_players = {
@@ -483,9 +481,6 @@ def pong_create_tournament(request):
     except Exception as err:
         logger.error(f"Error in pong_create_tournament: {str(err)}")
         return Response({"ok": False, "error": str(err), "statusCode": 400}, status=400)
-    
-# Configure logging
-logger = logging.getLogger(__name__)
 
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
@@ -505,7 +500,6 @@ def pong_update_settings(request):
             except (PongSession.DoesNotExist, AttributeError) as e:
                 logger.warning(f"No PongSession for user {request.user.username}: {str(e)}")
 
-            # Construct players array with avatar as URL
             players = []
             for position in range(1, 5):
                 player_name = ""
@@ -515,14 +509,13 @@ def pong_update_settings(request):
                     if player_field and hasattr(player_field, "player_name"):
                         player_name = player_field.player_name
                         if hasattr(player_field, "avatar") and player_field.avatar:
-                            avatar_url = player_field.avatar.url  # Use .url directly, which includes MEDIA_URL
+                            avatar_url = player_field.avatar.url
                     elif player_field:
                         logger.error(f"PongPlayer at position {position} has no player_name attribute")
                 except Exception as e:
                     logger.error(f"Error accessing active_player_{position}: {str(e)}")
                 players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
 
-            # Prepare settings response
             settings_data = {
                 "game_speed": settings.game_speed,
                 "ball_size": settings.ball_size,
@@ -535,11 +528,8 @@ def pong_update_settings(request):
             }
             return JsonResponse({"ok": True, "settings": settings_data, "statusCode": 200}, status=200)
         elif request.method == "POST":
-            # Handle multipart/form-data
             form_data = request.POST
             files = request.FILES
-
-            # Get user and related models
             user = request.user
             try:
                 settings = GameSettings.objects.get(user=request.user)
@@ -564,8 +554,6 @@ def pong_update_settings(request):
                 if key in form_data and form_data[key] not in valid_values:
                     logger.warning(f"Invalid {key}: {form_data[key]} for user {user.username}")
                     return JsonResponse({"ok": False, "error": f"Invalid {key}: {form_data[key]}", "statusCode": 400}, status=400)
-
-            # Update game settings
             settings.game_speed = form_data.get('game_speed', settings.game_speed)
             settings.ball_size = form_data.get('ball_size', settings.ball_size)
             settings.paddle_size = form_data.get('paddle_size', settings.paddle_size)
@@ -575,93 +563,70 @@ def pong_update_settings(request):
             settings.language = form_data.get('language', settings.language)
             settings.save()
             logger.info(f"Updated GameSettings for user {user.username}")
-
-            # Update password if provided
             if form_data.get('password'):
                 user.set_password(form_data['password'])
                 user.save()
                 logger.info(f"Updated password for user {user.username}")
-
-            # Update player names and avatars
             player_fields = ['active_player_1', 'active_player_2', 'active_player_3', 'active_player_4']
             existing_names = []
             for field in player_fields:
                 player = getattr(session, field, None)
                 existing_names.append(player.player_name if player and hasattr(player, 'player_name') else None)
-
-            # Validate new player data
             players_data = []
             for player_id in range(1, 5):
                 player_name = form_data.get(f'players[{player_id - 1}][player_name]', '')
                 position = form_data.get(f'players[{player_id - 1}][position]', player_id)
                 avatar_file = files.get(f'players[{player_id - 1}][avatar]')
-
                 if player_name or avatar_file:
                     players_data.append({'player_name': player_name, 'position': position})
                     if not (1 <= int(position) <= 4):
                         logger.warning(f"Invalid position {position} for player {player_name} by user {user.username}")
                         return JsonResponse({"ok": False, "error": f"Invalid position: {position}", "statusCode": 400}, status=400)
-
-                    # Check for duplicate names
                     new_names = [p['player_name'] for p in players_data if p['player_name']]
                     if len(new_names) != len(set(new_names)):
                         logger.warning(f"Duplicate player names: {new_names} for user {user.username}")
                         return JsonResponse({"ok": False, "error": "New player names must be unique", "statusCode": 400}, status=400)
-
-                    # Check against existing names (excluding self)
                     if player_name in [n for n in existing_names if n and existing_names.index(n) != player_id - 1]:
                         logger.warning(f"Player name '{player_name}' already used for user {user.username}")
                         return JsonResponse({"ok": False, "error": f"Player name '{player_name}' is already used by another player", "statusCode": 400}, status=400)
-
-                    # Update player
                     player = getattr(session, player_fields[player_id - 1], None)
                     if player is None:
                         logger.warning(f"No player exists at position {position} for user {user.username}, skipping update for {player_name}")
                         continue
-
                     if player_name:
                         player.player_name = player_name
                         logger.info(f"Updated player name to {player_name} at position {position} for user {user.username}")
-
-                    # Handle avatar upload
                     if avatar_file:
                         valid_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
                         if avatar_file.content_type not in valid_types:
                             return JsonResponse({"ok": False, "error": f"Invalid file type for Player {position}. Use JPEG, PNG, GIF, or WebP.", "statusCode": 400}, status=400)
-                        if avatar_file.size > 2 * 1024 * 1024:  # 2MB limit
+                        if avatar_file.size > 2 * 1024 * 1024:
                             return JsonResponse({"ok": False, "error": f"File size for Player {position} must be less than 2MB.", "statusCode": 400}, status=400)
-
-                        # Generate unique filename with player position and timestamp
                         extension = avatar_file.name.split('.')[-1]
                         unique_filename = f"avatar_player{position}_{uuid.uuid4()}.{extension}"
-                        fs = FileSystemStorage(location=os.path.join(settings.media_root, 'avatars'))  # Use os.path.join for path safety
+                        fs = FileSystemStorage(location=os.path.join(settings.media_root, 'avatars'))
                         try:
                             logger.info(f"Saving file to {os.path.join(settings.media_root, 'avatars', unique_filename)}")
-                            filename = fs.save(unique_filename, avatar_file)  # Save file, returns relative path
-                            player.avatar = os.path.join('avatars', filename)  # Store relative path
+                            filename = fs.save(unique_filename, avatar_file)
+                            player.avatar = os.path.join('avatars', filename)
                             logger.info(f"Avatar saved at {player.avatar}")
                         except Exception as e:
                             logger.error(f"Avatar save failed: {str(e)}")
                             return JsonResponse({"ok": False, "error": f"Failed to save avatar for Player {position}: {str(e)}", "statusCode": 500}, status=500)
-
                     player.save()
-
             session.save()
             logger.info(f"Updated PongSession for user {user.username}")
-
-            # Fetch updated players for response with avatar as URL
             players = []
             for position in range(1, 5):
                 player = getattr(session, f"active_player_{position}", None)
                 avatar_url = "/media/avatars/default-avatar.png"
                 if player and hasattr(player, 'avatar') and player.avatar:
-                    avatar_url = player.avatar.url  # Use .url directly, which includes MEDIA_URL
+                    avatar_url = player.avatar.url
                 players.append({
                     "player_name": player.player_name if player and hasattr(player, 'player_name') else "",
                     "position": position,
                     "avatar": avatar_url
                 })
-
             settings_data = {
                 "game_speed": settings.game_speed,
                 "ball_size": settings.ball_size,
@@ -673,7 +638,6 @@ def pong_update_settings(request):
                 "players": players
             }
             return JsonResponse({"ok": True, "message": "Settings updated successfully", "settings": settings_data, "statusCode": 200}, status=200)
-
         return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
     except GameSettings.DoesNotExist:
         return JsonResponse({"ok": False, "error": "Game settings not found for user", "statusCode": 400}, status=400)
