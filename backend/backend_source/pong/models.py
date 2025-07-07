@@ -22,10 +22,10 @@ def create_pong_session(sender, instance, created, **kwargs):
         with transaction.atomic():
             session, session_created = PongSession.objects.get_or_create(user=instance)
             if session_created or not session.active_player_1:
-                session.active_player_1 = PongPlayer.objects.create(player_session=session, player_name="Player 1", avatar=settings.media_root / 'default-avatar.png' if settings.media_root else '/media/avatars/default-avatar.png')
-                session.active_player_2 = PongPlayer.objects.create(player_session=session, player_name="Player 2", avatar=settings.media_root / 'default-avatar.png' if settings.media_root else '/media/avatars/default-avatar.png')
-                session.active_player_3 = PongPlayer.objects.create(player_session=session, player_name="Player 3", avatar=settings.media_root / 'default-avatar.png' if settings.media_root else '/media/avatars/default-avatar.png')
-                session.active_player_4 = PongPlayer.objects.create(player_session=session, player_name="Player 4", avatar=settings.media_root / 'default-avatar.png' if settings.media_root else '/media/avatars/default-avatar.png')
+                session.active_player_1 = PongPlayer.objects.create(player_session=session, player_name="Player 1", avatar='../css/default-avatar.png')
+                session.active_player_2 = PongPlayer.objects.create(player_session=session, player_name="Player 2", avatar='../css/default-avatar.png')
+                session.active_player_3 = PongPlayer.objects.create(player_session=session, player_name="Player 3", avatar='../css/default-avatar.png')
+                session.active_player_4 = PongPlayer.objects.create(player_session=session, player_name="Player 4", avatar='../css/default-avatar.png')
                 session.save()
 
 # Signal to create GameSettings
@@ -37,7 +37,7 @@ def create_game_settings(sender, instance, created, **kwargs):
 class PongPlayer(models.Model):
     player_session = models.ForeignKey(PongSession, on_delete=models.CASCADE)
     player_name = models.CharField(max_length=30, blank=True, null=True)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, default='/media/avatars/default-avatar.png')
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, default='../css/default-avatar.png')
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['player_session', 'player_name'], name='Unique player names for each session')]

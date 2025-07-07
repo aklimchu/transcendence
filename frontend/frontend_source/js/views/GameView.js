@@ -60,7 +60,9 @@ export default class extends AbstractView {
             }
         } catch (error) {
             console.error("Failed to load settings:", error);
-            alert("Error loading settings: " + error.message);
+            //alert("Error loading settings: " + error.message);
+            await this.goToNoAuth();
+            return;
         }
 
         // Fetch win/loss data for all players

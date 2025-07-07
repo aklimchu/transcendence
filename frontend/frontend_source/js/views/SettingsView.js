@@ -32,7 +32,7 @@ export default class extends AbstractView {
             language: "eng",
             players: Array(4).fill().map((_, index) => ({
                 player_name: '',
-                avatar: '/media/avatars/default-avatar.png', // Align with backend's default
+                avatar: '../css/default-avatar.png', // Align with backend's default
                 position: index + 1
             }))
         };
@@ -58,7 +58,7 @@ export default class extends AbstractView {
                         const player = data.settings.players?.find(p => p.position === index + 1);
                         return {
                             player_name: player?.player_name || '',
-                            avatar: player?.avatar || '/media/avatars/default-avatar.png', // Include avatar
+                            avatar: player?.avatar || '../css/default-avatar.png', // Include avatar
                             position: index + 1
                         };
                     })
@@ -69,7 +69,9 @@ export default class extends AbstractView {
             }
         } catch (error) {
             console.error("Failed to load settings:", error);
-            alert("Error loading settings: " + error.message);
+            //alert("Error loading settings: " + error.message);
+            await this.goToNoAuth();
+            return;
             // Fall back to defaults defined above
         }
 
@@ -177,7 +179,7 @@ export default class extends AbstractView {
                                 <div class="player-box player${index + 1}">
                                     <div class="player-name" data-name="${player.player_name || `Player ${index + 1}`}">${player.player_name || `Player ${index + 1}`}</div>
                                     <div class="player-avatar">
-                                        <img src="${player.avatar || '/media/avatars/default-avatar.png'}" alt="Avatar" class="avatar-image" />
+                                        <img src="${player.avatar || '../css/default-avatar.png'}" alt="Avatar" class="avatar-image" />
                                     </div>
                                     <div class="player-config player${index + 1}-config">
                                         <label for="player${index + 1}_name" data-i18n="settings.player_name">Name</label>

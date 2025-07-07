@@ -26,7 +26,7 @@ export default class extends AbstractView {
             theme: "light",
             font_size: "medium",
             language: "eng",
-            players: Array(4).fill().map((_, index) => ({ player_name: '', avatar: '/media/avatars/default-avatar.png', position: index + 1 }))
+            players: Array(4).fill().map((_, index) => ({ player_name: '', avatar: '../css/default-avatar.png', position: index + 1 }))
         };
         try {
             console.log("Fetching settings from /pong_api/pong_settings/");
@@ -49,7 +49,7 @@ export default class extends AbstractView {
                         const player = data.settings.players?.find(p => p.position === index + 1);
                         return {
                             player_name: player?.player_name || '',
-                            avatar: player?.avatar || '/media/avatars/default-avatar.png', // Include avatar
+                            avatar: player?.avatar || '../css/default-avatar.png', // Include avatar
                             position: index + 1
                         };
                     })
@@ -60,7 +60,9 @@ export default class extends AbstractView {
             }
         } catch (error) {
             console.error("Failed to load settings:", error);
-            alert("Error loading settings: " + error.message);
+//            alert("Error loading settings: " + error.message);
+            await this.goToNoAuth();
+            return;
         }
 
         // Apply the theme and font to the body

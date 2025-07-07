@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('player_name', models.CharField(blank=True, max_length=30, null=True)),
-                ('avatar', models.ImageField(blank=True, default='/media/avatars/default-avatar.png', null=True, upload_to='avatars/')),
+                ('avatar', models.ImageField(blank=True, default='../css/default-avatar.png', null=True, upload_to='avatars/')),
             ],
         ),
         migrations.CreateModel(

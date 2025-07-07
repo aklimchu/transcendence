@@ -503,7 +503,7 @@ def pong_update_settings(request):
             players = []
             for position in range(1, 5):
                 player_name = ""
-                avatar_url = "/media/avatars/default-avatar.png"
+                avatar_url = "../css/default-avatar.png"
                 try:
                     player_field = getattr(session, f"active_player_{position}", None)
                     if player_field and hasattr(player_field, "player_name"):
@@ -619,7 +619,7 @@ def pong_update_settings(request):
             players = []
             for position in range(1, 5):
                 player = getattr(session, f"active_player_{position}", None)
-                avatar_url = "/media/avatars/default-avatar.png"
+                avatar_url = "../css/default-avatar.png"
                 if player and hasattr(player, 'avatar') and player.avatar:
                     avatar_url = player.avatar.url
                 players.append({

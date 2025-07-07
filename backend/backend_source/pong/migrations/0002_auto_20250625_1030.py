@@ -6,9 +6,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='pongplayer',
-            name='avatar',
-            field=models.ImageField(default='../../css/default-avatar.png', null=True, blank=True, upload_to='avatars/'),
-        ),
+
     ]

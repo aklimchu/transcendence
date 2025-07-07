@@ -117,7 +117,9 @@ export default class extends AbstractView
 		}
 		} catch (error) {
 			console.error("Failed to load settings:", error);
-			alert("Error loading settings: " + error.message);
+			//alert("Error loading settings: " + error.message);
+            await this.goToNoAuth();
+            return;
     	    settingsData = { theme: "light", font_size: "medium",  language: "eng" }; // Fallback theme
 		}
 

@@ -10,9 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='pongplayer',
-            name='avatar',
-            field=models.ImageField(blank=True, default='/media/avatars/default-avatar.png', null=True, upload_to='avatars/'),
-        ),
+
     ]

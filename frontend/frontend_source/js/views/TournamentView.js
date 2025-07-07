@@ -49,7 +49,9 @@ export default class extends GameView {
             }
         } catch (error) {
             console.error("Failed to load settings:", error);
-            alert("Error loading settings: " + error.message);
+            //alert("Error loading settings: " + error.message);
+            await this.goToNoAuth();
+            return;
         }
 
         // Check for unfinished tournament; if none, show create tournament buttons
