@@ -75,16 +75,16 @@ export default class extends AbstractView {
             // Fall back to defaults defined above
         }
 
-		let twoFAEnabled = false;
-		try {
-			const resp = await authFetch("/pong_api/2fa/status/");
-			if (resp.ok) {
-				const data = await resp.json();
-				twoFAEnabled = data["2fa_enabled"];
-			}
-		} catch (e) {
-			console.warn("Could not fetch 2FA status:", e);
-		}
+        let twoFAEnabled = false;
+        try {
+            const resp = await authFetch("/pong_api/2fa/status/");
+            if (resp.ok) {
+                const data = await resp.json();
+                twoFAEnabled = data["2fa_enabled"];
+            }
+        } catch (e) {
+            console.warn("Could not fetch 2FA status:", e);
+        }
 
         // Apply the current theme and font
         this.applyTheme(settingsData.theme);
@@ -152,82 +152,62 @@ export default class extends AbstractView {
                                 </select>
                             </div>
                             <div class="form-row">
-							    <label for="twofa-select" data-i18n="settings.twofa_label">Two-Factor Authentication</label>
-							    <select id="twofa-select">
-							        <option value="disabled" ${!twoFAEnabled ? "selected" : ""} data-i18n="settings.twofa_disabled">Disabled</option>
-							        <option value="enabled" ${twoFAEnabled ? "selected" : ""} data-i18n="settings.twofa_enabled">Enabled</option>
-							    </select>
-							</div>
-							<div class="form-row" id="twofa-setup-row" style="display:none;">
-							    <label></label>
-							    <div>
-							        <p data-i18n="settings.twofa_qr_instruction">Scan this QR code with your Authenticator app:</p>
-							        <img id="twofa-qr" src="" alt="2FA QR Code" data-i18n-alt="settings.twofa_qr_alt" style="max-width:200px;"/>
-							        <p data-i18n="settings.twofa_code_instruction">Enter the 6-digit code from your app:</p>
-							        <input type="text" id="twofa-code" maxlength="6" class="form-control form-control-sm" style="width:100px;display:inline-block;" />
-							        <button id="verify-2fa-btn" class="btn btn-success btn-sm" style="margin-left:0.5em;" data-i18n="settings.twofa_verify">Verify</button>
-							        <div id="twofa-verify-msg"></div>
-							    </div>
-							</div>
-						</form>
-						<button type="button" id="save_settings" class="btn btn-secondary mb-4" style="width: 100%;">Save Settings</button>
-						<div style="display: flex; justify-content: center;">
-							<div id="google-auth-btn" class="g_id_signin" style="margin-top: 1em; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid #dadce0; border-radius: 4px; background: #fff; color: #3c4043; font-size: 16px; font-weight: 500; height: 40px; min-width: 200px;">
-								<img id="google-auth-icon" src="https://developers.google.com/identity/images/g-logo.png" style="height:20px; margin-right:12px;" alt="Google logo"/>
-								<span id="google-auth-label">Sign in with Google</span>
-							</div>
-						</div>
-					</div>
-					<div class="player-settings-container">
-						<h2 class="head">Player Settings</h2>
-						<div class="player-settings">
-							${settingsData.players.map((player, index) => `
-								<div class="player-box player${index + 1}">
-									<h3>${player.player_name || `Player ${index + 1}`}</h3>
-									<div class="player-config player${index + 1}-config">
-										<label for="player${index + 1}_name">Name</label>
-										<input type="text" id="player${index + 1}_name" placeholder="Enter name" value="${player.player_name || ''}" />
-									</div>
-								</div>
-							`).join('')}
-						</div>
-					</div>
-				</div>
-			</div>
-		`;
-                        </form>
-                        <button type="button" id="save_settings" class="btn btn-secondary mb-4" data-i18n="settings.save_settings">Save Settings</button>
-                    </div>
-                    <div class="player-settings-container">
-                        <h2 class="head" data-i18n="settings.title_player">Player Settings</h2>
-                        <div class="player-settings">
-                            ${settingsData.players.map((player, index) => `
-                                <div class="player-box player${index + 1}">
-                                    <div class="player-name" data-name="${player.player_name || `Player ${index + 1}`}">${player.player_name || `Player ${index + 1}`}</div>
-                                    <div class="player-avatar">
-                                        <img src="${player.avatar || '../css/default-avatar.png'}" alt="Avatar" class="avatar-image" />
-                                    </div>
-                                    <div class="player-config player${index + 1}-config">
-                                        <label for="player${index + 1}_name" data-i18n="settings.player_name">Name</label>
-                                        <input type="text" id="player${index + 1}_name" data-i18n-placeholder="settings.player_placeholder" placeholder="Enter name" value="${player.player_name || ''}" />
-                                    </div>
-                                    <div class="avatar-container">
-                                        <input type="file" id="player${index + 1}_avatar" accept="image/*" class="avatar-upload" />
-                                        <label for="player${index + 1}_avatar" class="avatar-upload-label" data-i18n="settings.upload_avatar">Upload Avatar</label>
-                                        <span id="player${index + 1}_avatar_error" class="error-message" style="display: none; font-size: var(--base-font-size);"></span>
-                                    </div>
+                                <label for="twofa-select" data-i18n="settings.twofa_label">Two-Factor Authentication</label>
+                                <select id="twofa-select">
+                                    <option value="disabled" ${!twoFAEnabled ? "selected" : ""} data-i18n="settings.twofa_disabled">Disabled</option>
+                                    <option value="enabled" ${twoFAEnabled ? "selected" : ""} data-i18n="settings.twofa_enabled">Enabled</option>
+                                </select>
+                            </div>
+                            <div class="form-row" id="twofa-setup-row" style="display:none;">
+                                <label></label>
+                                <div>
+                                    <p data-i18n="settings.twofa_qr_instruction">Scan this QR code with your Authenticator app:</p>
+                                    <img id="twofa-qr" src="" alt="2FA QR Code" data-i18n-alt="settings.twofa_qr_alt" style="max-width:200px;"/>
+                                    <p data-i18n="settings.twofa_code_instruction">Enter the 6-digit code from your app:</p>
+                                    <input type="text" id="twofa-code" maxlength="6" class="form-control form-control-sm" style="width:100px;display:inline-block;" />
+                                    <button id="verify-2fa-btn" class="btn btn-success btn-sm" style="margin-left:0.5em;" data-i18n="settings.twofa_verify">Verify</button>
+                                    <div id="twofa-verify-msg"></div>
                                 </div>
-                            `).join('')}
+                            </div>
+                    </form>
+                    <button type="button" id="save_settings" class="btn btn-secondary mb-4" data-i18n="settings.save_settings" style="width: 100%;">Save Settings</button>
+                    <div style="display: flex; justify-content: center;">
+                        <div id="google-auth-btn" class="g_id_signin" style="margin-top: 1em; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid #dadce0; border-radius: 4px; background: #fff; color: #3c4043; font-size: 16px; font-weight: 500; height: 40px; min-width: 200px;">
+                            <img id="google-auth-icon" src="https://developers.google.com/identity/images/g-logo.png" style="height:20px; margin-right:12px;" alt="Google logo"/>
+                            <span id="google-auth-label">Sign in with Google</span>
                         </div>
                     </div>
                 </div>
+                <div class="player-settings-container">
+                    <h2 class="head" data-i18n="settings.title_player">Player Settings</h2>
+                    <div class="player-settings">
+                        ${settingsData.players.map((player, index) => `
+                            <div class="player-box player${index + 1}">
+                                <div class="player-name" data-name="${player.player_name || `Player ${index + 1}`}">${player.player_name || `Player ${index + 1}`}</div>
+                                <div class="player-avatar">
+                                    <img src="${player.avatar || '../css/default-avatar.png'}" alt="Avatar" class="avatar-image" />
+                                </div>
+                                <div class="player-config player${index + 1}-config">
+                                    <label for="player${index + 1}_name" data-i18n="settings.player_name">Name</label>
+                                    <input type="text" id="player${index + 1}_name" data-i18n-placeholder="settings.player_placeholder" placeholder="Enter name" value="${player.player_name || ''}" />
+                                </div>
+                                <div class="avatar-container">
+                                    <input type="file" id="player${index + 1}_avatar" accept="image/*" class="avatar-upload" />
+                                    <label for="player${index + 1}_avatar" class="avatar-upload-label" data-i18n="settings.upload_avatar">Upload Avatar</label>
+                                    <span id="player${index + 1}_avatar_error" class="error-message" style="display: none; font-size: var(--base-font-size);"></span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
             </div>
+        </div>
         `;
 
-		const container = document.createElement("div");
-		container.innerHTML = content;
-		this.unhideNavbar();
-		await this.setContent(container.innerHTML);
+        const container = document.createElement("div");
+        container.innerHTML = content;
+        this.unhideNavbar();
+        await this.setContent(container.innerHTML);
 
         // Add validation for avatar uploads with success message and hover behavior
         settingsData.players.forEach((_, index) => {
@@ -327,13 +307,13 @@ export default class extends AbstractView {
             'settings.player_placeholder',
             'settings.alert_saved',
             'settings.alert_error',
-			'settings.twofa_label',
-    		'settings.twofa_disabled',
-    		'settings.twofa_enabled',
-    		'settings.twofa_qr_instruction',
-    		'settings.twofa_code_instruction',
-    		'settings.twofa_verify',
-    		'settings.twofa_qr_alt'
+            'settings.twofa_label',
+            'settings.twofa_disabled',
+            'settings.twofa_enabled',
+            'settings.twofa_qr_instruction',
+            'settings.twofa_code_instruction',
+            'settings.twofa_verify',
+            'settings.twofa_qr_alt'
         ]);
 
         // Set translated page title
@@ -342,129 +322,131 @@ export default class extends AbstractView {
 
         document.getElementById("save_settings").addEventListener("click", this.push_Settings.bind(this, translations));
 
-		const twofaSelect = document.getElementById("twofa-select");
-		const twofaSetupRow = document.getElementById("twofa-setup-row");
-		if (twofaSetupRow) {
-			twofaSetupRow.style.display = "none";
-		}
+        const twofaSelect = document.getElementById("twofa-select");
+        const twofaSetupRow = document.getElementById("twofa-setup-row");
+        if (twofaSetupRow) {
+            twofaSetupRow.style.display = "none";
+        }
 
-		twofaSelect.addEventListener("change", async function () {
-			if (this.value === "enabled" && !twoFAEnabled) {
-				twofaSetupRow.style.display = "flex";
-				const resp = await authFetch("/pong_api/2fa/setup/", { method: "POST" });
-				if (resp.ok) {
-					const data = await resp.json();
-					twofaSetupRow.style.display = "flex";
-					document.getElementById("twofa-qr").src = "data:image/png;base64," + data.qr_code;
+        twofaSelect.addEventListener("change", async function () {
+            if (this.value === "enabled" && !twoFAEnabled) {
+                twofaSetupRow.style.display = "flex";
+                const resp = await authFetch("/pong_api/2fa/setup/", { method: "POST" });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    twofaSetupRow.style.display = "flex";
+                    document.getElementById("twofa-qr").src = "data:image/png;base64," + data.qr_code;
 
-					const verifyBtn = document.getElementById("verify-2fa-btn");
-					if (verifyBtn) {
-						verifyBtn.onclick = async (event) => {
-							event.preventDefault();
-							const code = document.getElementById("twofa-code").value;
-							const resp = await authFetch("/pong_api/2fa/verify/", {
-								method: "POST",
-								headers: { "Content-Type": "application/json" },
-								body: JSON.stringify({ token: code })
-							});
-							if (resp.ok) {
-								alert("2FA enabled!");
-								window.location.reload();
-							} else {
-								const data = await resp.json();
-								alert(data.error || "Invalid code. Try again.");
-								window.location.reload();
-							}
-						};
-					}
-				}
-			} else if (this.value === "disabled" && twoFAEnabled) {
-				if (!confirm("Are you sure you want to disable 2FA?")) {
-					this.value = "enabled";
-					return;
-				}
-				const resp = await authFetch("/pong_api/2fa/disable/", { method: "POST" });
-				if (resp.ok) {
-					alert("2FA disabled!");
-					window.location.reload();
-				} else {
-					alert("Failed to disable 2FA.");
-					this.value = "enabled";
-				}
-			}
-		});
+                    const verifyBtn = document.getElementById("verify-2fa-btn");
+                    if (verifyBtn) {
+                        verifyBtn.onclick = async (event) => {
+                            event.preventDefault();
+                            const code = document.getElementById("twofa-code").value;
+                            const resp = await authFetch("/pong_api/2fa/verify/", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ token: code })
+                            });
+                            if (resp.ok) {
+                                alert("2FA enabled!");
+                                window.location.reload();
+                            } else {
+                                const data = await resp.json();
+                                alert(data.error || "Invalid code. Try again.");
+                                window.location.reload();
+                            }
+                        };
+                    }
+                }
+            } else if (this.value === "disabled" && twoFAEnabled) {
+                if (!confirm("Are you sure you want to disable 2FA?")) {
+                    this.value = "enabled";
+                    return;
+                }
+                const resp = await authFetch("/pong_api/2fa/disable/", { method: "POST" });
+                if (resp.ok) {
+                    alert("2FA disabled!");
+                    window.location.reload();
+                } else {
+                    alert("Failed to disable 2FA.");
+                    this.value = "enabled";
+                }
+            }
+        });
 
-		const googleAuthBtn = document.getElementById("google-auth-btn");
-		const googleAuthLabel = document.getElementById("google-auth-label");
-		const googleAuthIcon = document.getElementById("google-auth-icon");
+        const googleAuthBtn = document.getElementById("google-auth-btn");
+        const googleAuthLabel = document.getElementById("google-auth-label");
+        const googleAuthIcon = document.getElementById("google-auth-icon");
 
-	   let googleLinked = false;
-	   try {
-		   if (typeof data !== 'undefined' && data.google_linked !== undefined) {
-			   googleLinked = data.google_linked;
-		   }
-	   } catch (e) {}
+       let googleLinked = false;
+       try {
+           if (typeof data !== 'undefined' && data.google_linked !== undefined) {
+               googleLinked = data.google_linked;
+           }
+       } catch (e) {}
 
-	   async function setGoogleButtonState() {
-		   if (!googleAuthBtn || !googleAuthLabel) return;
-		   googleAuthBtn.disabled = true;
-		   try {
-			   const resp = await authFetch("/pong_api/pong_settings/", {
-				   method: "GET",
-				   headers: { "Content-Type": "application/json" }
-			   });
-			   if (resp.ok) {
-				   const data = await resp.json();
-				   googleLinked = !!data.google_linked;
-			   }
-		   } catch (e) {
-			   console.error("Failed to refresh settings for Google button", e);
-		   }
-		   if (googleLinked) {
-			   googleAuthLabel.textContent = "Sign out of Google";
-			   googleAuthBtn.onclick = async () => {
-				   googleAuthBtn.disabled = true;
-				   await unlinkGoogleAccount();
-				   await setGoogleButtonState();
-				   googleAuthBtn.disabled = false;
-			   };
-		   } else {
-			   googleAuthLabel.textContent = "Sign in with Google";
-			   googleAuthBtn.onclick = () => {
-				   if (window.google && window.google.accounts && window.google.accounts.id) {
-					   window.google.accounts.id.prompt();
-				   } else {
-					   alert("Google Sign-In not loaded.");
-				   }
-			   };
-		   }
-		   googleAuthBtn.disabled = false;
-	   }
+       async function setGoogleButtonState() {
+           if (!googleAuthBtn || !googleAuthLabel) return;
+           googleAuthBtn.disabled = true;
+           try {
+               const resp = await authFetch("/pong_api/pong_settings/", {
+                   method: "GET",
+                   headers: { "Content-Type": "application/json" }
+               });
+               if (resp.ok) {
+                   const data = await resp.json();
+                   googleLinked = !!data.google_linked;
+               }
+           } catch (e) {
+               console.error("Failed to refresh settings for Google button", e);
+           }
+           if (googleLinked) {
+               googleAuthLabel.textContent = "Sign out of Google";
+               googleAuthBtn.onclick = async () => {
+                   googleAuthBtn.disabled = true;
+                   await unlinkGoogleAccount();
+                   await setGoogleButtonState();
+                   googleAuthBtn.disabled = false;
+               };
+           } else {
+               googleAuthLabel.textContent = "Sign in with Google";
+               googleAuthBtn.onclick = () => {
+                   if (window.google && window.google.accounts && window.google.accounts.id) {
+                       window.google.accounts.id.prompt();
+                   } else {
+                       alert("Google Sign-In not loaded.");
+                   }
+               };
+           }
+           googleAuthBtn.disabled = false;
+       }
 
-	   if (window.google && window.google.accounts && window.google.accounts.id) {
-		   window.google.accounts.id.initialize({
-			   client_id: window.GOOGLE_CLIENT_ID,
-			   callback: async (response) => {
-				   const success = await handleCredentialResponse(response);
-				   if (success) {
-					   await setGoogleButtonState();
-				   }
-			   },
-			   auto_select: false,
-			   cancel_on_tap_outside: false
-		   });
-	   }
-	   setTimeout(() => { setGoogleButtonState(); }, 0);
+       if (window.google && window.google.accounts && window.google.accounts.id) {
+           window.google.accounts.id.initialize({
+               client_id: window.GOOGLE_CLIENT_ID,
+               callback: async (response) => {
+                   const success = await handleCredentialResponse(response);
+                   if (success) {
+                       await setGoogleButtonState();
+                   }
+               },
+               auto_select: false,
+               cancel_on_tap_outside: false
+           });
+       }
+       setTimeout(() => { setGoogleButtonState(); }, 0);
+    }
+
+    push_Settings() {
+        const getValue = (id) => document.getElementById(id)?.value || "";
+        const players = [1, 2, 3, 4].map(player => {
+            const name = getValue(`player${player}_name`);
+            if (name.trim()) {
+                return { player_name: name, position: player };
+            }
+        }).filter(player => player); 
 	}
-
-	push_Settings() {
-		const getValue = (id) => document.getElementById(id)?.value || "";
-		const players = [1, 2, 3, 4].map(player => {
-			const name = getValue(`player${player}_name`);
-			if (name.trim()) {
-				return { player_name: name, position: player };
-			}
-		}).filter(player => player); 
+	
     applyTheme(theme) {
         document.body.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
