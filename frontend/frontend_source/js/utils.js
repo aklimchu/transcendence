@@ -152,8 +152,8 @@ export async function resetSettingsToDefault() {
         // Include players array (unchanged)
         const players = getData.settings.players || Array(4).fill().map((_, index) => ({
             player_name: '',
-            avatar: '/media/avatars/default-avatar.png',
-        //    avatar: '../css/default-avatar.png',
+        //    avatar: '/media/avatars/default-avatar.png',
+            avatar: '../css/default-avatar.png',
             position: index + 1
         }));
         players.forEach((player, index) => {
