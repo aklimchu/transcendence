@@ -101,57 +101,57 @@ class TwoFAStatusView(APIView):
 		return Response({"2fa_enabled": twofa_enabled})
 
 class TwoFASetupView(APIView):
-    permission_classes = [IsAuthenticated]
-    def post(self, request):
-        user = request.user
-        device, _ = TOTPDevice.objects.get_or_create(user=user, name="default", defaults={"confirmed": False})
-        custom_uri = build_custom_totp_uri(device, user)
-        qr = qrcode.make(custom_uri)
-        buf = BytesIO()
-        qr.save(buf)
-        qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
-        return Response({'qr_code': qr_b64, 'secret': device.key})
+	permission_classes = [IsAuthenticated]
+	def post(self, request):
+		user = request.user
+		device, _ = TOTPDevice.objects.get_or_create(user=user, name="default", defaults={"confirmed": False})
+		custom_uri = build_custom_totp_uri(device, user)
+		qr = qrcode.make(custom_uri)
+		buf = BytesIO()
+		qr.save(buf)
+		qr_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+		return Response({'qr_code': qr_b64, 'secret': device.key})
 
 class TwoFAVerifyView(APIView):
-    permission_classes = [IsAuthenticated]
-    def post(self, request):
-        user = request.user
-        token = request.data.get('token')
-        try:
-            device = TOTPDevice.objects.get(user=user, name="default")
-        except TOTPDevice.DoesNotExist:
-            return Response({'error': 'No 2FA device found.'}, status=400)
-        if device.verify_token(token):
-            device.confirmed = True
-            device.save()
-            return Response({'success': True})
-        return Response({'error': 'Invalid code.'}, status=400)
+	permission_classes = [IsAuthenticated]
+	def post(self, request):
+		user = request.user
+		token = request.data.get('token')
+		try:
+			device = TOTPDevice.objects.get(user=user, name="default")
+		except TOTPDevice.DoesNotExist:
+			return Response({'error': 'No 2FA device found.'}, status=400)
+		if device.verify_token(token):
+			device.confirmed = True
+			device.save()
+			return Response({'success': True})
+		return Response({'error': 'Invalid code.'}, status=400)
 
 class TwoFADisableView(APIView):
-    permission_classes = [IsAuthenticated]
-    def post(self, request):
-        user = request.user
-        try:
-            device = user.totpdevice_set.get(name="default")
-            device.confirmed = False
-            device.save()
-            return Response({'success': True})
-        except TOTPDevice.DoesNotExist:
-            return Response({'error': 'No 2FA device to disable.'}, status=400)
+	permission_classes = [IsAuthenticated]
+	def post(self, request):
+		user = request.user
+		try:
+			device = user.totpdevice_set.get(name="default")
+			device.confirmed = False
+			device.save()
+			return Response({'success': True})
+		except TOTPDevice.DoesNotExist:
+			return Response({'error': 'No 2FA device to disable.'}, status=400)
 
 def get_player_data(player_id):
 	try:
-        player = PongPlayer.objects.get(id=player_id)
-    	q_won = PongGame.objects.filter(Q(game_winner_1=player_id) | Q(game_winner_2=player_id))
-    	q_lost = PongGame.objects.filter(Q(game_loser_1=player_id) | Q(game_loser_2=player_id))
-    	return {
-            "id": player_id,
-            "name": player.player_name,
-            "won": q_won.count(),
-            "lost": q_lost.count()
-        }
-    except PongPlayer.DoesNotExist:
-        return None
+		player = PongPlayer.objects.get(id=player_id)
+		q_won = PongGame.objects.filter(Q(game_winner_1=player_id) | Q(game_winner_2=player_id))
+		q_lost = PongGame.objects.filter(Q(game_loser_1=player_id) | Q(game_loser_2=player_id))
+		return {
+			"id": player_id,
+			"name": player.player_name,
+			"won": q_won.count(),
+			"lost": q_lost.count()
+		}
+	except PongPlayer.DoesNotExist:
+		return None
 
 def get_session_games(session_id):
 	q_games = PongGame.objects.filter(Q(game_session=session_id)).order_by("-id")
@@ -199,57 +199,57 @@ def get_session_tournaments(session_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def player_match_history(request, player_id):
-    try:
-        user = request.user
-        if not hasattr(user, "pongsession"):
-            return JsonResponse({
-                "ok": False,
-                "error": "No active session for user",
-                "statusCode": 400
-            }, status=400)
-        session = user.pongsession
-        player = PongPlayer.objects.filter(id=player_id, player_session=session).first()
-        if not player:
-            return JsonResponse({
-                "ok": False,
-                "error": "Player not found or not associated with your session",
-                "statusCode": 403
-            }, status=403)
-        games = PongGame.objects.filter(
-            Q(game_session=session) &
-            Q(game_winner_2__isnull=True, game_loser_2__isnull=True) &
-            (Q(game_winner_1=player) | Q(game_loser_1=player))
-        ).select_related('game_winner_1', 'game_loser_1').order_by('-id')[:10]
-        match_history = []
-        for game in games:
-            opponent = game.game_loser_1 if game.game_winner_1 == player else game.game_winner_1
-            outcome = "win" if game.game_winner_1 == player else "loss"
-            match_history.append({
-                "game_type": game.game_type,
-                "date": game.created_at.strftime("%d.%m.%Y"),
-                "opponent": opponent.player_name if opponent else "Unknown",
-                "score": game.game_score or "N/A",
-                "outcome": outcome
-            })
-        return JsonResponse({
-            "ok": True,
-            "message": "Match history retrieved successfully",
-            "data": match_history,
-            "statusCode": 200
-        }, status=200)
-    except PongPlayer.DoesNotExist:
-        return JsonResponse({
-            "ok": False,
-            "error": "Player not found",
-            "statusCode": 404
-        }, status=404)
-    except Exception as err:
-        logger.error(f"Error in player_match_history for player_id {player_id}: {str(err)}")
-        return JsonResponse({
-            "ok": False,
-            "error": str(err),
-            "statusCode": 400
-        }, status=400)
+	try:
+		user = request.user
+		if not hasattr(user, "pongsession"):
+			return JsonResponse({
+				"ok": False,
+				"error": "No active session for user",
+				"statusCode": 400
+			}, status=400)
+		session = user.pongsession
+		player = PongPlayer.objects.filter(id=player_id, player_session=session).first()
+		if not player:
+			return JsonResponse({
+				"ok": False,
+				"error": "Player not found or not associated with your session",
+				"statusCode": 403
+			}, status=403)
+		games = PongGame.objects.filter(
+			Q(game_session=session) &
+			Q(game_winner_2__isnull=True, game_loser_2__isnull=True) &
+			(Q(game_winner_1=player) | Q(game_loser_1=player))
+		).select_related('game_winner_1', 'game_loser_1').order_by('-id')[:10]
+		match_history = []
+		for game in games:
+			opponent = game.game_loser_1 if game.game_winner_1 == player else game.game_winner_1
+			outcome = "win" if game.game_winner_1 == player else "loss"
+			match_history.append({
+				"game_type": game.game_type,
+				"date": game.created_at.strftime("%d.%m.%Y"),
+				"opponent": opponent.player_name if opponent else "Unknown",
+				"score": game.game_score or "N/A",
+				"outcome": outcome
+			})
+		return JsonResponse({
+			"ok": True,
+			"message": "Match history retrieved successfully",
+			"data": match_history,
+			"statusCode": 200
+		}, status=200)
+	except PongPlayer.DoesNotExist:
+		return JsonResponse({
+			"ok": False,
+			"error": "Player not found",
+			"statusCode": 404
+		}, status=404)
+	except Exception as err:
+		logger.error(f"Error in player_match_history for player_id {player_id}: {str(err)}")
+		return JsonResponse({
+			"ok": False,
+			"error": str(err),
+			"statusCode": 400
+		}, status=400)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -392,267 +392,267 @@ def pong_push_game(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def pong_create_tournament(request):
-    try:
-        if not request.body:
-            raise ValidationError("Request without body")
+	try:
+		if not request.body:
+			raise ValidationError("Request without body")
 
-        user = request.user
-        session = user.pongsession
+		user = request.user
+		session = user.pongsession
 
-        data = json.loads(request.body.decode('utf-8'))
-        tournament_type = data.get("tournament_type")
+		data = json.loads(request.body.decode('utf-8'))
+		tournament_type = data.get("tournament_type")
 
-        if not tournament_type or tournament_type not in ["pong", "snek"]:
-            raise ValidationError("Invalid or missing tournament_type")
+		if not tournament_type or tournament_type not in ["pong", "snek"]:
+			raise ValidationError("Invalid or missing tournament_type")
 
-        unfinished_tournaments = PongTournament.objects.filter(
-            Q(tournament_session=session.id) & Q(tournament_game_3=None)
-        )
+		unfinished_tournaments = PongTournament.objects.filter(
+			Q(tournament_session=session.id) & Q(tournament_game_3=None)
+		)
 
-        if unfinished_tournaments.count() > 0:
-            return Response({
-                "ok": False,
-                "error": "Can't have more than one tournament ongoing",
-                "statusCode": 400
-            }, status=400)
+		if unfinished_tournaments.count() > 0:
+			return Response({
+				"ok": False,
+				"error": "Can't have more than one tournament ongoing",
+				"statusCode": 400
+			}, status=400)
 
-        # Get players and calculate win-loss ratios
-        session_players_list = [
-            session.active_player_1,
-            session.active_player_2,
-            session.active_player_3,
-            session.active_player_4
-        ]
+		# Get players and calculate win-loss ratios
+		session_players_list = [
+			session.active_player_1,
+			session.active_player_2,
+			session.active_player_3,
+			session.active_player_4
+		]
 
-        # Ensure all players exist
-        if None in session_players_list:
-            return Response({
-                "ok": False,
-                "error": "Not enough players for tournament",
-                "statusCode": 400
-            }, status=400)
+		# Ensure all players exist
+		if None in session_players_list:
+			return Response({
+				"ok": False,
+				"error": "Not enough players for tournament",
+				"statusCode": 400
+			}, status=400)
 
-        # Calculate win-loss ratios using get_player_data
-        player_ratios = []
-        for player in session_players_list:
-            player_data = get_player_data(player.id)
-            total_games = player_data['won'] + player_data['lost']
-            ratio = player_data['won'] / total_games if total_games > 0 else 0
-            player_ratios.append((player, ratio))
+		# Calculate win-loss ratios using get_player_data
+		player_ratios = []
+		for player in session_players_list:
+			player_data = get_player_data(player.id)
+			total_games = player_data['won'] + player_data['lost']
+			ratio = player_data['won'] / total_games if total_games > 0 else 0
+			player_ratios.append((player, ratio))
 
-        # Sort players by ratio in descending order (strongest first)
-        player_ratios.sort(key=lambda x: x[1], reverse=True)
+		# Sort players by ratio in descending order (strongest first)
+		player_ratios.sort(key=lambda x: x[1], reverse=True)
 
-        # Assign strongest to Semifinal 1, weakest to Semifinal 2
-        strongest_players = player_ratios[:2]  # Top 2
-        weakest_players = player_ratios[2:]   # Bottom 2
+		# Assign strongest to Semifinal 1, weakest to Semifinal 2
+		strongest_players = player_ratios[:2]  # Top 2
+		weakest_players = player_ratios[2:]   # Bottom 2
 
-        # Create tournament
-        tournament = PongTournament.objects.create(
-            tournament_session=session,
-            tournament_type=tournament_type,
-            semi_one_p1=strongest_players[0][0],
-            semi_one_p2=strongest_players[1][0],
-            semi_two_p1=weakest_players[0][0],
-            semi_two_p2=weakest_players[1][0]
-        )
+		# Create tournament
+		tournament = PongTournament.objects.create(
+			tournament_session=session,
+			tournament_type=tournament_type,
+			semi_one_p1=strongest_players[0][0],
+			semi_one_p2=strongest_players[1][0],
+			semi_two_p1=weakest_players[0][0],
+			semi_two_p2=weakest_players[1][0]
+		)
 
-        logger.info(f"Created tournament {tournament.id} with semi1: {tournament.semi_one_p1.player_name} vs {tournament.semi_one_p2.player_name}, semi2: {tournament.semi_two_p1.player_name} vs {tournament.semi_two_p2.player_name}")
+		logger.info(f"Created tournament {tournament.id} with semi1: {tournament.semi_one_p1.player_name} vs {tournament.semi_one_p2.player_name}, semi2: {tournament.semi_two_p1.player_name} vs {tournament.semi_two_p2.player_name}")
 
-        # Construct response similar to pong_session_data
-        active_players = {
-            "p1": get_player_data(session.active_player_1.id) if session.active_player_1 else None,
-            "p2": get_player_data(session.active_player_2.id) if session.active_player_2 else None,
-            "p3": get_player_data(session.active_player_3.id) if session.active_player_3 else None,
-            "p4": get_player_data(session.active_player_4.id) if session.active_player_4 else None,
-        }
+		# Construct response similar to pong_session_data
+		active_players = {
+			"p1": get_player_data(session.active_player_1.id) if session.active_player_1 else None,
+			"p2": get_player_data(session.active_player_2.id) if session.active_player_2 else None,
+			"p3": get_player_data(session.active_player_3.id) if session.active_player_3 else None,
+			"p4": get_player_data(session.active_player_4.id) if session.active_player_4 else None,
+		}
 
-        unfinished_tournament, finished_tournaments = get_session_tournaments(session.id)
+		unfinished_tournament, finished_tournaments = get_session_tournaments(session.id)
 
-        response_data = {
-            "ok": True,
-            "message": "Tournament created and session data retrieved",
-            "data": {
-                "players": active_players,
-                "games": get_session_games(session.id),
-                "unfinished_tournament": unfinished_tournament,
-                "finished_tournaments": finished_tournaments
-            },
-            "statusCode": 200
-        }
+		response_data = {
+			"ok": True,
+			"message": "Tournament created and session data retrieved",
+			"data": {
+				"players": active_players,
+				"games": get_session_games(session.id),
+				"unfinished_tournament": unfinished_tournament,
+				"finished_tournaments": finished_tournaments
+			},
+			"statusCode": 200
+		}
 
-        return Response(response_data)
+		return Response(response_data)
 
-    except ValidationError as ve:
-        return Response({"ok": False, "error": str(ve), "statusCode": 400}, status=400)
-    except Exception as err:
-        logger.error(f"Error in pong_create_tournament: {str(err)}")
-        return Response({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+	except ValidationError as ve:
+		return Response({"ok": False, "error": str(ve), "statusCode": 400}, status=400)
+	except Exception as err:
+		logger.error(f"Error in pong_create_tournament: {str(err)}")
+		return Response({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
 def pong_update_settings(request):
-    try:
-        if not request.user.is_authenticated:
-            return JsonResponse({"ok": False, "error": "Authentication required", "statusCode": 401}, status=401)
-        if request.method == "GET":
-            try:
-                settings = GameSettings.objects.get(user=request.user)
-            except GameSettings.DoesNotExist:
-                logger.info(f"Creating default GameSettings for user {request.user.username}")
-                settings = GameSettings.objects.create(user=request.user)
-            session = None
-            try:
-                session = request.user.pongsession
-            except (PongSession.DoesNotExist, AttributeError) as e:
-                logger.warning(f"No PongSession for user {request.user.username}: {str(e)}")
+	try:
+		if not request.user.is_authenticated:
+			return JsonResponse({"ok": False, "error": "Authentication required", "statusCode": 401}, status=401)
+		if request.method == "GET":
+			try:
+				settings = GameSettings.objects.get(user=request.user)
+			except GameSettings.DoesNotExist:
+				logger.info(f"Creating default GameSettings for user {request.user.username}")
+				settings = GameSettings.objects.create(user=request.user)
+			session = None
+			try:
+				session = request.user.pongsession
+			except (PongSession.DoesNotExist, AttributeError) as e:
+				logger.warning(f"No PongSession for user {request.user.username}: {str(e)}")
 
-            players = []
-            for position in range(1, 5):
-                player_name = ""
-                avatar_url = "../css/default-avatar.png"
-                try:
-                    player_field = getattr(session, f"active_player_{position}", None)
-                    if player_field and hasattr(player_field, "player_name"):
-                        player_name = player_field.player_name
-                        if hasattr(player_field, "avatar") and player_field.avatar:
-                            avatar_url = player_field.avatar.url
-                    elif player_field:
-                        logger.error(f"PongPlayer at position {position} has no player_name attribute")
-                except Exception as e:
-                    logger.error(f"Error accessing active_player_{position}: {str(e)}")
-                players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
+			players = []
+			for position in range(1, 5):
+				player_name = ""
+				avatar_url = "../css/default-avatar.png"
+				try:
+					player_field = getattr(session, f"active_player_{position}", None)
+					if player_field and hasattr(player_field, "player_name"):
+						player_name = player_field.player_name
+						if hasattr(player_field, "avatar") and player_field.avatar:
+							avatar_url = player_field.avatar.url
+					elif player_field:
+						logger.error(f"PongPlayer at position {position} has no player_name attribute")
+				except Exception as e:
+					logger.error(f"Error accessing active_player_{position}: {str(e)}")
+				players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
 
-            settings_data = {
-                "game_speed": settings.game_speed,
-                "ball_size": settings.ball_size,
-                "paddle_size": settings.paddle_size,
-                "power_jump": settings.power_jump,
-                "theme": settings.theme,
-                "font_size": settings.font_size,
-                "language": settings.language,
-                "players": players
-            }
-            return JsonResponse({"ok": True, "settings": settings_data, "statusCode": 200}, status=200)
-        elif request.method == "POST":
-            form_data = request.POST
-            files = request.FILES
-            user = request.user
-            try:
-                settings = GameSettings.objects.get(user=request.user)
-            except GameSettings.DoesNotExist:
-                logger.info(f"Creating default GameSettings for user {user.username}")
-                settings = GameSettings.objects.create(user=user)
-            try:
-                session = user.pongsession
-            except (PongSession.DoesNotExist, AttributeError) as e:
-                logger.info(f"No PongSession for user {user.username}: {str(e)}")
-                return JsonResponse({"ok": False, "error": "No active session found. Please start a session first.", "statusCode": 400}, status=400)
-            valid_game_settings = {
-                'game_speed': ['slow', 'normal', 'fast'],
-                'ball_size': ['small', 'medium', 'large'],
-                'paddle_size': ['short', 'normal', 'long'],
-                'power_jump': ['on', 'off'],
-                'theme': ['light', 'dark'],
-                'font_size': ['small', 'medium', 'large'],
-                'language': ['eng', 'fin', 'swd']
-            }
-            for key, valid_values in valid_game_settings.items():
-                if key in form_data and form_data[key] not in valid_values:
-                    logger.warning(f"Invalid {key}: {form_data[key]} for user {user.username}")
-                    return JsonResponse({"ok": False, "error": f"Invalid {key}: {form_data[key]}", "statusCode": 400}, status=400)
-            settings.game_speed = form_data.get('game_speed', settings.game_speed)
-            settings.ball_size = form_data.get('ball_size', settings.ball_size)
-            settings.paddle_size = form_data.get('paddle_size', settings.paddle_size)
-            settings.power_jump = form_data.get('power_jump', settings.power_jump)
-            settings.theme = form_data.get('theme', settings.theme)
-            settings.font_size = form_data.get('font_size', settings.font_size)
-            settings.language = form_data.get('language', settings.language)
-            settings.save()
-            logger.info(f"Updated GameSettings for user {user.username}")
-            if form_data.get('password'):
-                user.set_password(form_data['password'])
-                user.save()
-                logger.info(f"Updated password for user {user.username}")
-            player_fields = ['active_player_1', 'active_player_2', 'active_player_3', 'active_player_4']
-            existing_names = []
-            for field in player_fields:
-                player = getattr(session, field, None)
-                existing_names.append(player.player_name if player and hasattr(player, 'player_name') else None)
-            players_data = []
-            for player_id in range(1, 5):
-                player_name = form_data.get(f'players[{player_id - 1}][player_name]', '')
-                position = form_data.get(f'players[{player_id - 1}][position]', player_id)
-                avatar_file = files.get(f'players[{player_id - 1}][avatar]')
-                if player_name or avatar_file:
-                    players_data.append({'player_name': player_name, 'position': position})
-                    if not (1 <= int(position) <= 4):
-                        logger.warning(f"Invalid position {position} for player {player_name} by user {user.username}")
-                        return JsonResponse({"ok": False, "error": f"Invalid position: {position}", "statusCode": 400}, status=400)
-                    new_names = [p['player_name'] for p in players_data if p['player_name']]
-                    if len(new_names) != len(set(new_names)):
-                        logger.warning(f"Duplicate player names: {new_names} for user {user.username}")
-                        return JsonResponse({"ok": False, "error": "New player names must be unique", "statusCode": 400}, status=400)
-                    if player_name in [n for n in existing_names if n and existing_names.index(n) != player_id - 1]:
-                        logger.warning(f"Player name '{player_name}' already used for user {user.username}")
-                        return JsonResponse({"ok": False, "error": f"Player name '{player_name}' is already used by another player", "statusCode": 400}, status=400)
-                    player = getattr(session, player_fields[player_id - 1], None)
-                    if player is None:
-                        logger.warning(f"No player exists at position {position} for user {user.username}, skipping update for {player_name}")
-                        continue
-                    if player_name:
-                        player.player_name = player_name
-                        logger.info(f"Updated player name to {player_name} at position {position} for user {user.username}")
-                    if avatar_file:
-                        valid_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-                        if avatar_file.content_type not in valid_types:
-                            return JsonResponse({"ok": False, "error": f"Invalid file type for Player {position}. Use JPEG, PNG, GIF, or WebP.", "statusCode": 400}, status=400)
-                        if avatar_file.size > 2 * 1024 * 1024:
-                            return JsonResponse({"ok": False, "error": f"File size for Player {position} must be less than 2MB.", "statusCode": 400}, status=400)
-                        extension = avatar_file.name.split('.')[-1]
-                        unique_filename = f"avatar_player{position}_{uuid.uuid4()}.{extension}"
-                        fs = FileSystemStorage(location=os.path.join(settings.media_root, 'avatars'))
-                        try:
-                            logger.info(f"Saving file to {os.path.join(settings.media_root, 'avatars', unique_filename)}")
-                            filename = fs.save(unique_filename, avatar_file)
-                            player.avatar = os.path.join('avatars', filename)
-                            logger.info(f"Avatar saved at {player.avatar}")
-                        except Exception as e:
-                            logger.error(f"Avatar save failed: {str(e)}")
-                            return JsonResponse({"ok": False, "error": f"Failed to save avatar for Player {position}: {str(e)}", "statusCode": 500}, status=500)
-                    player.save()
-            session.save()
-            logger.info(f"Updated PongSession for user {user.username}")
-            players = []
-            for position in range(1, 5):
-                player = getattr(session, f"active_player_{position}", None)
-                avatar_url = "../css/default-avatar.png"
-                if player and hasattr(player, 'avatar') and player.avatar:
-                    avatar_url = player.avatar.url
-                players.append({
-                    "player_name": player.player_name if player and hasattr(player, 'player_name') else "",
-                    "position": position,
-                    "avatar": avatar_url
-                })
-            settings_data = {
-                "game_speed": settings.game_speed,
-                "ball_size": settings.ball_size,
-                "paddle_size": settings.paddle_size,
-                "power_jump": settings.power_jump,
-                "theme": settings.theme,
-                "font_size": settings.font_size,
-                "language": settings.language,
-                "players": players
-            }
-            return JsonResponse({"ok": True, "message": "Settings updated successfully", "settings": settings_data, "statusCode": 200}, status=200)
-        return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
-    except GameSettings.DoesNotExist:
-        return JsonResponse({"ok": False, "error": "Game settings not found for user", "statusCode": 400}, status=400)
-    except PongSession.DoesNotExist:
-        return JsonResponse({"ok": False, "error": "Pong session not found for user", "statusCode": 400}, status=400)
-    except Exception as err:
-        logger.error(f"Unexpected error in pong_update_settings: {str(err)}")
-        return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+			settings_data = {
+				"game_speed": settings.game_speed,
+				"ball_size": settings.ball_size,
+				"paddle_size": settings.paddle_size,
+				"power_jump": settings.power_jump,
+				"theme": settings.theme,
+				"font_size": settings.font_size,
+				"language": settings.language,
+				"players": players
+			}
+			return JsonResponse({"ok": True, "settings": settings_data, "statusCode": 200}, status=200)
+		elif request.method == "POST":
+			form_data = request.POST
+			files = request.FILES
+			user = request.user
+			try:
+				settings = GameSettings.objects.get(user=request.user)
+			except GameSettings.DoesNotExist:
+				logger.info(f"Creating default GameSettings for user {user.username}")
+				settings = GameSettings.objects.create(user=user)
+			try:
+				session = user.pongsession
+			except (PongSession.DoesNotExist, AttributeError) as e:
+				logger.info(f"No PongSession for user {user.username}: {str(e)}")
+				return JsonResponse({"ok": False, "error": "No active session found. Please start a session first.", "statusCode": 400}, status=400)
+			valid_game_settings = {
+				'game_speed': ['slow', 'normal', 'fast'],
+				'ball_size': ['small', 'medium', 'large'],
+				'paddle_size': ['short', 'normal', 'long'],
+				'power_jump': ['on', 'off'],
+				'theme': ['light', 'dark'],
+				'font_size': ['small', 'medium', 'large'],
+				'language': ['eng', 'fin', 'swd']
+			}
+			for key, valid_values in valid_game_settings.items():
+				if key in form_data and form_data[key] not in valid_values:
+					logger.warning(f"Invalid {key}: {form_data[key]} for user {user.username}")
+					return JsonResponse({"ok": False, "error": f"Invalid {key}: {form_data[key]}", "statusCode": 400}, status=400)
+			settings.game_speed = form_data.get('game_speed', settings.game_speed)
+			settings.ball_size = form_data.get('ball_size', settings.ball_size)
+			settings.paddle_size = form_data.get('paddle_size', settings.paddle_size)
+			settings.power_jump = form_data.get('power_jump', settings.power_jump)
+			settings.theme = form_data.get('theme', settings.theme)
+			settings.font_size = form_data.get('font_size', settings.font_size)
+			settings.language = form_data.get('language', settings.language)
+			settings.save()
+			logger.info(f"Updated GameSettings for user {user.username}")
+			if form_data.get('password'):
+				user.set_password(form_data['password'])
+				user.save()
+				logger.info(f"Updated password for user {user.username}")
+			player_fields = ['active_player_1', 'active_player_2', 'active_player_3', 'active_player_4']
+			existing_names = []
+			for field in player_fields:
+				player = getattr(session, field, None)
+				existing_names.append(player.player_name if player and hasattr(player, 'player_name') else None)
+			players_data = []
+			for player_id in range(1, 5):
+				player_name = form_data.get(f'players[{player_id - 1}][player_name]', '')
+				position = form_data.get(f'players[{player_id - 1}][position]', player_id)
+				avatar_file = files.get(f'players[{player_id - 1}][avatar]')
+				if player_name or avatar_file:
+					players_data.append({'player_name': player_name, 'position': position})
+					if not (1 <= int(position) <= 4):
+						logger.warning(f"Invalid position {position} for player {player_name} by user {user.username}")
+						return JsonResponse({"ok": False, "error": f"Invalid position: {position}", "statusCode": 400}, status=400)
+					new_names = [p['player_name'] for p in players_data if p['player_name']]
+					if len(new_names) != len(set(new_names)):
+						logger.warning(f"Duplicate player names: {new_names} for user {user.username}")
+						return JsonResponse({"ok": False, "error": "New player names must be unique", "statusCode": 400}, status=400)
+					if player_name in [n for n in existing_names if n and existing_names.index(n) != player_id - 1]:
+						logger.warning(f"Player name '{player_name}' already used for user {user.username}")
+						return JsonResponse({"ok": False, "error": f"Player name '{player_name}' is already used by another player", "statusCode": 400}, status=400)
+					player = getattr(session, player_fields[player_id - 1], None)
+					if player is None:
+						logger.warning(f"No player exists at position {position} for user {user.username}, skipping update for {player_name}")
+						continue
+					if player_name:
+						player.player_name = player_name
+						logger.info(f"Updated player name to {player_name} at position {position} for user {user.username}")
+					if avatar_file:
+						valid_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+						if avatar_file.content_type not in valid_types:
+							return JsonResponse({"ok": False, "error": f"Invalid file type for Player {position}. Use JPEG, PNG, GIF, or WebP.", "statusCode": 400}, status=400)
+						if avatar_file.size > 2 * 1024 * 1024:
+							return JsonResponse({"ok": False, "error": f"File size for Player {position} must be less than 2MB.", "statusCode": 400}, status=400)
+						extension = avatar_file.name.split('.')[-1]
+						unique_filename = f"avatar_player{position}_{uuid.uuid4()}.{extension}"
+						fs = FileSystemStorage(location=os.path.join(settings.media_root, 'avatars'))
+						try:
+							logger.info(f"Saving file to {os.path.join(settings.media_root, 'avatars', unique_filename)}")
+							filename = fs.save(unique_filename, avatar_file)
+							player.avatar = os.path.join('avatars', filename)
+							logger.info(f"Avatar saved at {player.avatar}")
+						except Exception as e:
+							logger.error(f"Avatar save failed: {str(e)}")
+							return JsonResponse({"ok": False, "error": f"Failed to save avatar for Player {position}: {str(e)}", "statusCode": 500}, status=500)
+					player.save()
+			session.save()
+			logger.info(f"Updated PongSession for user {user.username}")
+			players = []
+			for position in range(1, 5):
+				player = getattr(session, f"active_player_{position}", None)
+				avatar_url = "../css/default-avatar.png"
+				if player and hasattr(player, 'avatar') and player.avatar:
+					avatar_url = player.avatar.url
+				players.append({
+					"player_name": player.player_name if player and hasattr(player, 'player_name') else "",
+					"position": position,
+					"avatar": avatar_url
+				})
+			settings_data = {
+				"game_speed": settings.game_speed,
+				"ball_size": settings.ball_size,
+				"paddle_size": settings.paddle_size,
+				"power_jump": settings.power_jump,
+				"theme": settings.theme,
+				"font_size": settings.font_size,
+				"language": settings.language,
+				"players": players
+			}
+			return JsonResponse({"ok": True, "message": "Settings updated successfully", "settings": settings_data, "statusCode": 200}, status=200)
+		return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
+	except GameSettings.DoesNotExist:
+		return JsonResponse({"ok": False, "error": "Game settings not found for user", "statusCode": 400}, status=400)
+	except PongSession.DoesNotExist:
+		return JsonResponse({"ok": False, "error": "Pong session not found for user", "statusCode": 400}, status=400)
+	except Exception as err:
+		logger.error(f"Unexpected error in pong_update_settings: {str(err)}")
+		return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -788,5 +788,4 @@ def pong_settings(request):
 		"settings": settings_dict,
 		"google_linked": google_linked,
 	}
-	# ...existing code...
 	return JsonResponse(response_data)

@@ -18,5 +18,5 @@ urlpatterns = [
 	path("google_login/", views.google_login, name="google_login"),
 	path("auth/google/link/", views.google_link, name="google_link"),
 	path("auth/google/unlink/", views.google_unlink, name="google_unlink"),
-    path("player_match_history/<int:player_id>/", views.player_match_history, name="player_match_history"),
+	path("player_match_history/<int:player_id>/", views.player_match_history, name="player_match_history"),
 ]
