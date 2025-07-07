@@ -7,9 +7,7 @@ import { login_func, register_func, logout_func, authFetch } from './auth.js';
 
 async function history_and_router(view_id)
 {
-    //console.log("History.state before: ", history.state);
     history.pushState({view : view_id}, null, null);
-    //console.log("History.state after: ", history.state);
     router(null);
 };
 
@@ -39,10 +37,6 @@ window.onpopstate = async function()
     router(null);
 };
 
-
-//---------------------------------------------------------- Listeners ------------------------------------------------------------------------------
-
-
 async function view_reference_listener(event)
 {
     if (event.target.matches("[view-reference]"))
@@ -70,13 +64,11 @@ async function authentication_listener(event)
         user = document.getElementById("auth_user").value,
         pwd = document.getElementById("auth_pwd").value;
 
-        // Handle original request
         if (event.target.id === "login")
             successful = await login_func(user, pwd);
         else
             successful = await register_func(user, pwd);
         
-        // On successful register try login
         if (event.target.id === "register" && successful)
             successful = await login_func(user, pwd);
 
@@ -117,10 +109,28 @@ async function play_game_listener(event) {
     const player_right1 = game_class.mode === "1v1" ? get_player_name(button.dataset.right) : get_player_name('right-select1');
     const player_left2 = game_class.mode === "1v1" ? null : get_player_name('left-select2');
     const player_right2 = game_class.mode === "1v1" ? null : get_player_name('right-select2');
+
+    // Validation for 1v1 mode
+    if (game_class.mode === "1v1") {
+        if (player_left1 === player_right1) {
+            alert('You cannot play against yourself!');
+            return;
+        }
+    }
+    // Validation for 2v2 mode
+    else {
+        const players = [player_left1, player_left2, player_right1, player_right2].filter(p => p !== null);
+        const uniquePlayers = new Set(players);
+        if (uniquePlayers.size !== players.length) {
+            alert('Each player must be unique in 2v2 mode!');
+            return;
+        }
+    }
+
     if (game_class.type === 'pong')
-        game_view.play_pong(player_left1, player_left2, player_right1, player_right2, game_class.t);
+        await game_view.play_pong(player_left1, player_left2, player_right1, player_right2, game_class.t);
     else
-        game_view.play_snek(player_left1, player_left2, player_right1, player_right2, game_class.t);
+        await game_view.play_snek(player_left1, player_left2, player_right1, player_right2, game_class.t);
 }
 
 async function create_tournament_listener(event) {
@@ -133,27 +143,35 @@ async function create_tournament_listener(event) {
             return;
         }
         try {
-            const response = await authFetch("pong_api/pong_create_tournament/", {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tournament_type: tournamentType })
-            });
-			if (!response) throw new Error("No response from server");
-            if (!response.ok) throw new Error("Failed to create tournament");
+			const response = await authFetch("/pong_api/pong_create_tournament/", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ tournament_type: tournamentType })
+			});
+			if (!response) {
+				console.error("No response from server");
+				throw new Error("No response from server");
+			}
+			if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Failed to create tournament: HTTP ${response.status} - ${errorText}`);
+                throw new Error(`Failed to create tournament: ${errorText || "Unknown error"}`);
+            }
+            const data = await response.json();
+            console.log("Tournament created successfully:", data);
+            router("tournament_view");
         } catch (err) {
-            console.error(err.message);
-            return document.querySelector("#content").innerHTML = `
-            <div class="container my-5">
-            <div class="alert alert-danger text-center fs-5" role="alert" style="background-color: red; color: white; box-shadow: 0px 0px 5px white;">
-                <strong>Error:</strong> Something went terribly wrong!!
-            </div>
-            </div>
+            console.error("Error creating tournament:", err.message);
+            document.querySelector("#content").innerHTML = `
+                <div class="container my-5">
+                    <div class="alert alert-danger text-center fs-5" role="alert" style="background-color: red; color: white; box-shadow: 0px 0px 5px white;">
+                        <strong>Error:</strong> ${err.message || "Something went terribly wrong!!"}
+                    </div>
+                </div>
             `;
         }
-        router("tournament_view");
     }
 }
-
 
 function content_loaded_listener()
 {
@@ -168,9 +186,7 @@ function content_loaded_listener()
     router(null);
 }
 
-
 document.addEventListener("DOMContentLoaded", content_loaded_listener);
-
 
 function check_game_class(accumulator, item)
 {
@@ -193,7 +209,6 @@ function check_game_class(accumulator, item)
         accumulator.unknown = true;
     return accumulator;
 }
-
 
 function get_player_name(id) {
     var player_select = document.getElementById(id);

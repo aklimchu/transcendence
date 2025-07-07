@@ -17,6 +17,9 @@ services:
     build: backend
     expose:
       - "8000"
+    volumes:
+      - ./backend/backend_source:/backend_source
+      - ./backend/backend_source/media:/backend_source/media
     env_file: .env
     networks:
       - pong_network

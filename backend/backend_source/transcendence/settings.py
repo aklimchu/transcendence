@@ -14,9 +14,13 @@ from pathlib import Path
 import os
 from datetime import timedelta
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# STATIC_URL = '/static/'
+# STATICFILES_DIRS = [BASE_DIR.parent / "frontend_source"]
+# STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -161,3 +165,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Media settings for file uploads
+MEDIA_URL = '/media/'  # URL that serves the media files (e.g., http://localhost:8000/media/)
+MEDIA_ROOT = str(BASE_DIR / 'media')  # Ensure it's a string path  # Absolute path to the directory where files are stored (e.g., /path/to/project/media/)
+DEFAULT_AVATAR_URL = '../css/default-avatar.png'  # Optional, for fallback
