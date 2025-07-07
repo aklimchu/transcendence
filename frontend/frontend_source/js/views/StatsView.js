@@ -4,13 +4,13 @@ import { TranslationManager, extractErrorMessage } from "../utils.js"
 
 export default class extends AbstractView
 {
-	constructor(params)
-	{
-    	super(params);
-		this.translationManager = new TranslationManager(); // Initialize TranslationManager
+    constructor(params)
+    {
+        super(params);
+        this.translationManager = new TranslationManager(); // Initialize TranslationManager
         this.matchHistories = { p1: [], p2: [], p3: [], p4: [] }; // Initialize matchHistories
         this.tooltipStates = { p1: false, p2: false, p3: false, p4: false }; // Track tooltip visibility
-	}
+    }
 
     // Function to generate Match History table
     generateMatchHistoryTable(history, translations) {
@@ -84,46 +84,46 @@ export default class extends AbstractView
             return;
         }
 
-		console.log(json)
+        console.log(json)
 
-		// Fetch user settings to get the theme
+        // Fetch user settings to get the theme
         let settingsData;
         try {
             console.log("Fetching settings from /pong_api/pong_settings/");
-			const response = await authFetch("/pong_api/pong_settings/", {
+            const response = await authFetch("/pong_api/pong_settings/", {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });
             console.log("Response status:", response.status);
             const responseText = await response.text();
             console.log("Response text:", responseText);
-		if (!response.ok) {
-			throw new Error(extractErrorMessage(responseText, response.status));
-		}
-		const data = JSON.parse(responseText);
-		console.log("Settings data:", data);
-		if (data.ok && data.settings && typeof data.settings === "object") {
-			settingsData = {
-				...data.settings,
-				players: Array(4).fill().map((_, index) => {
-					const player = data.settings.players?.find(p => p.position === index + 1);
-					return { player_name: player?.player_name || '', position: index + 1 };
-				})
-			};
-		} else {
-			console.warn("Invalid settings response:", data);
-			settingsData = { theme: "light", font_size: "medium",  language: "eng"}; // Default to light if no settings
-			throw new Error("Invalid settings data received");
-		}
-		} catch (error) {
-			console.error("Failed to load settings:", error);
-			//alert("Error loading settings: " + error.message);
+            if (!response.ok) {
+                throw new Error(extractErrorMessage(responseText, response.status));
+            }
+            const data = JSON.parse(responseText);
+            console.log("Settings data:", data);
+            if (data.ok && data.settings && typeof data.settings === "object") {
+                settingsData = {
+                    ...data.settings,
+                    players: Array(4).fill().map((_, index) => {
+                        const player = data.settings.players?.find(p => p.position === index + 1);
+                        return { player_name: player?.player_name || '', position: index + 1 };
+                    })
+                };
+            } else {
+                console.warn("Invalid settings response:", data);
+                settingsData = { theme: "light", font_size: "medium",  language: "eng"}; // Default to light if no settings
+                throw new Error("Invalid settings data received");
+            }
+        } catch (error) {
+            console.error("Failed to load settings:", error);
+            //alert("Error loading settings: " + error.message);
             await this.goToNoAuth();
             return;
-    	    settingsData = { theme: "light", font_size: "medium",  language: "eng" }; // Fallback theme
-		}
+            settingsData = { theme: "light", font_size: "medium",  language: "eng" }; // Fallback theme
+        }
 
-		const players = json.data["players"];
+        const players = json.data["players"];
         if (!players || !players["p1"]) {
             console.error("Player stats not found in response:", json);
             this.goToError();
@@ -236,8 +236,8 @@ export default class extends AbstractView
         this.unhideNavbar();
         await this.setContent(content);
 
-		// Apply translations
-		const translations = await this.translationManager.initLanguage(settingsData.language, [
+        // Apply translations
+        const translations = await this.translationManager.initLanguage(settingsData.language, [
             'stats.title',
             'lobby.victories',
             'lobby.defeats',
@@ -248,16 +248,17 @@ export default class extends AbstractView
             'stats.outcome',
             'stats.no_history'
         ]);
-		
-		// Set translated page title
-		const title = translations.stats?.page_title || 'Stats';
-		this.setTitle(title);
+        
+        // Set translated page title
+        const title = translations.stats?.page_title || 'Stats';
+        this.setTitle(title);
 
         // Add click event listeners for Match History buttons
         const buttons = document.querySelectorAll('.match-history-button');
         buttons.forEach(button => {
             const playerKey = button.getAttribute('data-player-key');
             const tooltip = document.getElementById(`tooltip-${playerKey}`);
+            console.log(`Button playerKey: ${playerKey}`); // Debug playerKey value
 
             button.addEventListener('click', (event) => {
                 event.stopPropagation(); // Prevent click from bubbling to document
@@ -267,10 +268,14 @@ export default class extends AbstractView
                     // Generate and show tooltip content
                     tooltip.innerHTML = this.generateMatchHistoryTable(this.matchHistories[playerKey], translations);
                     tooltip.style.display = 'block';
-                    // Position tooltip near button
+                    // Position tooltip based on whether button is on left (p1, p3) or right (p2, p4)
                     const rect = button.getBoundingClientRect();
-                    tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
-                    tooltip.style.left = `${rect.left + window.scrollX}px`;
+                    const isLeftColumn = ['p1', 'p3'].includes(playerKey);
+                    console.log(`Player: ${playerKey}, isLeftColumn: ${isLeftColumn}, rect.left: ${rect.left}, rect.right: ${rect.right}, tooltip.width: ${tooltip.offsetWidth}`); // Debug positioning
+                    tooltip.style.top = `${rect.bottom + window.scrollY - tooltip.offsetHeight - 5 - 400}px`;
+                    tooltip.style.left = isLeftColumn 
+                        ? `${rect.left + window.scrollX - 1050}px` 
+                        : `${rect.right + window.scrollX - tooltip.offsetWidth - 220}px`;
                 } else {
                     tooltip.style.display = 'none';
                 }
@@ -294,65 +299,64 @@ export default class extends AbstractView
             });
         });
 
-
         // Update createChart to use translations
-		function createChart(id, player, translations) {
-		    const ctx = document.getElementById(id).getContext('2d');
-		    const theme = document.body.getAttribute('data-theme') || 'light';
-		    const font_size = settingsData.font_size || 'medium';
-		
-		    // Color mappings for theme
-		    const victoryColor = theme === 'dark' ? '#2ecc71' : '#157045';
-		    const defeatColor = theme === 'dark' ? '#e74c3c' : '#931024';
-		    const titleColor = theme === 'dark' ? '#00cc99' : '#005252';
-		    const legendColor = theme === 'dark' ? '#b0b0b0' : '#005252';
-		
-		    // Font size mappings
-		    const fontSizes = {
-		        small: { title: 13, legend: 12 },
-		        medium: { title: 17, legend: 15 },
-		        large: { title: 21, legend: 18 }
-		    };
-		    const selectedFontSize = fontSizes[font_size] || fontSizes['medium'];
-		
-		    new Chart(ctx, {
-		        type: 'pie',
-		        data: {
-		            labels: [
-		                translations.lobby?.victories || translations['lobby.victories'] || 'Victories',
-		                translations.lobby?.defeats || translations['lobby.defeats'] || 'Defeats'
-		            ],
-		            datasets: [{
-		                data: [player.won, player.lost],
-		                backgroundColor: [victoryColor, defeatColor],
-		                borderColor: '#fff',
-		                borderWidth: 2
-		            }]
-		        },
-		        options: {
-		            responsive: true,
-		            plugins: {
-		                title: {
-		                    display: true,
-		                    text: `${player.name}`,
-		                    font: { size: selectedFontSize.title },
-		                    color: titleColor
-		                },
-		                legend: {
-		                    position: 'bottom',
-		                    labels: {
-		                        font: { size: selectedFontSize.legend },
-		                        color: legendColor
-		                    }
-		                }
-		            }
-		        }
-		    });
-		}
+        function createChart(id, player, translations) {
+            const ctx = document.getElementById(id).getContext('2d');
+            const theme = document.body.getAttribute('data-theme') || 'light';
+            const font_size = settingsData.font_size || 'medium';
+        
+            // Color mappings for theme
+            const victoryColor = theme === 'dark' ? '#2ecc71' : '#157045';
+            const defeatColor = theme === 'dark' ? '#e74c3c' : '#931024';
+            const titleColor = theme === 'dark' ? '#00cc99' : '#005252';
+            const legendColor = theme === 'dark' ? '#b0b0b0' : '#005252';
+        
+            // Font size mappings
+            const fontSizes = {
+                small: { title: 13, legend: 12 },
+                medium: { title: 17, legend: 15 },
+                large: { title: 21, legend: 18 }
+            };
+            const selectedFontSize = fontSizes[font_size] || fontSizes['medium'];
+        
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: [
+                        translations.lobby?.victories || translations['lobby.victories'] || 'Victories',
+                        translations.lobby?.defeats || translations['lobby.defeats'] || 'Defeats'
+                    ],
+                    datasets: [{
+                        data: [player.won, player.lost],
+                        backgroundColor: [victoryColor, defeatColor],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${player.name}`,
+                            font: { size: selectedFontSize.title },
+                            color: titleColor
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: selectedFontSize.legend },
+                                color: legendColor
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
-		createChart("chartP1", players["p1"], translations);
-		createChart("chartP2", players["p2"], translations);
-		createChart("chartP3", players["p3"], translations);
-		createChart("chartP4", players["p4"], translations);
-	}
+        createChart("chartP1", players["p1"], translations);
+        createChart("chartP2", players["p2"], translations);
+        createChart("chartP3", players["p3"], translations);
+        createChart("chartP4", players["p4"], translations);
+    }
 }
