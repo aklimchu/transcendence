@@ -9,17 +9,27 @@ export default class extends AbstractView {
 	}
 
 	async goToView() {
-		let json;
-		try {
-			json = await this.fetchSessionData();
-			if (!json || !json.data) {
-				await this.goToNoAuth();
-				return;
-			}
-		} catch (err) {
-			await this.goToNoAuth("Session expired. Please log in again.");
+		if (!localStorage.getItem('access')) {
+			await this.goToNoAuth("You must be logged in to access settings.");
 			return;
 		}
+
+	   // Block if not authenticated
+	   if (!localStorage.getItem('access')) {
+		   await this.goToNoAuth("You must be logged in to access settings.");
+		   return;
+	   }
+	   let json;
+	   try {
+		   json = await this.fetchSessionData();
+		   if (!json || !json.data) {
+			   await this.goToNoAuth();
+			   return;
+		   }
+	   } catch (err) {
+		   await this.goToNoAuth("Session expired. Please log in again.");
+		   return;
+	   }
 
 		// Fetch current settings from the server
 		let settingsData = {
