@@ -390,11 +390,11 @@ async function unlinkGoogleAccount() {
 		if (window.google && window.google.accounts && window.google.accounts.id) {
 			window.google.accounts.id.disableAutoSelect();
 		}
-		alert("Google account unlinked.");
+		alert("Google signed out.");
 		await setGoogleButtonState();
 		window.location.reload();
 	} else {
-		alert("Failed to unlink Google account.");
+		alert("Failed to sign out Google account.");
 	}
 }
 
@@ -415,7 +415,7 @@ async function setGoogleButtonState() {
 		console.error("Failed to refresh settings for Google button", e);
 	}
 	if (googleLinked) {
-		googleAuthLabel.textContent = "Unlink Google";
+		googleAuthLabel.textContent = "Sign out of Google";
 		googleAuthBtn.onclick = async () => {
 			googleAuthBtn.disabled = true;
 			await unlinkGoogleAccount();
