@@ -531,17 +531,27 @@ def pong_update_settings(request):
 			for position in range(1, 5):
 				player_name = ""
 				avatar_url = "../css/default-avatar.png"
-				try:
-					player_field = getattr(session, f"active_player_{position}", None)
-					if player_field and hasattr(player_field, "player_name"):
-						player_name = player_field.player_name
-						if hasattr(player_field, "avatar") and player_field.avatar:
-							avatar_url = player_field.avatar.url
-					elif player_field:
-						logger.error(f"PongPlayer at position {position} has no player_name attribute")
-				except Exception as e:
-					logger.error(f"Error accessing active_player_{position}: {str(e)}")
-				players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
+			try:
+				player_field = getattr(session, f"active_player_{position}", None)
+				if player_field and hasattr(player_field, "player_name"):
+					player_name = player_field.player_name
+					if hasattr(player_field, "avatar") and player_field.avatar:
+						avatar_val = player_field.avatar
+						if hasattr(avatar_val, "url"):
+							avatar_url = avatar_val.url
+						else:
+							avatar_str = str(avatar_val)
+							if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
+								avatar_url = avatar_str
+							elif avatar_str and not avatar_str.startswith("/media/"):
+								avatar_url = "/media/" + avatar_str.lstrip("/")
+							else:
+								avatar_url = avatar_str or "../css/default-avatar.png"
+				elif player_field:
+					logger.error(f"PongPlayer at position {position} has no player_name attribute")
+			except Exception as e:
+				logger.error(f"Error accessing active_player_{position}: {str(e)}")
+			players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
 
 			settings_data = {
 				"game_speed": settings.game_speed,
@@ -704,14 +714,17 @@ def login_with_2fa(request):
 @permission_classes([AllowAny])
 def google_login(request):
 	token = request.data.get('credential')
+	name = request.data.get('name')
+	picture = request.data.get('picture')
+	email = request.data.get('email')
 	if not token:
 		return Response({'error': 'Missing Google credential'}, status=400)
 	try:
 		idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
-		email = idinfo.get('email')
+		email = email or idinfo.get('email')
 		sub = idinfo.get('sub')
-		name = idinfo.get('name')
-		picture = idinfo.get('picture')
+		name = name or idinfo.get('name')
+		picture = picture or idinfo.get('picture')
 		if not email or not sub:
 			return Response({'error': 'No email or sub in Google token'}, status=400)
 		user, created = User.objects.get_or_create(username=email, defaults={'email': email})
@@ -720,15 +733,28 @@ def google_login(request):
 		profile.google_name = name
 		profile.google_photo_url = picture
 		profile.save()
+
+		try:
+			session = user.pongsession
+			player1 = getattr(session, 'active_player_1', None)
+			if player1 and picture:
+				player1.avatar = picture
+				player1.player_name = name
+				player1.save()
+		except Exception as e:
+			logger.error(f"Error updating player avatar: {str(e)}")
+
 		twofa_enabled = user.totpdevice_set.filter(confirmed=True, name="default").exists()
 		if twofa_enabled:
-			return Response({'2fa_required': True, 'user_id': user.id, 'username': user.username})
+			return Response({'2fa_required': True, 'user_id': user.id, 'username': user.username, 'name': name, 'picture': picture})
 		refresh = RefreshToken.for_user(user)
 		response_data = {
 			'refresh': str(refresh),
 			'access': str(refresh.access_token),
 			'2fa_enabled': twofa_enabled,
 			'username': user.username,
+			'name': name,
+			'picture': picture,
 		}
 		if created:
 			response_data['is_new_user'] = True
@@ -767,15 +793,28 @@ def pong_settings(request):
 	players = []
 	for position in range(1, 5):
 		player_name = ""
+		avatar_url = "../css/default-avatar.png"
 		try:
 			player_field = getattr(session, f"active_player_{position}", None)
 			if player_field and hasattr(player_field, "player_name"):
 				player_name = player_field.player_name
+				if hasattr(player_field, "avatar") and player_field.avatar:
+					avatar_val = player_field.avatar
+					if hasattr(avatar_val, "url"):
+						avatar_url = avatar_val.url
+					else:
+						avatar_str = str(avatar_val)
+						if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
+							avatar_url = avatar_str
+						elif avatar_str and not avatar_str.startswith("/media/"):
+							avatar_url = "/media/" + avatar_str.lstrip("/")
+						else:
+							avatar_url = avatar_str or "../css/default-avatar.png"
 			elif player_field:
 				logger.error(f"PongPlayer at position {position} has no player_name attribute")
 		except Exception as e:
 			logger.error(f"Error accessing active_player_{position}: {str(e)}")
-		players.append({"player_name": player_name, "position": position})
+		players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
 	settings_dict = {
 		"game_speed": settings.game_speed,
 		"ball_size": settings.ball_size,

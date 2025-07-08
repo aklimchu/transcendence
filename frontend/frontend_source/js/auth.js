@@ -268,10 +268,25 @@ export async function handleCredentialResponse(response) {
 	localStorage.removeItem("access");
 	localStorage.removeItem("refresh");
 
+	let name = null, picture = null, email = null;
+	try {
+		const base64Url = response.credential.split('.')[1];
+		const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+		const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+			return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+		}).join(''));
+		const payload = JSON.parse(jsonPayload);
+		name = payload.name;
+		picture = payload.picture;
+		email = payload.email;
+	} catch (e) {
+		console.warn("Could not decode Google ID token", e);
+	}
+
 	const responseData = await authFetch("/pong_api/google_login/", {
 		method: "POST",
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ credential: response.credential })
+		body: JSON.stringify({ credential: response.credential, name, picture, email })
 	});
 
 	if (!responseData || !responseData.ok) {

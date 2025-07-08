@@ -3,6 +3,13 @@ import { authFetch, handleCredentialResponse } from "../auth.js";
 import { TranslationManager, extractErrorMessage } from "../utils.js";
 
 export default class extends AbstractView {
+	getAvatarUrl(avatar) {
+		if (!avatar) return '../css/default-avatar.png';
+		if (avatar.startsWith('http://') || avatar.startsWith('https://')) return avatar;
+		if (avatar.startsWith('/media/') || avatar.startsWith('/static/')) return avatar;
+		if (avatar !== '../css/default-avatar.png') return '/media/' + avatar;
+		return avatar;
+	}
 	constructor(params) {
 		super(params);
 		this.translationManager = new TranslationManager();
@@ -191,7 +198,7 @@ export default class extends AbstractView {
 							<div class="player-box player${index + 1}">
 								<div class="player-name" data-name="${player.player_name || `Player ${index + 1}`}">${player.player_name || `Player ${index + 1}`}</div>
 								<div class="player-avatar">
-									<img src="${player.avatar || '../css/default-avatar.png'}" alt="Avatar" class="avatar-image" />
+									<img src="${this.getAvatarUrl(player.avatar)}" alt="Avatar" class="avatar-image" />
 								</div>
 								<div class="player-config player${index + 1}-config">
 									<label for="player${index + 1}_name" data-i18n="settings.player_name">Name</label>
