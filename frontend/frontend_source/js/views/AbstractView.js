@@ -1,4 +1,4 @@
-import { authFetch } from "../auth.js";
+import { authFetch, handleCredentialResponse } from "../auth.js";
 
 export default class
 {
@@ -75,8 +75,7 @@ export default class
 
 	async goToNoAuth(message = "")
 	{
-		var content = `
-		
+		let content = `
 		<div class="container mt-5">
 			<div class="first-card p-4 mx-auto" style="max-width: 400px;">
 				${message ? `<div class="alert alert-warning text-center">${message}</div>` : ""}
@@ -94,15 +93,35 @@ export default class
 						<button type="button" id="login" class="btn" style="background-color: #006461; color: white;">Login</button>
 						<button type="button" id="register" class="btn btn-secondary" style="background-color: #535A5F;">Register</button>
 					</div>
+					<div style="margin: 1em 0; text-align: center;">or</div>
+					<div id="g_id_signin" style="display: flex; justify-content: center;"></div>
 				</form>
 			</div>
 		</div>
-		`
+		`;
 
 		history.replaceState({view : "lobby_view"}, null, null);
 		this.hideNavbar();
 		this.setTitle("Lobby");
-		this.setContent(content);
+		this.setContent(content).then(() => {
+            const renderGoogleButton = () => {
+                if (window.google && document.getElementById("g_id_signin")) {
+                    google.accounts.id.initialize({
+                        client_id: window.GOOGLE_CLIENT_ID,
+                        callback: handleCredentialResponse
+                    });
+                    google.accounts.id.renderButton(
+                        document.getElementById("g_id_signin"),
+                        { theme: "outline", size: "large" }
+                    );
+                }
+            };
+            if (window.google) {
+                renderGoogleButton();
+            } else {
+                window.addEventListener("google-loaded", renderGoogleButton, { once: true });
+            }
+        });
 	}
 
 	async goToError()

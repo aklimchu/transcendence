@@ -57,34 +57,34 @@ export async function register_func(user, pwd) {
 }
 
 export async function login_func(user, pwd) {
-    let token = prompt("Enter your 2FA code from your Authenticator app (leave blank if not enabled):") || "";
+	let token = prompt("Enter your 2FA code from your Authenticator app (leave blank if not enabled):") || "";
 
-    const response = await authFetch("/pong_api/login_with_2fa/", {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user, password: pwd, token: token })
-    });
+	const response = await authFetch("/pong_api/login_with_2fa/", {
+		method: "POST",
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ username: user, password: pwd, token: token })
+	});
 
-    if (!response.ok) {
-        let errorMsg = `Login failed (${response.status}).`;
-        try {
-            const errorData = await response.json();
-            if (errorData && errorData.error)
-                errorMsg = `Login failed: ${errorData.error} (${response.status})`;
-            else if (errorData && errorData.detail)
-                errorMsg = `Login failed: ${errorData.detail} (${response.status})`;
-        } catch (e) {
-            errorMsg += " (Could not parse error details)";
-        }
-        showErrorMessage(errorMsg, 0);
-        return false;
-    }
+	if (!response.ok) {
+		let errorMsg = `Login failed (${response.status}).`;
+		try {
+			const errorData = await response.json();
+			if (errorData && errorData.error)
+				errorMsg = `Login failed: ${errorData.error} (${response.status})`;
+			else if (errorData && errorData.detail)
+				errorMsg = `Login failed: ${errorData.detail} (${response.status})`;
+		} catch (e) {
+			errorMsg += " (Could not parse error details)";
+		}
+		showErrorMessage(errorMsg, 0);
+		return false;
+	}
 
-    const data = await response.json();
-    localStorage.setItem("access", data.access);
-    localStorage.setItem("refresh", data.refresh);
-    showSuccessMessage("Login successful!", 0);
-    return true;
+	const data = await response.json();
+	localStorage.setItem("access", data.access);
+	localStorage.setItem("refresh", data.refresh);
+	showSuccessMessage("Login successful!", 0);
+	return true;
 }
 
 export async function logout_func() {
@@ -242,29 +242,141 @@ function showSuccessMessage(message, index) {
 export async function authFetch(url, options = {}) {
 	let access = localStorage.getItem('access');
 	options.headers = options.headers || {};
-	if (access)
+	if (access) {
 		options.headers['Authorization'] = `Bearer ${access}`;
+	}
 	if (!url.startsWith("/")) url = "/" + url;
 	let response = await fetch(url, options);
 
-	if (response.status === 401 && localStorage.getItem('refresh')) {
-		const refreshResponse = await fetch('/api/token/refresh/', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ refresh: localStorage.getItem('refresh') })
-		});
-		if (refreshResponse.ok) {
-			const data = await refreshResponse.json();
-			localStorage.setItem('access', data.access);
-			options.headers['Authorization'] = `Bearer ${data.access}`;
-			response = await fetch(url, options);
-		} else {
+	if (response.status === 401) {
+		if (access) {
 			localStorage.removeItem('access');
 			localStorage.removeItem('refresh');
 			showErrorMessage("Session expired. Please log in again.", 0);
-			setTimeout(() => { if (typeof router === "function") router(null);}, 1000);
-			return null;
+			if (typeof router === "function") {
+				router(null);
+			} else {
+				window.location.reload();
+			}
 		}
+		return null;
 	}
 	return response;
+}
+
+export async function handleCredentialResponse(response) {
+	localStorage.removeItem("access");
+	localStorage.removeItem("refresh");
+
+	const responseData = await authFetch("/pong_api/google_login/", {
+		method: "POST",
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ credential: response.credential })
+	});
+
+	if (!responseData || !responseData.ok) {
+		let errorMsg = `Google login failed (${responseData ? responseData.status : "no response"}).`;
+		try {
+			const errorData = responseData ? await responseData.json() : null;
+			if (errorData && errorData.error)
+				errorMsg = `Google login failed: ${errorData.error} (${responseData.status})`;
+			else if (errorData && errorData.detail)
+				errorMsg = `Google login failed: ${errorData.detail} (${responseData.status})`;
+		} catch (e) {
+			errorMsg += " (Could not parse error details)";
+		}
+		showErrorMessage(errorMsg, 0);
+		return false;
+	}
+
+	let data = await responseData.json();
+
+	if (data["2fa_required"]) {
+		const code = prompt("2FA is enabled. Please enter your 2FA code:");
+		if (!code) {
+			showErrorMessage("2FA code required to complete login.", 0);
+			return false;
+		}
+		const verifyResp = await authFetch("/pong_api/2fa/verify/", {
+			method: "POST",
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ user_id: data.user_id, totp: code })
+		});
+		if (!verifyResp || !verifyResp.ok) {
+			showErrorMessage("Invalid 2FA code.", 0);
+			return false;
+		}
+		const verifyData = await verifyResp.json();
+		if (verifyData.access && verifyData.refresh) {
+			localStorage.setItem("access", verifyData.access);
+			localStorage.setItem("refresh", verifyData.refresh);
+			showSuccessMessage("Login successful!", 0);
+			if (data.is_new_user) {
+				let password = null;
+				while (!password) {
+					password = prompt("Welcome! Please create a password for your account:");
+					if (password === null) {
+						showErrorMessage("Password creation is required to complete registration.", 0);
+						return false;
+					}
+				}
+				const formData = new FormData();
+				formData.append("password", password);
+				const pwdResp = await authFetch("/pong_api/pong_settings/update/", {
+					method: "POST",
+					body: formData
+				});
+				if (!pwdResp || !pwdResp.ok) {
+					showErrorMessage("Failed to set password. Please try again.", 0);
+					return false;
+				}
+				showSuccessMessage("Password set successfully!", 0);
+			}
+			if (typeof router === "function") {
+				router(null);
+			} else {
+				window.location.reload();
+			}
+			return true;
+		} else {
+			showErrorMessage("2FA verification failed.", 0);
+			return false;
+		}
+	}
+
+	if (data.access && data.refresh) {
+		localStorage.setItem("access", data.access);
+		localStorage.setItem("refresh", data.refresh);
+		showSuccessMessage("Login successful!", 0);
+		if (data.is_new_user) {
+			let password = null;
+			while (!password) {
+				password = prompt("Welcome! Please create a password for your account:");
+				if (password === null) {
+					showErrorMessage("Password creation is required to complete registration.", 0);
+					return false;
+				}
+			}
+			const formData = new FormData();
+			formData.append("password", password);
+			const pwdResp = await authFetch("/pong_api/pong_settings/update/", {
+				method: "POST",
+				body: formData
+			});
+			if (!pwdResp || !pwdResp.ok) {
+				showErrorMessage("Failed to set password. Please try again.", 0);
+				return false;
+			}
+			showSuccessMessage("Password set successfully!", 0);
+		}
+		if (typeof router === "function") {
+			router(null);
+		} else {
+			window.location.reload();
+		}
+		return true;
+	} else {
+		showErrorMessage("Login failed.", 0);
+		return false;
+	}
 }

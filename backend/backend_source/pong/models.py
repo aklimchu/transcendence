@@ -2,9 +2,17 @@ from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.conf import settings  # For media-related defaults
 
-# Create your models here.
+
+# UserProfile model for Google login and profile info
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="userprofile")
+    google_id = models.CharField(max_length=128, blank=True, null=True)
+    google_name = models.CharField(max_length=128, blank=True, null=True)
+    google_photo_url = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Profile for {self.user.username} (Google: {self.google_name})"
 
 class PongSession(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -41,7 +49,7 @@ class PongPlayer(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['player_session', 'player_name'], name='Unique player names for each session')]
-	
+    
     def __str__(self):
         return self.player_name or "Unnamed Player"
 
