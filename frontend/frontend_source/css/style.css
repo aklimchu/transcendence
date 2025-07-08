@@ -44,6 +44,7 @@ html {
     --text-secondary: #ececec;
     --bg-primary: #ffffff;
     --bg-secondary: #ffa500;
+    --bg-secondary-game: #ffa500;
     --bg-tertiary: #008080;
     --bg-accent: #005252;
     --bg-overlay: url('perry.jpg');
@@ -62,6 +63,7 @@ html {
     --text-secondary: #b0b0b0;
     --bg-primary: #1a1a1a;
     --bg-secondary: #333333;
+    --bg-secondary-game: #555555;
     --bg-tertiary: #004d4d;
     --bg-accent: #003333;
     --bg-overlay: url('perry.jpg');
@@ -353,7 +355,7 @@ a {
 }
 
 .game-card {
-    background-color: var(--bg-secondary) !important;
+    background-color: var(--bg-secondary-game) !important;
     box-shadow: 0px 0px 5px var(--border-color) !important;
     border-radius: 24px;
     font-size: var(--base-font-size);
@@ -368,7 +370,7 @@ a {
 }
 
 .game-status-card {
-    color: var(--bg-secondary);
+    color: var(--bg-secondary-game);
     background-color: var(--bg-accent) !important;
     box-shadow: 0px 0px 5px var(--border-color) !important;
     border-radius: 24px;

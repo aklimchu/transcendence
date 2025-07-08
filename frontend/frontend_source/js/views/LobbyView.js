@@ -69,6 +69,8 @@ export default class extends AbstractView {
         this.applyTheme(settingsData.theme);
         this.applyFontSize(settingsData.font_size);
 
+        const onlineColor = settingsData.theme === 'dark' ? '#003333' : '#28a745';
+
         var content = `
         <style>
             .online-status {
@@ -77,7 +79,7 @@ export default class extends AbstractView {
                 justify-content: center;
                 width: 60px;
                 height: 20px;
-                background-color: #28a745;
+                background-color:${onlineColor};
                 border-radius: 10px;
                 color: white;
                 font-size: 12px;

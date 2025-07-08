@@ -90,7 +90,7 @@ export default class extends GameView {
         // Determine game type
         const game_type = json.data.unfinished_tournament.tournament_type === 'pong' ? 'pong' : 'snek';
         const theme = document.body.getAttribute('data-theme') || 'light';
-        const buttonColor = theme === 'dark' ? '#ffb84d' : '#cc8400';
+        const buttonColor = theme === 'dark' ? '#003333' : '#005252';
 
         // Semifinal 1
         let semi1_div_content;
