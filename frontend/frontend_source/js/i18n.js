@@ -4,7 +4,7 @@ import { authFetch } from "./auth.js";
 const translationManager = new TranslationManager();
 
 async function initTranslations() {
-    let language = "eng"; // Default language
+    let language = "eng";
     try {
         const response = await authFetch("/pong_api/pong_settings/", {
             method: "GET",
@@ -31,7 +31,6 @@ async function initTranslations() {
         "nav.error"
     ]);
 
-    // Apply translations to the page title
     const titleElement = document.querySelector("title[data-i18n='nav.title']");
     if (titleElement && translations.nav?.title) {
         titleElement.textContent = translations.nav.title;

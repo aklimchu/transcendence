@@ -60,7 +60,6 @@ export default class extends AbstractView {
             }
         } catch (error) {
             console.error("Failed to load settings:", error);
-            //alert("Error loading settings: " + error.message);
             await this.goToNoAuth();
             return;
         }

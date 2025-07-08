@@ -1,39 +1,38 @@
 @import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
 
 :root {
-    --base-font-size: 20px; /* Default base font size */
-    --settings-form-size: 100%; /* Default settings form size */
+    --base-font-size: 20px;
+    --settings-form-size: 100%;
     font-family: 'Quicksand', sans-serif;
     --transition-speed: 600ms;
-    --player-box-size: 220px; /* Default player box size */
-    --player-container-size: 600px; /* Default player container size */
-	--general-container-width: 550px; /* Default general container width */
+    --player-box-size: 220px;
+    --player-container-size: 600px;
+	--general-container-width: 550px;
 }
 
 /* Font Size Variations */
 [data-font-size="small"] {
-    --base-font-size: 16px; /* Adjusted for readability */
+    --base-font-size: 16px;
     --settings-form-size: 50%;
-    --player-box-size: calc(220px * 0.8); /* Scale down to 80% of default */
-    --player-container-size: calc(600px * 0.8); /* Scale down to 80% of default */
-	--general-container-width: calc(550px * 0.8); /* Scale down to 80% of default */
+    --player-box-size: calc(220px * 0.8);
+    --player-container-size: calc(600px * 0.8);
+	--general-container-width: calc(550px * 0.8);
 }
 
 [data-font-size="medium"] {
-    --base-font-size: 20px; /* Matches original default */
-    --player-box-size: 220px; /* Default size */
-    --player-container-size: 600px; /* Default size */
-	--general-container-width: 550px; /* Default size */
+    --base-font-size: 20px;
+    --player-box-size: 220px;
+    --player-container-size: 600px;
+	--general-container-width: 550px;
 }
 
 [data-font-size="large"] {
-    --base-font-size: 24px; /* Adjusted for layout stability */
+    --base-font-size: 24px;
     --player-box-size: calc(220px * 1);
-    --player-container-size: calc(600px * 1.3); /* Increase to 780px to fit two 264px boxes with gap */
+    --player-container-size: calc(600px * 1.3);
 	--general-container-width: calc(600px * 1.15);
 }
 
-/* Apply base font size globally */
 html {
     font-size: var(--base-font-size);
 }
@@ -77,8 +76,8 @@ html {
 }
 
 .form-select {
-    width: 100%; /* Full width of parent container */
-    max-width: 300px; /* Upper limit to prevent excessive stretching */
+    width: 100%;
+    max-width: 300px;
 }
 
 .row.mb-2, .row.mb-4 {
@@ -386,7 +385,7 @@ a {
 .lobby-card-title {
     color: var(--text-primary);
     font-size: calc(var(--base-font-size) * 1.5);
-    margin-bottom: 10px; /* Add space below name for avatar */
+    margin-bottom: 10px;
 }
 
 .lobby-card1, .lobby-card2, .lobby-card3, .lobby-card4 {
@@ -394,12 +393,12 @@ a {
     background-color: var(--bg-secondary);
     border-radius: 10px;
     font-size: var(--base-font-size);
-    padding: 20px; /* Increase padding to fit avatar */
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%; /* Ensure full height */
+    height: 100%;
 }
 
 .lobby-card-body {
@@ -410,22 +409,22 @@ a {
 }
 
 .player-avatar {
-    width: 100px; /* Adjust size as needed */
+    width: 100px;
     height: 100px;
-    margin: 10px 0; /* Space above and below avatar */
-    border-radius: 50%; /* Circular avatar */
+    margin: 10px 0;
+    border-radius: 50%;
     overflow: hidden;
 }
 
 .avatar-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensure image fits within the circle */
-    border: 0px solid var(--border-color); /* Optional border for style */
+    object-fit: cover;
+    border: 0px solid var(--border-color);
 }
 
 .lobby-card-text {
-    margin: 5px 0; /* Adjust spacing for victories/defeats */
+    margin: 5px 0;
 }
 
 /* Tournament View Style */
@@ -506,7 +505,7 @@ a {
     border: 4px solid var(--border-color);
     font-size: var(--base-font-size);
     min-height: 600px;
-	width: var(--general-container-width); /* Use dynamic width */
+	width: var(--general-container-width);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -532,8 +531,8 @@ a {
     display: flex;
     align-items: center;
     gap: 10px;
-    justify-content: flex-end; /* Right-align the entire row */
-    width: 100%; /* Ensure full width of the container */
+    justify-content: flex-end;
+    width: 100%;
 }
 
 #settings-form label {
@@ -542,12 +541,12 @@ a {
     font-size: var(--base-font-size);
     white-space: nowrap;
     margin-right: 5px;
-    flex-shrink: 0; /* Prevent label from shrinking */
+    flex-shrink: 0;
 }
 
 #settings-form select,
 #settings-form input {
-    width: var(--settings-form-size); /* Retain original size */
+    width: var(--settings-form-size);
     padding: 10px;
     font-size: var(--base-font-size);
     border-radius: 12px;
@@ -555,7 +554,7 @@ a {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    flex-grow: 0; /* Prevent select from growing beyond its size */
+    flex-grow: 0;
 }
 
 #settings-form input::placeholder {
@@ -570,12 +569,12 @@ a {
     box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.3);
     border: 4px solid var(--border-color);
     font-size: var(--base-font-size);
-    min-height: var(--player-container-size); /* Use dynamic size */
-    width: var(--player-container-size); /* Use dynamic size */
+    min-height: var(--player-container-size);
+    width: var(--player-container-size);
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Change to center to reduce gap */
-    align-items: center; /* Ensure horizontal centering */
+    justify-content: center;
+    align-items: center;
 }
 
 .player-settings {
@@ -585,7 +584,7 @@ a {
     justify-content: center;
     padding: 10px;
     font-size: var(--base-font-size);
-	max-width: var(--player-container-size); /* Limit to container width */
+	max-width: var(--player-container-size);
 }
 
 .player-box {
@@ -595,8 +594,8 @@ a {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: var(--player-box-size); /* Use dynamic size */
-    height: var(--player-box-size); /* Use dynamic size */
+    width: var(--player-box-size);
+    height: var(--player-box-size);
     border: 3px solid var(--bg-accent);
     border-radius: 18px;
     font-weight: bold;
@@ -619,8 +618,8 @@ a {
 }
 
 .player-box .player-avatar {
-    width: calc(var(--player-box-size) * 0.59); /* 130px / 220px ≈ 0.59 */
-    height: calc(var(--player-box-size) * 0.59); /* 130px / 220px ≈ 0.59 */
+    width: calc(var(--player-box-size) * 0.59);
+    height: calc(var(--player-box-size) * 0.59);
     border-radius: 50%;
     object-fit: cover;
     margin: 10px auto;
@@ -656,8 +655,8 @@ a {
 }
 
 .player-box .player-avatar img {
-    width: calc(var(--player-box-size) * 0.59); /* 130px / 220px ≈ 0.59 */
-    height: calc(var(--player-box-size) * 0.59); /* 130px / 220px ≈ 0.59 */
+    width: calc(var(--player-box-size) * 0.59);
+    height: calc(var(--player-box-size) * 0.59);
     border-radius: 50%;
 }
 

@@ -7,9 +7,9 @@ export default class extends AbstractView
     constructor(params)
     {
         super(params);
-        this.translationManager = new TranslationManager(); // Initialize TranslationManager
-        this.matchHistories = { p1: [], p2: [], p3: [], p4: [] }; // Initialize matchHistories
-        this.tooltipStates = { p1: false, p2: false, p3: false, p4: false }; // Track tooltip visibility
+        this.translationManager = new TranslationManager();
+        this.matchHistories = { p1: [], p2: [], p3: [], p4: [] };
+        this.tooltipStates = { p1: false, p2: false, p3: false, p4: false };
     }
 
     // Function to generate Match History table
@@ -27,9 +27,7 @@ export default class extends AbstractView
                     <th>${translations['stats.outcome'] || 'Outcome'}</th>
                 </tr>`;
         history.forEach(game => {
-            // Parse game.score (e.g., "5 - 0") and format as [player_score]-[opponent_score]
             let playerScore, opponentScore;
-            // Remove spaces around hyphen
             const cleanScore = game.score.replace(/\s/g, '');
             const scoreParts = cleanScore.split('-').map(Number);
             console.log(`Processing game: score=${game.score}, cleanScore=${cleanScore}, outcome=${game.outcome}`);
@@ -161,7 +159,6 @@ export default class extends AbstractView
             console.log("Match Histories:", this.matchHistories);
         } catch (error) {
             console.error("Failed to fetch match histories:", error);
-            // Continue rendering the page even if match history fails
         }
 
 const content = `
@@ -276,10 +273,10 @@ const content = `
                 if (this.tooltipStates[playerKey]) {
                     tooltip.innerHTML = this.generateMatchHistoryTable(this.matchHistories[playerKey], translations);
                     tooltip.style.display = 'block';
-                    tooltip.style.visibility = 'hidden'; // Temporarily hide for accurate measurements
+                    tooltip.style.visibility = 'hidden';
                     const rect = button.getBoundingClientRect();
                     const isLeftColumn = ['p1', 'p3'].includes(playerKey);
-                    const topPosition = rect.bottom + window.scrollY - tooltip.offsetHeight - 5 - 300;
+                    const topPosition = rect.bottom + window.scrollY - tooltip.offsetHeight - 5 - 200;
                     let leftPosition = isLeftColumn 
                         ? rect.left + window.scrollX - 1250
                         : rect.right + window.scrollX - tooltip.offsetWidth - 280;
@@ -324,7 +321,6 @@ const content = `
             });
         });
 
-        // Update createChart to use translations
         function createChart(id, player, translations) {
             const ctx = document.getElementById(id).getContext('2d');
             const theme = document.body.getAttribute('data-theme') || 'light';

@@ -5,7 +5,7 @@ import { TranslationManager, extractErrorMessage } from "../utils.js";
 export default class extends AbstractView {
     constructor(params) {
         super(params);
-        this.translationManager = new TranslationManager(); // Initialize TranslationManager
+        this.translationManager = new TranslationManager();
     }
 
     async goToView() {
@@ -60,7 +60,6 @@ export default class extends AbstractView {
             }
         } catch (error) {
             console.error("Failed to load settings:", error);
-//            alert("Error loading settings: " + error.message);
             await this.goToNoAuth();
             return;
         }
@@ -158,13 +157,12 @@ export default class extends AbstractView {
         this.setTitle(title);
     }
 
-    // Assume these methods exist in AbstractView.js
     applyTheme(theme) {
         document.body.setAttribute('data-theme', theme);
     }
 
     applyFontSize(fontSize) {
         document.documentElement.setAttribute('data-font-size', fontSize);
-        localStorage.setItem('font-size', fontSize); // Optional: store locally for quick access
+        localStorage.setItem('font-size', fontSize);
     }
 }

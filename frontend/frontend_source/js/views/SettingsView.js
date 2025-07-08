@@ -32,7 +32,7 @@ export default class extends AbstractView {
             language: "eng",
             players: Array(4).fill().map((_, index) => ({
                 player_name: '',
-                avatar: '../css/default-avatar.png', // Align with backend's default
+                avatar: '../css/default-avatar.png',
                 position: index + 1
             }))
         };
@@ -58,7 +58,7 @@ export default class extends AbstractView {
                         const player = data.settings.players?.find(p => p.position === index + 1);
                         return {
                             player_name: player?.player_name || '',
-                            avatar: player?.avatar || '../css/default-avatar.png', // Include avatar
+                            avatar: player?.avatar || '../css/default-avatar.png',
                             position: index + 1
                         };
                     })
@@ -69,10 +69,8 @@ export default class extends AbstractView {
             }
         } catch (error) {
             console.error("Failed to load settings:", error);
-            //alert("Error loading settings: " + error.message);
             await this.goToNoAuth();
             return;
-            // Fall back to defaults defined above
         }
 
 		let twoFAEnabled = false;
@@ -431,7 +429,7 @@ export default class extends AbstractView {
             if (data.ok) {
                 alert(translations.settings?.alert_saved || "Settings saved successfully!");
                 setTimeout(() => {
-                    this.goToView(); // Refresh to reflect updated settings
+                    this.goToView();
                 }, 1000);
             } else {
                 alert(`${translations.settings?.alert_error || "Error saving settings"}: ${data.error}`);

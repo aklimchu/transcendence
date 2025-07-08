@@ -7,7 +7,7 @@ export class TranslationManager {
         this.fallbackLanguage = fallbackLanguage;
         this.currentLanguage = fallbackLanguage;
         this.translations = {};
-        this.languageMap = { en: 'eng', sw: 'swd', swe: 'swd', fi: 'fin' }; // Normalize language codes
+        this.languageMap = { en: 'eng', sw: 'swd', swe: 'swd', fi: 'fin' }; 
     }
 
     // Load translations for a given language
@@ -66,14 +66,12 @@ export class TranslationManager {
         });
     }
 
-    // Initialize language for the app
     async initLanguage(lang, requiredKeys = ['stats.title']) {
         const normalizedLang = this.languageMap[lang] || lang || this.fallbackLanguage;
         console.log(`Initializing language: ${normalizedLang}`);
         
         try {
             this.translations = await this.loadLanguage(normalizedLang);
-            // Check for required keys
             const missingKeys = requiredKeys.filter(key => !this.getTranslation(key, this.translations));
             if (missingKeys.length > 0 && normalizedLang !== this.fallbackLanguage) {
                 console.warn(`Missing required keys in ${normalizedLang}: ${missingKeys.join(', ')}`);
@@ -106,7 +104,6 @@ export class TranslationManager {
         return this.translations;
     }
 
-    // Get current translations for use in views (e.g., charts)
     getCurrentTranslations() {
         return this.translations;
     }
@@ -114,13 +111,6 @@ export class TranslationManager {
 
 export async function resetSettingsToDefault() {
     try {
-        /* // Initialize TranslationManager
-        const translationManager = new TranslationManager();
-        const translations = await translationManager.initLanguage('eng', [
-            'settings.alert_saved',
-            'settings.alert_error'
-        ]); */
-
         // Fetch current settings
         console.log("Fetching current settings from /pong_api/pong_settings/");
         const getResponse = await authFetch("/pong_api/pong_settings/", {
