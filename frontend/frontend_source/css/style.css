@@ -97,6 +97,12 @@ html {
 }
 
 /* StatsView Styles */
+body, html {
+    height: 100vh;
+    margin: 0;
+    overflow: hidden; /* Prevent scrolling */
+}
+
 .stats-title {
     color: var(--text-primary);
     font-size: calc(var(--base-font-size) * 1.5);
@@ -106,7 +112,7 @@ html {
     border: 3px solid var(--border-color);
     background-color: var(--bg-secondary);
     border-radius: 10px;
-    height: 80vh;
+    height: 90vh;
     padding: 1rem;
     font-size: var(--base-font-size);
 }

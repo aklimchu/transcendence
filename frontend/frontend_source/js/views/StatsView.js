@@ -120,7 +120,6 @@ export default class extends AbstractView
             //alert("Error loading settings: " + error.message);
             await this.goToNoAuth();
             return;
-            settingsData = { theme: "light", font_size: "medium",  language: "eng" }; // Fallback theme
         }
 
         const players = json.data["players"];
@@ -209,6 +208,14 @@ const content = `
             .stats-container {
                 position: relative;
                 overflow: visible;
+            }
+            .stats-card {
+                border: 3px solid var(--border-color);
+                background-color: var(--bg-secondary);
+                border-radius: 10px;
+                height: 90vh;
+                padding: 1rem;
+                font-size: var(--base-font-size);
             }
         </style>
         <div class="stats-container my-2">
