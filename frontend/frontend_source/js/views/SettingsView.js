@@ -14,7 +14,6 @@ export default class extends AbstractView {
 			return;
 		}
 
-	   // Block if not authenticated
 	   if (!localStorage.getItem('access')) {
 		   await this.goToNoAuth("You must be logged in to access settings.");
 		   return;
@@ -160,6 +159,10 @@ export default class extends AbstractView {
 									<option value="fin" ${settingsData.language === "fin" ? "selected" : ""} data-i18n="settings.lang_fin">Finnish</option>
 									<option value="swd" ${settingsData.language === "swd" ? "selected" : ""} data-i18n="settings.lang_swd">Swedish</option>
 								</select>
+							</div>
+							<div class="form-row">
+								<label for="password" data-i18n="settings.password">Change Password</label>
+								<input type="password" id="password" data-i18n-placeholder="settings.password_placeholder" placeholder="Enter new password" autocomplete="new-password" />
 							</div>
 							<div class="form-row">
 								<label for="twofa-select" data-i18n="settings.twofa_label">Two-Factor Authentication</label>
@@ -388,48 +391,55 @@ export default class extends AbstractView {
 		const googleAuthLabel = document.getElementById("google-auth-label");
 		const googleAuthIcon = document.getElementById("google-auth-icon");
 
-	   let googleLinked = false;
-	   try {
-		   if (typeof data !== 'undefined' && data.google_linked !== undefined) {
-			   googleLinked = data.google_linked;
-		   }
-	   } catch (e) {}
+async function unlinkGoogleAccount() {
+	const resp = await authFetch("/pong_api/auth/google/unlink/", { method: "POST" });
+	if (resp.ok) {
+		if (window.google && window.google.accounts && window.google.accounts.id) {
+			window.google.accounts.id.disableAutoSelect();
+		}
+		alert("Google account unlinked.");
+		await setGoogleButtonState();
+		window.location.reload();
+	} else {
+		alert("Failed to unlink Google account.");
+	}
+}
 
-	   async function setGoogleButtonState() {
-		   if (!googleAuthBtn || !googleAuthLabel) return;
-		   googleAuthBtn.disabled = true;
-		   try {
-			   const resp = await authFetch("/pong_api/pong_settings/", {
-				   method: "GET",
-				   headers: { "Content-Type": "application/json" }
-			   });
-			   if (resp.ok) {
-				   const data = await resp.json();
-				   googleLinked = !!data.google_linked;
-			   }
-		   } catch (e) {
-			   console.error("Failed to refresh settings for Google button", e);
-		   }
-		   if (googleLinked) {
-			   googleAuthLabel.textContent = "Sign out of Google";
-			   googleAuthBtn.onclick = async () => {
-				   googleAuthBtn.disabled = true;
-				   await unlinkGoogleAccount();
-				   await setGoogleButtonState();
-				   googleAuthBtn.disabled = false;
-			   };
-		   } else {
-			   googleAuthLabel.textContent = "Sign in with Google";
-			   googleAuthBtn.onclick = () => {
-				   if (window.google && window.google.accounts && window.google.accounts.id) {
-					   window.google.accounts.id.prompt();
-				   } else {
-					   alert("Google Sign-In not loaded.");
-				   }
-			   };
-		   }
-		   googleAuthBtn.disabled = false;
-	   }
+async function setGoogleButtonState() {
+	if (!googleAuthBtn || !googleAuthLabel) return;
+	googleAuthBtn.disabled = true;
+	let googleLinked = false;
+	try {
+		const resp = await authFetch("/pong_api/pong_settings/", {
+			method: "GET",
+			headers: { "Content-Type": "application/json" }
+		});
+		if (resp.ok) {
+			const data = await resp.json();
+			googleLinked = !!data.google_linked;
+		}
+	} catch (e) {
+		console.error("Failed to refresh settings for Google button", e);
+	}
+	if (googleLinked) {
+		googleAuthLabel.textContent = "Unlink Google";
+		googleAuthBtn.onclick = async () => {
+			googleAuthBtn.disabled = true;
+			await unlinkGoogleAccount();
+			googleAuthBtn.disabled = false;
+		};
+	} else {
+		googleAuthLabel.textContent = "Sign in with Google";
+		googleAuthBtn.onclick = () => {
+			if (window.google && window.google.accounts && window.google.accounts.id) {
+				window.google.accounts.id.prompt();
+			} else {
+				alert("Google Sign-In not loaded.");
+			}
+		};
+	}
+	googleAuthBtn.disabled = false;
+}
 
 	   if (window.google && window.google.accounts && window.google.accounts.id) {
 		   window.google.accounts.id.initialize({
@@ -479,8 +489,10 @@ export default class extends AbstractView {
 		formData.append("theme", getValue("theme"));
 		formData.append("font_size", getValue("font_size"));
 		formData.append("language", getValue("language"));
-		formData.append("password", getValue("password"));
-
+		const password = getValue("password");
+		if (password) {
+			formData.append("password", password);
+		}
 		// Handle player data and avatar uploads
 		const players = [1, 2, 3, 4].map(playerId => {
 			const name = getValue(`player${playerId}_name`);
@@ -500,7 +512,7 @@ export default class extends AbstractView {
 		// Append players array length for server-side processing
 		formData.append("players_length", players.length);
 
-		authFetch('/pong_api/pong_settings/', {
+		authFetch('/pong_api/pong_settings/update/', {
 			method: 'POST',
 			headers: {
 				'X-CSRFToken': getCookie('csrftoken')

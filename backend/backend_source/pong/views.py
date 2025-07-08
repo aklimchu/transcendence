@@ -113,10 +113,22 @@ class TwoFASetupView(APIView):
 		return Response({'qr_code': qr_b64, 'secret': device.key})
 
 class TwoFAVerifyView(APIView):
-	permission_classes = [IsAuthenticated]
+	permission_classes = [AllowAny]
 	def post(self, request):
-		user = request.user
-		token = request.data.get('token')
+		user_id = request.data.get('user_id')
+		token = request.data.get('totp') or request.data.get('token')
+		if not token:
+			return Response({'error': 'Missing token.'}, status=400)
+		user = None
+		if user_id:
+			try:
+				user = User.objects.get(id=user_id)
+			except User.DoesNotExist:
+				return Response({'error': 'No user found.'}, status=400)
+		elif request.user and request.user.is_authenticated:
+			user = request.user
+		else:
+			return Response({'error': 'Missing user_id or not authenticated.'}, status=400)
 		try:
 			device = TOTPDevice.objects.get(user=user, name="default")
 		except TOTPDevice.DoesNotExist:
@@ -124,6 +136,14 @@ class TwoFAVerifyView(APIView):
 		if device.verify_token(token):
 			device.confirmed = True
 			device.save()
+			if user_id:
+				refresh = RefreshToken.for_user(user)
+				return Response({
+					'success': True,
+					'access': str(refresh.access_token),
+					'refresh': str(refresh),
+					'username': user.username,
+				})
 			return Response({'success': True})
 		return Response({'error': 'Invalid code.'}, status=400)
 
@@ -701,37 +721,19 @@ def google_login(request):
 		profile.google_photo_url = picture
 		profile.save()
 		twofa_enabled = user.totpdevice_set.filter(confirmed=True, name="default").exists()
+		if twofa_enabled:
+			return Response({'2fa_required': True, 'user_id': user.id, 'username': user.username})
 		refresh = RefreshToken.for_user(user)
-		return Response({
+		response_data = {
 			'refresh': str(refresh),
 			'access': str(refresh.access_token),
 			'2fa_enabled': twofa_enabled,
 			'username': user.username,
-		})
-	except Exception as e:
-		return Response({'error': str(e)}, status=400)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def google_link(request):
-	token = request.data.get('token')
-	if not token:
-		return Response({'error': 'Missing Google token'}, status=400)
-	try:
-		idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
-		email = idinfo.get('email')
-		sub = idinfo.get('sub')  
-		name = idinfo.get('name')
-		picture = idinfo.get('picture')
-		if not email or not sub:
-			return Response({'error': 'No email or sub in Google token'}, status=400)
-		user = request.user
-		profile, _ = UserProfile.objects.get_or_create(user=user)
-		profile.google_id = sub
-		profile.google_name = name
-		profile.google_photo_url = picture
-		profile.save()
-		return Response({'message': 'Google account linked successfully'})
+		}
+		if created:
+			response_data['is_new_user'] = True
+			response_data['user_id'] = user.id
+		return Response(response_data)
 	except Exception as e:
 		return Response({'error': str(e)}, status=400)
 
@@ -740,6 +742,7 @@ def google_link(request):
 def google_unlink(request):
 	try:
 		user_profile = request.user.userprofile
+		user_profile.google_id = None
 		user_profile.google_name = None
 		user_profile.google_photo_url = None
 		user_profile.save()
@@ -756,7 +759,7 @@ def pong_settings(request):
 	except GameSettings.DoesNotExist:
 		logger.info(f"Creating default GameSettings for user {user.username}")
 		settings = GameSettings.objects.create(user=user)
-	session = None
+	session = getattr(user, 'pongsession', None)
 	try:
 		session = request.user.pongsession
 	except (PongSession.DoesNotExist, AttributeError) as e:
