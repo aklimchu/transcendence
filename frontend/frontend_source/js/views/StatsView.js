@@ -165,7 +165,7 @@ export default class extends AbstractView
             // Continue rendering the page even if match history fails
         }
 
-        const content = `
+const content = `
         <style>
             .match-history-tooltip {
                 position: absolute;
@@ -176,6 +176,8 @@ export default class extends AbstractView
                 z-index: 1000;
                 display: none;
                 max-width: 400px;
+                width: auto;
+                box-sizing: border-box;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.2);
                 border-radius: 5px;
             }
@@ -203,6 +205,10 @@ export default class extends AbstractView
             }
             .match-history-table th {
                 background: ${settingsData.theme === 'dark' ? '#444' : '#f0f0f0'};
+            }
+            .stats-container {
+                position: relative;
+                overflow: visible;
             }
         </style>
         <div class="stats-container my-2">
@@ -236,7 +242,6 @@ export default class extends AbstractView
         this.unhideNavbar();
         await this.setContent(content);
 
-        // Apply translations
         const translations = await this.translationManager.initLanguage(settingsData.language, [
             'stats.title',
             'lobby.victories',
@@ -249,46 +254,59 @@ export default class extends AbstractView
             'stats.no_history'
         ]);
         
-        // Set translated page title
         const title = translations.stats?.page_title || 'Stats';
         this.setTitle(title);
 
-        // Add click event listeners for Match History buttons
         const buttons = document.querySelectorAll('.match-history-button');
         buttons.forEach(button => {
             const playerKey = button.getAttribute('data-player-key');
             const tooltip = document.getElementById(`tooltip-${playerKey}`);
-            console.log(`Button playerKey: ${playerKey}`); // Debug playerKey value
+            console.log(`Button playerKey: ${playerKey}`);
 
             button.addEventListener('click', (event) => {
-                event.stopPropagation(); // Prevent click from bubbling to document
-                // Toggle visibility state for this button
+                event.stopPropagation();
                 this.tooltipStates[playerKey] = !this.tooltipStates[playerKey];
                 if (this.tooltipStates[playerKey]) {
-                    // Generate and show tooltip content
                     tooltip.innerHTML = this.generateMatchHistoryTable(this.matchHistories[playerKey], translations);
                     tooltip.style.display = 'block';
-                    // Position tooltip based on whether button is on left (p1, p3) or right (p2, p4)
+                    tooltip.style.visibility = 'hidden'; // Temporarily hide for accurate measurements
                     const rect = button.getBoundingClientRect();
                     const isLeftColumn = ['p1', 'p3'].includes(playerKey);
-                    console.log(`Player: ${playerKey}, isLeftColumn: ${isLeftColumn}, rect.left: ${rect.left}, rect.right: ${rect.right}, tooltip.width: ${tooltip.offsetWidth}`); // Debug positioning
-                    tooltip.style.top = `${rect.bottom + window.scrollY - tooltip.offsetHeight - 5 - 400}px`;
-                    tooltip.style.left = isLeftColumn 
-                        ? `${rect.left + window.scrollX - 1050}px` 
-                        : `${rect.right + window.scrollX - tooltip.offsetWidth - 220}px`;
+                    const topPosition = rect.bottom + window.scrollY - tooltip.offsetHeight - 5 - 300;
+                    let leftPosition = isLeftColumn 
+                        ? rect.left + window.scrollX - 1250
+                        : rect.right + window.scrollX - tooltip.offsetWidth - 280;
+                    // Viewport bounds checking
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    // Ensure tooltip stays within viewport horizontally
+                    if (leftPosition < -200) {
+                        leftPosition = -200;
+                    } else if (leftPosition + tooltip.offsetWidth > viewportWidth - 10) {
+                        leftPosition = viewportWidth - tooltip.offsetWidth - 10;
+                    }
+                    // Ensure tooltip stays within viewport vertically
+                    let adjustedTop = topPosition;
+                    if (adjustedTop < 10) {
+                        adjustedTop = 10;
+                    } else if (adjustedTop + tooltip.offsetHeight > viewportHeight - 10) {
+                        adjustedTop = viewportHeight - tooltip.offsetHeight - 10;
+                    }
+                    console.log(`Player: ${playerKey}, isLeftColumn: ${isLeftColumn}, rect.left: ${rect.left}, rect.right: ${rect.right}, tooltip.width: ${tooltip.offsetWidth}, tooltip.height: ${tooltip.offsetHeight}, top: ${adjustedTop}, left: ${leftPosition}, viewportWidth: ${viewportWidth}, viewportHeight: ${viewportHeight}`);
+                    tooltip.style.top = `${adjustedTop}px`;
+                    tooltip.style.left = `${leftPosition}px`;
+                    tooltip.style.visibility = 'visible';
                 } else {
                     tooltip.style.display = 'none';
                 }
             });
         });
 
-        // Hide tooltips when clicking outside, without resetting button states
         document.addEventListener('click', (event) => {
             const tooltips = document.querySelectorAll('.match-history-tooltip');
             tooltips.forEach(tooltip => {
                 if (!event.target.closest('.match-history-button')) {
                     tooltip.style.display = 'none';
-                    // Update tooltipStates for all buttons with visible tooltips
                     Object.keys(this.tooltipStates).forEach(key => {
                         const tooltip = document.getElementById(`tooltip-${key}`);
                         if (tooltip.style.display === 'none') {
