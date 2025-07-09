@@ -70,6 +70,13 @@ export default class extends AbstractView {
 
         const onlineColor = settingsData.theme === 'dark' ? '#003333' : '#28a745';
 
+        // Helper to get correct avatar URL
+        function getAvatarUrl(avatar) {
+            if (!avatar) return '../css/default-avatar.png';
+            if (avatar.startsWith('http') || avatar.startsWith('https')) return avatar;
+            return avatar;
+        }
+
         var content = `
         <style>
             .online-status {

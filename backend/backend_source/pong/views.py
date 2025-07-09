@@ -541,7 +541,10 @@ def pong_update_settings(request):
 								avatar_url = avatar_val.url
 							else:
 								avatar_str = str(avatar_val)
-								if avatar_str.startswith("https:/") and not avatar_str.startswith("https://"):
+								# If avatar_str is an external URL, use it directly
+								if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
+									avatar_url = avatar_str
+								elif avatar_str.startswith("https:/") and not avatar_str.startswith("https://"):
 									avatar_str = avatar_str.replace("https:/", "https://", 1)
 								avatar_str_lower = avatar_str.lower()
 								import urllib.parse
@@ -567,8 +570,6 @@ def pong_update_settings(request):
 									avatar_url = "/media/" + avatar_str.lstrip("/")
 								else:
 									avatar_url = avatar_str or "../css/default-avatar.png"
-					elif player_field:
-						logger.error(f"PongPlayer at position {position} has no player_name attribute")
 				except Exception as e:
 					logger.error(f"Error accessing active_player_{position}: {str(e)}")
 				players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
@@ -696,10 +697,8 @@ def pong_update_settings(request):
 							avatar_url = "/media/" + avatar_str.lstrip("/")
 						else:
 							avatar_url = avatar_str or "../css/default-avatar.png"
-					if hasattr(player, 'player_name'):
-						player_name = player.player_name
 				elif player:
-					logger.error(f"PongPlayer at position {position} has no player_name attribute")
+					pass
 				players.append({
 					"player_name": player_name,
 					"position": position,
@@ -843,26 +842,42 @@ def pong_settings(request):
 				player_name = player_field.player_name
 				if hasattr(player_field, "avatar") and player_field.avatar:
 					avatar_val = player_field.avatar
-					if hasattr(avatar_val, "url"):
+					avatar_str = str(avatar_val)
+					if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
+						avatar_url = avatar_str
+					elif hasattr(avatar_val, "url"):
 						avatar_url = avatar_val.url
 					else:
-						avatar_str = str(avatar_val)
-						# Always fix protocol first
 						if avatar_str.startswith("https:/") and not avatar_str.startswith("https://"):
 							avatar_str = avatar_str.replace("https:/", "https://", 1)
-						# Now use the fixed value for all checks
-						if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
+						avatar_str_lower = avatar_str.lower()
+						import urllib.parse
+						decoded = None
+						if avatar_str_lower.startswith("/media/http%3a/") or avatar_str_lower.startswith("/media/https%3a/"):
+							decoded = urllib.parse.unquote(avatar_str)
+						elif avatar_str_lower.startswith("/media/http:/") or avatar_str_lower.startswith("/media/https:/"):
+							decoded = avatar_str[7:]
+						if decoded:
+							if decoded.startswith("https:/") and not decoded.startswith("https://"):
+								decoded = decoded.replace("https:/", "https://", 1)
+							elif decoded.startswith("http:/") and not decoded.startswith("http://"):
+								decoded = decoded.replace("http:/", "http://", 1)
+							if decoded.lower().startswith("http://") or decoded.lower().startswith("https://"):
+								avatar_url = decoded
+							else:
+								avatar_url = avatar_str or "../css/default-avatar.png"
+						elif avatar_str_lower.startswith("http://") or avatar_str_lower.startswith("https://"):
 							avatar_url = avatar_str
-						elif avatar_str.startswith("//"):
+						elif avatar_str_lower.startswith("//"):
 							avatar_url = "https:" + avatar_str
-						elif avatar_str and not avatar_str.startswith("/media/") and not (avatar_str.startswith("http://") or avatar_str.startswith("https://") or avatar_str.startswith("//")):
+						elif avatar_str and not (avatar_str_lower.startswith("/media/") or avatar_str_lower.startswith("http://") or avatar_str_lower.startswith("https://") or avatar_str_lower.startswith("//")):
 							avatar_url = "/media/" + avatar_str.lstrip("/")
 						else:
 							avatar_url = avatar_str or "../css/default-avatar.png"
 			elif player_field:
-				logger.error(f"PongPlayer at position {position} has no player_name attribute")
+				pass
 		except Exception as e:
-			logger.error(f"Error accessing active_player_{position}: {str(e)}")
+			pass
 		players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
 	settings_dict = {
 		"game_speed": settings.game_speed,
