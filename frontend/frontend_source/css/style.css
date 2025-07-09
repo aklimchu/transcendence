@@ -254,6 +254,10 @@ body::before {
     color: var(--text-primary);
 }
 
+.nav_link * {
+  pointer-events: none;
+}
+
 object {
     pointer-events: none;
 }
