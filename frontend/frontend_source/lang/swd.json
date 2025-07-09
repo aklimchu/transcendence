@@ -122,7 +122,10 @@
     "opponent": "Motståndare",
     "score": "Poäng",
     "outcome": "Resultat",
-    "no_history": "Ingen matchhistorik tillgänglig"
+    "no_history": "Ingen matchhistorik tillgänglig",
+    "unknown": "Okänd",
+    "outcome_win": "vinna",
+    "outcome_loss": "förlust"
     },
 	"nav": {
     "title": "Pong",
