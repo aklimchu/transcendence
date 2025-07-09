@@ -541,7 +541,6 @@ def pong_update_settings(request):
 								avatar_url = avatar_val.url
 							else:
 								avatar_str = str(avatar_val)
-								# If avatar_str is an external URL, use it directly
 								if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
 									avatar_url = avatar_str
 								elif avatar_str.startswith("https:/") and not avatar_str.startswith("https://"):
