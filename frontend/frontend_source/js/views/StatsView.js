@@ -1,6 +1,6 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch } from "../auth.js";
-import { TranslationManager, extractErrorMessage } from "../utils.js"
+import { TranslationManager, extractErrorMessage, applyFontSize, applyTheme } from "../utils.js"
 
 export default class extends AbstractView
 {
@@ -160,6 +160,10 @@ export default class extends AbstractView
         } catch (error) {
             console.error("Failed to fetch match histories:", error);
         }
+
+        // Apply the theme and font to the body
+        applyTheme(settingsData.theme);
+        applyFontSize(settingsData.font_size);
 
 const content = `
         <style>

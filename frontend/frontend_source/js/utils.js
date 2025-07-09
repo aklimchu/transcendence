@@ -142,7 +142,6 @@ export async function resetSettingsToDefault() {
         // Include players array (unchanged)
         const players = getData.settings.players || Array(4).fill().map((_, index) => ({
             player_name: '',
-        //    avatar: '/media/avatars/default-avatar.png',
             avatar: '../css/default-avatar.png',
             position: index + 1
         }));
@@ -154,8 +153,8 @@ export async function resetSettingsToDefault() {
         formData.append("players_length", players.length);
 
         // Send updated settings to the server
-        console.log("Sending updated settings to /pong_api/pong_settings/");
-        const postResponse = await authFetch("/pong_api/pong_settings/", {
+        console.log("Sending updated settings to /pong_api/pong_settings/update/");
+        const postResponse = await authFetch("/pong_api/pong_settings/update/", {
             method: "POST",
             headers: {
                 "X-CSRFToken": getCookie('csrftoken')
@@ -220,3 +219,12 @@ export async function resetSettingsToDefault() {
            return `Server error (HTTP ${status}): No error message available`;
        }
    }
+
+    export function applyTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+    }
+
+    export function applyFontSize(fontSize) {
+        document.documentElement.setAttribute('data-font-size', fontSize);
+        localStorage.setItem('font-size', fontSize);
+    }

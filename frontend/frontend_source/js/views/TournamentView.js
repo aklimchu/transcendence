@@ -1,5 +1,5 @@
 import GameView from "./GameView.js";
-import { resetSettingsToDefault, TranslationManager, extractErrorMessage } from "../utils.js";
+import { resetSettingsToDefault, TranslationManager, extractErrorMessage, applyFontSize, applyTheme } from "../utils.js";
 import { authFetch } from "../auth.js";
 
 export default class extends GameView {
@@ -53,6 +53,10 @@ export default class extends GameView {
             await this.goToNoAuth();
             return;
         }
+
+        // Apply the theme and font to the body
+        applyTheme(settingsData.theme);
+        applyFontSize(settingsData.font_size);
 
         // Check for unfinished tournament; if none, show create tournament buttons
         if (json.data.unfinished_tournament === null) {
@@ -314,6 +318,10 @@ export default class extends GameView {
             await this.goToView();
             return;
         }
+
+        // Apply the theme and font to the body
+        applyTheme(settingsData.theme);
+        applyFontSize(settingsData.font_size);
 
         const content = `
             <div class="container my-3">

@@ -1,6 +1,6 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch, getCookie } from '../auth.js';
-import { resetSettingsToDefault, TranslationManager, extractErrorMessage } from "../utils.js";
+import { resetSettingsToDefault, TranslationManager, extractErrorMessage, applyFontSize, applyTheme } from "../utils.js";
 
 export default class extends AbstractView {
     constructor(params) {
@@ -63,6 +63,10 @@ export default class extends AbstractView {
             await this.goToNoAuth();
             return;
         }
+
+        // Apply the theme and font to the body
+        applyTheme(settingsData.theme);
+        applyFontSize(settingsData.font_size);
 
         // Fetch win/loss data for all players
         const playerStats = {};

@@ -1,6 +1,6 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch, handleCredentialResponse } from "../auth.js";
-import { TranslationManager, extractErrorMessage } from "../utils.js";
+import { TranslationManager, extractErrorMessage, applyFontSize, applyTheme } from "../utils.js";
 
 export default class extends AbstractView {
 	constructor(params) {
@@ -89,8 +89,8 @@ export default class extends AbstractView {
 		}
 
 		// Apply the current theme and font
-		this.applyTheme(settingsData.theme);
-		this.applyFontSize(settingsData.font_size);
+		applyTheme(settingsData.theme);
+		applyFontSize(settingsData.font_size);
 
 		// Construct content with player names and translatable elements
 		const content = `
@@ -460,16 +460,6 @@ async function setGoogleButtonState() {
 		}).filter(player => player); 
 	}
 	
-	applyTheme(theme) {
-		document.body.setAttribute('data-theme', theme);
-		localStorage.setItem('theme', theme);
-	}
-
-	applyFontSize(fontSize) {
-		document.documentElement.setAttribute('data-font-size', fontSize);
-		localStorage.setItem('font-size', fontSize);
-	}
-
 	push_Settings(translations) {
 		const formData = new FormData();
 		const getValue = (id) => document.getElementById(id)?.value || "";

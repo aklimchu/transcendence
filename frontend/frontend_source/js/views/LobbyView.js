@@ -1,6 +1,6 @@
 import AbstractView from "./AbstractView.js";
 import { authFetch } from "../auth.js";
-import { TranslationManager, extractErrorMessage } from "../utils.js";
+import { TranslationManager, extractErrorMessage, applyFontSize, applyTheme } from "../utils.js";
 
 export default class extends AbstractView {
     constructor(params) {
@@ -65,8 +65,8 @@ export default class extends AbstractView {
         }
 
         // Apply the theme and font to the body
-        this.applyTheme(settingsData.theme);
-        this.applyFontSize(settingsData.font_size);
+        applyTheme(settingsData.theme);
+        applyFontSize(settingsData.font_size);
 
         const onlineColor = settingsData.theme === 'dark' ? '#003333' : '#28a745';
 
@@ -162,14 +162,5 @@ export default class extends AbstractView {
         // Set translated page title
         const title = translations.lobby?.title || 'Lobby';
         this.setTitle(title);
-    }
-
-    applyTheme(theme) {
-        document.body.setAttribute('data-theme', theme);
-    }
-
-    applyFontSize(fontSize) {
-        document.documentElement.setAttribute('data-font-size', fontSize);
-        localStorage.setItem('font-size', fontSize);
     }
 }
