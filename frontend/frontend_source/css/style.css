@@ -43,8 +43,8 @@ html {
     --text-secondary: #ececec;
     --bg-primary: #ffffff;
     --bg-secondary: #ffa500;
-    --bg-secondary-game: #ffa500;
-    --bg-tertiary: #008080;
+    --bg-secondary-game: hsl(39, 100%, 50%);
+    --bg-tertiary: hsl(180, 100%, 20%);
     --bg-accent: #005252;
     --bg-overlay: url('perry.jpg');
     --bg-opacity: 0.68;
@@ -62,8 +62,8 @@ html {
     --text-secondary: #b0b0b0;
     --bg-primary: #1a1a1a;
     --bg-secondary: #333333;
-    --bg-secondary-game: #555555;
-    --bg-tertiary: #004d4d;
+    --bg-secondary-game: hsl(39, 100%, 45%);
+    --bg-tertiary: hsl(180, 100%, 13%);
     --bg-accent: #003333;
     --bg-overlay: url('perry.jpg');
     --bg-opacity: 0.5;
@@ -379,6 +379,7 @@ a {
 .side-text-color {
     color: var(--bg-tertiary);
     font-size: var(--base-font-size);
+    font-weight: bold;
 }
 
 /* Lobby View Style */

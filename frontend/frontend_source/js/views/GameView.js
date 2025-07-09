@@ -346,8 +346,8 @@ export default class extends AbstractView {
 
         var content = `
             <div class="container my-6">
-                <button type="button" id="game_view" class="go-back-btn btn btn-secondary mb-4" sub-view-reference data-i18n="game.go_back">Go back</button>
-                <h3 class="game-status-card p-3 text-center mb-4" data-i18n="game.game_completed">Game Completed!</h3>
+                <button type="button" id="game_view" class="go-back-btn btn btn-secondary mb-4" sub-view-reference data-i18n="game.go_back" style="color: white;">Go back</button>
+                <h3 class="game-status-card p-3 text-center mb-4" data-i18n="game.game_completed" style="color: white;">Game Completed!</h3>
                 <div class="game-card p-4 fs-5">
                     <div class="game-card-body">
                         <div class="row text-center">

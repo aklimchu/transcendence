@@ -124,9 +124,9 @@ export default class extends GameView {
                 <div class="card text-center mb-3">
                     <div class="card-header" data-i18n="tournament.semifinal_1">Semifinal 1</div>
                     <div class="card-body">
-                        <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data.unfinished_tournament.semi1_winner}</p>
-                        <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data.unfinished_tournament.semi1_loser}</p>
-                        <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data.unfinished_tournament.semi1_score}</p>
+                        <p style="color: white;"><span class="fw-bold" data-i18n="tournament.winner" style="color: white;">Winner</span>: ${json.data.unfinished_tournament.semi1_winner}</p>
+                        <p style="color: white;"><span class="fw-bold" data-i18n="tournament.loser" style="color: white;">Loser</span>: ${json.data.unfinished_tournament.semi1_loser}</p>
+                        <p style="color: white;"><span class="fw-bold" data-i18n="tournament.score" style="color: white;">Score</span>: ${json.data.unfinished_tournament.semi1_score}</p>
                     </div>
                 </div>`;
         }
@@ -159,9 +159,9 @@ export default class extends GameView {
                 <div class="card text-center mb-3">
                     <div class="card-header" data-i18n="tournament.semifinal_2">Semifinal 2</div>
                     <div class="card-body">
-                        <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data.unfinished_tournament.semi2_winner}</p>
-                        <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data.unfinished_tournament.semi2_loser}</p>
-                        <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data.unfinished_tournament.semi2_score}</p>
+                        <p style="color: white;"><span class="fw-bold" data-i18n="tournament.winner" style="color: white;">Winner</span>: ${json.data.unfinished_tournament.semi2_winner}</p>
+                        <p style="color: white;"><span class="fw-bold" data-i18n="tournament.loser" style="color: white;">Loser</span>: ${json.data.unfinished_tournament.semi2_loser}</p>
+                        <p style="color: white;"><span class="fw-bold" data-i18n="tournament.score" style="color: white;">Score</span>: ${json.data.unfinished_tournament.semi2_score}</p>
                     </div>
                 </div>`;
         }
@@ -194,7 +194,7 @@ export default class extends GameView {
                 <div class="card text-center mb-3">
                     <div class="card-header" data-i18n="tournament.final">Final</div>
                     <div class="card-body">
-                        <p><span class="fw-bold" data-i18n="tournament.waiting_for_semifinals">Waiting for semifinals...</span></p>
+                        <p style="color: white;"><span class="fw-bold" data-i18n="tournament.waiting_for_semifinals">Waiting for semifinals...</span></p>
                     </div>
                 </div>`;
         }
@@ -325,16 +325,16 @@ export default class extends GameView {
 
         const content = `
             <div class="container my-3">
-                <button type="button" id="tournament_view" class="btn btn-secondary mb-4" sub-view-reference data-i18n="tournament.go_back">Go back</button>
+                <button type="button" id="tournament_view" class="btn btn-secondary mb-4" sub-view-reference data-i18n="tournament.go_back" style="color: white;">Go back</button>
                 <h3 class="text-center mb-4" data-i18n="tournament.tournament_completed">Tournament Completed!</h3>
                 <div class="row justify-content-center">
                     <div class="col-md-6">
                         <div class="card mb-3 p-4 fs-5">
                             <div class="card-header" data-i18n="tournament.semifinal_1">Semifinal 1</div>
                             <div class="card-body">
-                                <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data.finished_tournaments[0].semi1_winner}</p>
-                                <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data.finished_tournaments[0].semi1_loser}</p>
-                                <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data.finished_tournaments[0].semi1_score}</p>
+                                <p style="color: white;"><span class="fw-bold" data-i18n="tournament.winner" style="color: white;">Winner</span>: ${json.data.finished_tournaments[0].semi1_winner}</p>
+                                <p style="color: white;"><span class="fw-bold" data-i18n="tournament.loser" style="color: white;">Loser</span>: ${json.data.finished_tournaments[0].semi1_loser}</p>
+                                <p style="color: white;"><span class="fw-bold" data-i18n="tournament.score" style="color: white;">Score</span>: ${json.data.finished_tournaments[0].semi1_score}</p>
                             </div>
                         </div>
                     </div>
@@ -342,9 +342,9 @@ export default class extends GameView {
                         <div class="card mb-3 p-4 fs-5">
                             <div class="card-header" data-i18n="tournament.semifinal_2">Semifinal 2</div>
                             <div class="card-body">
-                                <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data.finished_tournaments[0].semi2_winner}</p>
-                                <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data.finished_tournaments[0].semi2_loser}</p>
-                                <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data.finished_tournaments[0].semi2_score}</p>
+                                <p style="color: white;"><span class="fw-bold" data-i18n="tournament.winner" style="color: white;">Winner</span>: ${json.data.finished_tournaments[0].semi2_winner}</p>
+                                <p style="color: white;"><span class="fw-bold" data-i18n="tournament.loser" style="color: white;">Loser</span>: ${json.data.finished_tournaments[0].semi2_loser}</p>
+                                <p style="color: white;"><span class="fw-bold" data-i18n="tournament.score" style="color: white;">Score</span>: ${json.data.finished_tournaments[0].semi2_score}</p>
                             </div>
                         </div>
                     </div>
@@ -354,9 +354,9 @@ export default class extends GameView {
                         <div class="card p-4 fs-5">
                             <div class="card-header" data-i18n="tournament.final">Final</div>
                             <div class="card-body">
-                                <p><span class="fw-bold" data-i18n="tournament.winner">Winner</span>: ${json.data.finished_tournaments[0].final_winner}</p>
-                                <p><span class="fw-bold" data-i18n="tournament.loser">Loser</span>: ${json.data.finished_tournaments[0].final_loser}</p>
-                                <p><span class="fw-bold" data-i18n="tournament.score">Score</span>: ${json.data.finished_tournaments[0].final_score}</p>
+                                <p style="color: white;"><span class="fw-bold" data-i18n="tournament.winner" style="color: white;">Winner</span>: ${json.data.finished_tournaments[0].final_winner}</p>
+                                <p style="color: white;"><span class="fw-bold" data-i18n="tournament.loser" style="color: white;">Loser</span>: ${json.data.finished_tournaments[0].final_loser}</p>
+                                <p style="color: white;"><span class="fw-bold" data-i18n="tournament.score" style="color: white;">Score</span>: ${json.data.finished_tournaments[0].final_score}</p>
                             </div>
                         </div>
                     </div>
