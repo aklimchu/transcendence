@@ -121,7 +121,10 @@
     "opponent": "Opponent",
     "score": "Score",
     "outcome": "Outcome",
-    "no_history": "No match history available"
+    "no_history": "No match history available",
+    "unknown_date": "Unknown",
+    "outcome_win": "win",
+    "outcome_loss": "loss"
     },
 	"nav": {
     "title": "Pong",

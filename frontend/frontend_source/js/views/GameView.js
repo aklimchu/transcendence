@@ -634,25 +634,40 @@ export default class extends AbstractView {
         game_data.context.fillRect(object.x, object.y, object.width, object.height);
     }
 
-    add_pong_player_listeners(player, up, down)
-    {
-        document.addEventListener('keydown', e => this.pong_player_keydown_listener(e, player, up, down));
-        document.addEventListener('keyup', e => this.pong_player_keyup_listener(e, player, up, down));
-    }
+    add_pong_player_listeners(player, up, down) {
+    player.keysPressed = new Set(); // Track currently pressed keys
+    document.addEventListener('keydown', e => this.pong_player_keydown_listener(e, player, up, down));
+    document.addEventListener('keyup', e => this.pong_player_keyup_listener(e, player, up, down));
+}
 
-    pong_player_keydown_listener(e, player, up, down)
-    {
-        if (e.key === up)
+pong_player_keydown_listener(e, player, up, down) {
+    if (e.key === up || e.key === down) {
+        player.keysPressed.add(e.key); // Add key to pressed set
+        // Set velocity based on the most recent key
+        if (player.keysPressed.has(up) && !player.keysPressed.has(down)) {
             player.dy = -player.speed;
-        else if (e.key === down)
+        } else if (player.keysPressed.has(down) && !player.keysPressed.has(up)) {
             player.dy = player.speed;
+        } else if (player.keysPressed.has(up) && player.keysPressed.has(down)) {
+            // Prioritize the latest key (assumes down is pressed after up if both are held)
+            player.dy = e.key === down ? player.speed : -player.speed;
+        }
     }
+}
 
-    pong_player_keyup_listener(e, player, up, down)
-    {
-        if (e.key === up || e.key === down)
-            player.dy = 0;
+pong_player_keyup_listener(e, player, up, down) {
+    if (e.key === up || e.key === down) {
+        player.keysPressed.delete(e.key); // Remove key from pressed set
+        // Update velocity based on remaining pressed keys
+        if (player.keysPressed.has(up) && !player.keysPressed.has(down)) {
+            player.dy = -player.speed;
+        } else if (player.keysPressed.has(down) && !player.keysPressed.has(up)) {
+            player.dy = player.speed;
+        } else {
+            player.dy = 0; // Stop if no keys or both keys are released
+        }
     }
+}
 
     reset_pong_ball(ball, game_data)
     {
