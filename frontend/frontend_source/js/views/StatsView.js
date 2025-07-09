@@ -15,16 +15,16 @@ export default class extends AbstractView
     // Function to generate Match History table
     generateMatchHistoryTable(history, translations) {
         if (!history || history.length === 0) {
-            return `<p>${translations['stats.no_history'] || 'No match history available'}</p>`;
+            return `<p>${translations.stats.no_history || 'No match history available'}</p>`;
         }
         let table = `
             <table class="match-history-table">
                 <tr>
-                    <th>${translations['stats.game_type'] || 'Game Type'}</th>
-                    <th>${translations['stats.date'] || 'Date'}</th>
-                    <th>${translations['stats.opponent'] || 'Opponent'}</th>
-                    <th>${translations['stats.score'] || 'Score'}</th>
-                    <th>${translations['stats.outcome'] || 'Outcome'}</th>
+                    <th>${translations.stats.game_type || 'Game Type'}</th>
+                    <th>${translations.stats.date || 'Date'}</th>
+                    <th>${translations.stats.opponent || 'Opponent'}</th>
+                    <th>${translations.stats.score || 'Score'}</th>
+                    <th>${translations.stats.outcome || 'Outcome'}</th>
                 </tr>`;
         history.forEach(game => {
             let playerScore, opponentScore;
@@ -54,14 +54,14 @@ export default class extends AbstractView
             // Validate date; use "Unknown" if invalid or missing
             const formattedDate = game.date && typeof game.date === 'string' && game.date.match(/^\d{2}\.\d{2}\.\d{4}$/) 
                 ? game.date 
-                : translations['stats.unknown_date'] || 'Unknown';
+                : translations.stats.unknown_date || 'Unknown';
             table += `
                 <tr>
                     <td>${game.game_type}</td>
                     <td>${formattedDate}</td>
                     <td>${game.opponent}</td>
                     <td>${formattedScore}</td>
-                    <td>${game.outcome}</td>
+                    <td>${translations.stats[`outcome_${game.outcome.toLowerCase()}`] || game.outcome}</td>
                 </tr>`;
         });
         table += '</table>';
@@ -110,12 +110,11 @@ export default class extends AbstractView
                 };
             } else {
                 console.warn("Invalid settings response:", data);
-                settingsData = { theme: "light", font_size: "medium",  language: "eng"}; // Default to light if no settings
+                settingsData = { theme: "light", font_size: "medium",  language: "eng"};
                 throw new Error("Invalid settings data received");
             }
         } catch (error) {
             console.error("Failed to load settings:", error);
-            //alert("Error loading settings: " + error.message);
             await this.goToNoAuth();
             return;
         }
@@ -280,7 +279,7 @@ const content = `
                     tooltip.style.visibility = 'hidden';
                     const rect = button.getBoundingClientRect();
                     const isLeftColumn = ['p1', 'p3'].includes(playerKey);
-                    const topPosition = rect.bottom + window.scrollY - tooltip.offsetHeight - 5 - 200;
+                    const topPosition = rect.bottom + window.scrollY - tooltip.offsetHeight - 5 - 100;
                     let leftPosition = isLeftColumn 
                         ? rect.left + window.scrollX - 1250
                         : rect.right + window.scrollX - tooltip.offsetWidth - 280;

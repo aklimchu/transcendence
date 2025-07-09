@@ -122,7 +122,10 @@
     "opponent": "Vastustaja",
     "score": "Pisteet",
     "outcome": "Tulos",
-    "no_history": "Ei otteluhistoriaa saatavilla"
+    "no_history": "Ei otteluhistoriaa saatavilla",
+    "unknown_date": "Tuntematon",
+    "outcome_win": "voitto",
+    "outcome_loss": "menetys"
     },
 	"nav": {
     "title": "Pong",
