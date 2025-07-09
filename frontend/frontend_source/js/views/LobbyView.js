@@ -68,7 +68,7 @@ export default class extends AbstractView {
         applyTheme(settingsData.theme);
         applyFontSize(settingsData.font_size);
 
-        const onlineColor = settingsData.theme === 'dark' ? '#003333' : '#28a745';
+        const onlineColor = settingsData.theme === 'dark' ? '#00C7C7' : '#28a745';
 
         // Helper to get correct avatar URL
         function getAvatarUrl(avatar) {
@@ -91,6 +91,7 @@ export default class extends AbstractView {
                 font-size: 12px;
                 font-weight: bold;
                 margin-left: 10px;
+                margin-bottom: 8px;
                 vertical-align: middle;
                 text-align: center;
             }
