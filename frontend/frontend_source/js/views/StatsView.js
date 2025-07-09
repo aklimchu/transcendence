@@ -184,14 +184,14 @@ const content = `
             .match-history-button {
                 margin-top: 10px;
                 padding: 5px 10px;
-                background: ${settingsData.theme === 'dark' ? '#00cc99' : '#005252'};
-                color: #fff;
+                background: ${settingsData.theme === 'dark' ? '#2ecc71' : '#005252'};
+                color: ${settingsData.theme === 'dark' ? '#333333' : 'white'};
                 border: none;
                 border-radius: 3px;
                 cursor: pointer;
             }
             .match-history-button:hover {
-                background: ${settingsData.theme === 'dark' ? '#00b386' : '#003838'};
+                background: ${settingsData.theme === 'dark' ? '#25a259' : '#003838'};
             }
             .match-history-table {
                 width: 100%;
@@ -333,7 +333,7 @@ const content = `
             // Color mappings for theme
             const victoryColor = theme === 'dark' ? '#2ecc71' : '#157045';
             const defeatColor = theme === 'dark' ? '#e74c3c' : '#931024';
-            const titleColor = theme === 'dark' ? '#00cc99' : '#005252';
+            const titleColor = theme === 'dark' ? '#2ecc71' : '#005252';
             const legendColor = theme === 'dark' ? '#b0b0b0' : '#005252';
         
             // Font size mappings
