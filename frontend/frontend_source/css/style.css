@@ -114,7 +114,7 @@ body, html {
     background-color: var(--bg-secondary);
     border-radius: 10px;
     height: 90vh;
-    padding: 1rem;
+    padding: 1.5rem !important;
     font-size: var(--base-font-size);
 }
 
