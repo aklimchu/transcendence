@@ -112,7 +112,7 @@ export async function logout_func() {
 	} else {
 		showSuccessMessage("Logged out successfully.", 0);
 	}
-	setTimeout(() => { if (typeof router === "function") router(null);}, 2000);
+	window.location.reload();
 	return true;
 }
 
