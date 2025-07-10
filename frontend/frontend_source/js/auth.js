@@ -134,8 +134,8 @@ function showErrorMessage(message, index) {
 	errorMessage.innerHTML = message;
 
 	if (index !== 2) {
-		alertBox.style.backgroundColor = "red";
-		alertBox.style.color = "white";
+		alertBox.style.backgroundColor = '#FF6666';
+		alertBox.style.color = '#000000';
 		alertBox.style.borderRadius = "14px";
 		alertBox.style.boxShadow = "0px 0px 20px white";
 		alertBox.style.zIndex = 1000;
@@ -194,7 +194,7 @@ function showSuccessMessage(message, index) {
 	errorMessage.innerHTML = message;
 
 	if (index !== 2) {
-		alertBox.style.backgroundColor = "green";
+		alertBox.style.backgroundColor = '#006600';
 		alertBox.style.color = "white";
 		alertBox.style.borderRadius = "14px";
 		alertBox.style.boxShadow = "0px 0px 20px white";
@@ -205,9 +205,9 @@ function showSuccessMessage(message, index) {
 		alertBox.style.textAlign = "center";
 		let verticalPosition;
 		if (index === 0)
-			verticalPosition = "22.5%";
+			verticalPosition = "62.5%";
 		else if (index === 1)
-			verticalPosition = "58%";
+			verticalPosition = "55%";
 		else
 			verticalPosition = "50%";
 		alertBox.style.top = verticalPosition;
