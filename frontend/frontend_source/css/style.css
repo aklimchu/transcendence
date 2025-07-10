@@ -188,8 +188,8 @@ body::before {
 .btn-close {
     position: absolute;
     top: 50%;
-    right: 10px;
-    transform: translateY(-8%);
+    right: 8px;
+    transform: translateY(-40%);
     color: var(--text-secondary);
     font-size: var(--base-font-size);
 }

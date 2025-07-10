@@ -39,7 +39,7 @@ export async function register_func(user, pwd) {
 			showErrorMessage(errorMsg, 0);
 			return false;
 		}
-		showSuccessMessage("User registered successfully! Please scan the QR code with your Authenticator app to enable 2FA.", 1);
+		showSuccessMessage("User registered successfully! Please scan the QR code with your Authenticator app to enable 2FA.", 0);
 
 		await new Promise(resolve => setTimeout(resolve, 750));
 
@@ -76,14 +76,14 @@ export async function login_func(user, pwd) {
 		} catch (e) {
 			errorMsg += " (Could not parse error details)";
 		}
-		showErrorMessage(errorMsg, 0);
+		showErrorMessage(errorMsg, 1);
 		return false;
 	}
 
 	const data = await response.json();
 	localStorage.setItem("access", data.access);
 	localStorage.setItem("refresh", data.refresh);
-	showSuccessMessage("Login successful!", 0);
+	showSuccessMessage("Login successful!", 1);
 	return true;
 }
 
@@ -135,7 +135,7 @@ function showErrorMessage(message, index) {
 
 	if (index !== 2) {
 		alertBox.style.backgroundColor = "red";
-		alertBox.style.color = "orange";
+		alertBox.style.color = "white";
 		alertBox.style.borderRadius = "14px";
 		alertBox.style.boxShadow = "0px 0px 20px white";
 		alertBox.style.zIndex = 1000;
@@ -145,9 +145,9 @@ function showErrorMessage(message, index) {
 		alertBox.style.textAlign = "center";
 		let verticalPosition;
 		if (index === 0)
-			verticalPosition = "62.5%";
+			verticalPosition = "62.5%"; //register
 		else if (index === 1)
-			verticalPosition = "58%";
+			verticalPosition = "55%"; //login
 		else
 			verticalPosition = "50%";
 		alertBox.style.top = verticalPosition;
