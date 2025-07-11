@@ -26,20 +26,19 @@ export async function register_func(user, pwd) {
 			return false;
 		}
 		if (!response.ok) {
-			let errorMsg = `Registration failed (${response.status}).`;
+			let errorMsg = `Failed`;
 			try {
 				const errorData = await response.json();
 				if (errorData && errorData.error)
-					errorMsg = `Registration failed: ${errorData.error} (${response.status})`;
+					errorMsg = `Failed: ${errorData.error}`;
 				else if (errorData && errorData.detail)
-					errorMsg = `Registration failed: ${errorData.detail} (${response.status})`;
+					errorMsg = `Failed: ${errorData.detail}`;
 			} catch (e) {
 				errorMsg += " (Could not parse error details)";
 			}
 			showErrorMessage(errorMsg, 0);
 			return false;
 		}
-		// showSuccessMessage("User registered successfully! Please scan the QR code with your Authenticator app to enable 2FA.", 0);
 
 		await new Promise(resolve => setTimeout(resolve, 750));
 
@@ -66,13 +65,13 @@ export async function login_func(user, pwd) {
 	});
 
 	if (!response.ok) {
-		let errorMsg = `Login failed (${response.status}).`;
+		let errorMsg = `Failed`;
 		try {
 			const errorData = await response.json();
 			if (errorData && errorData.error)
-				errorMsg = `Login failed: ${errorData.error} (${response.status})`;
+				errorMsg = `Failed: ${errorData.error}`;
 			else if (errorData && errorData.detail)
-				errorMsg = `Login failed: ${errorData.detail} (${response.status})`;
+				errorMsg = `Failed: ${errorData.detail}`;
 		} catch (e) {
 			errorMsg += " (Could not parse error details)";
 		}
@@ -83,7 +82,6 @@ export async function login_func(user, pwd) {
 	const data = await response.json();
 	localStorage.setItem("access", data.access);
 	localStorage.setItem("refresh", data.refresh);
-	// showSuccessMessage("Login successful!", 1);
 	return true;
 }
 
@@ -142,9 +140,9 @@ function showErrorMessage(message, index) {
 		alertBox.style.textAlign = "center";
 		let verticalPosition;
 		if (index === 0)
-			verticalPosition = "62.5%"; //register
+			verticalPosition = "62.5%";
 		else if (index === 1)
-			verticalPosition = "55%"; //login
+			verticalPosition = "55%";
 		else
 			verticalPosition = "50%";
 		alertBox.style.top = verticalPosition;
@@ -175,66 +173,6 @@ function showErrorMessage(message, index) {
 		};
 	}
 }
-
-// function showSuccessMessage(message, index) {
-// 	console.log("showSuccessMessage:", message);
-// 	const alertBox = document.getElementById("success-alert");
-// 	const errorMessage = document.getElementById("success-message");
-// 	if (!alertBox || !errorMessage) return;
-
-// 	if (successAlertTimeout) clearTimeout(successAlertTimeout);
-
-// 	alertBox.classList.remove("fade", "show");
-// 	alertBox.style.display = "block";
-// 	void alertBox.offsetWidth;
-
-// 	errorMessage.innerHTML = message;
-
-// 	if (index !== 2) {
-// 		alertBox.style.backgroundColor = '#006600';
-// 		alertBox.style.color = "white";
-// 		alertBox.style.borderRadius = "14px";
-// 		alertBox.style.boxShadow = "0px 0px 20px white";
-// 		alertBox.style.zIndex = 1000;
-// 		alertBox.style.display = "flex";
-// 		alertBox.style.justifyContent = "center";
-// 		alertBox.style.alignItems = "center";
-// 		alertBox.style.textAlign = "center";
-// 		let verticalPosition;
-// 		if (index === 0)
-// 			verticalPosition = "62.5%";
-// 		else if (index === 1)
-// 			verticalPosition = "55%";
-// 		else
-// 			verticalPosition = "50%";
-// 		alertBox.style.top = verticalPosition;
-// 		alertBox.style.left = "50%";
-// 		alertBox.style.transform = "translateX(-50%)";
-// 		alertBox.style.minWidth = "200px";
-// 		alertBox.style.maxWidth = "90vw";
-// 		alertBox.style.padding = "16px";
-// 		alertBox.style.wordBreak = "break-word";
-// 		alertBox.style.whiteSpace = "pre-line";
-// 		alertBox.style.cursor = "pointer";
-// 		alertBox.style.fontSize = "20px";
-// 	}
-
-// 	alertBox.classList.add("fade", "show");
-
-// 	successAlertTimeout = setTimeout(() => {
-// 		alertBox.classList.remove("show");
-// 		alertBox.style.display = "none";
-// 	}, 3000);
-
-// 	const closeButton = alertBox.querySelector(".btn-close");
-// 	if (closeButton) {
-// 		closeButton.onclick = () => {
-// 			alertBox.classList.remove("show");
-// 			alertBox.style.display = "none";
-// 			if (successAlertTimeout) clearTimeout(successAlertTimeout);
-// 		};
-// 	}
-// }
 
 export async function authFetch(url, options = {}) {
 	let access = localStorage.getItem('access');
@@ -322,7 +260,6 @@ export async function handleCredentialResponse(response) {
 		if (verifyData.access && verifyData.refresh) {
 			localStorage.setItem("access", verifyData.access);
 			localStorage.setItem("refresh", verifyData.refresh);
-			// showSuccessMessage("Login successful!", 0);
 			if (data.is_new_user) {
 				let password = null;
 				while (!password) {
@@ -342,7 +279,6 @@ export async function handleCredentialResponse(response) {
 					showErrorMessage("Failed to set password. Please try again.", 0);
 					return false;
 				}
-				// showSuccessMessage("Password set successfully!", 0);
 			}
 			if (typeof router === "function") {
 				router(null);
@@ -359,7 +295,6 @@ export async function handleCredentialResponse(response) {
 	if (data.access && data.refresh) {
 		localStorage.setItem("access", data.access);
 		localStorage.setItem("refresh", data.refresh);
-		// showSuccessMessage("Login successful!", 0);
 		if (data.is_new_user) {
 			let password = null;
 			while (!password) {
@@ -379,7 +314,6 @@ export async function handleCredentialResponse(response) {
 				showErrorMessage("Failed to set password. Please try again.", 0);
 				return false;
 			}
-			// showSuccessMessage("Password set successfully!", 0);
 		}
 		if (typeof router === "function") {
 			router(null);
