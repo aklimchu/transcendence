@@ -42,19 +42,16 @@ export default class extends AbstractView {
 		};
 
 		try {
-			console.log("Fetching settings from /pong_api/pong_settings/");
-			const response = await authFetch("/pong_api/pong_settings/", {
+			console.log("Fetching settings from /pong_api/pong_settings/update");
+			const response = await authFetch("/pong_api/pong_settings/update", {
 				method: "GET",
 				headers: { "Content-Type": "application/json" }
 			});
-			console.log("Response status:", response.status);
-			const responseText = await response.text();
-			console.log("Response text:", responseText);
-			if (!response.ok) {
-				throw new Error(extractErrorMessage(responseText, response.status));
-			}
-			const data = JSON.parse(responseText);
-			console.log("Settings data:", data);
+			const data = await response.json();
+            console.log("GET response:", data); // Log full response
+            if (data.debug_logs) {
+                data.debug_logs.forEach(log => console.log("[Backend Log]", log)); // Log debug messages
+            }
 			if (data.ok && data.settings && typeof data.settings === "object") {
 				settingsData = {
 					...data.settings,

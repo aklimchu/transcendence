@@ -29,8 +29,8 @@ export default class extends AbstractView {
             players: Array(4).fill().map((_, index) => ({ player_name: '', avatar: '../css/default-avatar.png', position: index + 1 }))
         };
         try {
-            console.log("Fetching settings from /pong_api/pong_settings/");
-            const response = await authFetch("/pong_api/pong_settings/", {
+            console.log("Fetching settings from /pong_api/pong_settings/update");
+            const response = await authFetch("/pong_api/pong_settings/update", {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });

@@ -87,8 +87,8 @@ export default class extends AbstractView
         // Fetch user settings to get the theme
         let settingsData;
         try {
-            console.log("Fetching settings from /pong_api/pong_settings/");
-            const response = await authFetch("/pong_api/pong_settings/", {
+            console.log("Fetching settings from /pong_api/pong_settings/update");
+            const response = await authFetch("/pong_api/pong_settings/update", {
                 method: "GET",
                 headers: { "Content-Type": "application/json" }
             });

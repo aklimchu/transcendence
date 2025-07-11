@@ -170,3 +170,33 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'  # URL that serves the media files (e.g., http://localhost:8000/media/)
 MEDIA_ROOT = str(BASE_DIR / 'media')  # Ensure it's a string path  # Absolute path to the directory where files are stored (e.g., /path/to/project/media/)
 DEFAULT_AVATAR_URL = '../css/default-avatar.png'  # Optional, for fallback
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',  # Capture INFO and above
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'pong': {  # Logger for the 'pong' app
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        '': {  # Root logger to catch all modules
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

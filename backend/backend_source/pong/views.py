@@ -509,219 +509,316 @@ def pong_create_tournament(request):
 		logger.error(f"Error in pong_create_tournament: {str(err)}")
 		return Response({"ok": False, "error": str(err), "statusCode": 400}, status=400)
 
+logger = logging.getLogger(__name__)
+
 @api_view(['POST', 'GET'])
 @permission_classes([IsAuthenticated])
 def pong_update_settings(request):
-	try:
-		if not request.user.is_authenticated:
-			return JsonResponse({"ok": False, "error": "Authentication required", "statusCode": 401}, status=401)
-		if request.method == "GET":
-			try:
-				settings = GameSettings.objects.get(user=request.user)
-			except GameSettings.DoesNotExist:
-				logger.info(f"Creating default GameSettings for user {request.user.username}")
-				settings = GameSettings.objects.create(user=request.user)
-			session = None
-			try:
-				session = request.user.pongsession
-			except (PongSession.DoesNotExist, AttributeError) as e:
-				logger.warning(f"No PongSession for user {request.user.username}: {str(e)}")
+    debug_logs = []  # Collect logs for browser
+    try:
+        if not request.user.is_authenticated:
+            debug_logs.append("Authentication required")
+            return JsonResponse({"ok": False, "error": "Authentication required", "statusCode": 401, "debug_logs": debug_logs}, status=401)
 
-			players = []
-			for position in range(1, 5):
-				player_name = ""
-				avatar_url = "../css/default-avatar.png"
-				try:
-					player_field = getattr(session, f"active_player_{position}", None)
-					if player_field and hasattr(player_field, "player_name"):
-						player_name = player_field.player_name
-						if hasattr(player_field, "avatar") and player_field.avatar:
-							avatar_val = player_field.avatar
-							if hasattr(avatar_val, "url"):
-								avatar_url = avatar_val.url
-							else:
-								avatar_str = str(avatar_val)
-								if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
-									avatar_url = avatar_str
-								elif avatar_str.startswith("https:/") and not avatar_str.startswith("https://"):
-									avatar_str = avatar_str.replace("https:/", "https://", 1)
-								avatar_str_lower = avatar_str.lower()
-								import urllib.parse
-								decoded = None
-								if avatar_str_lower.startswith("/media/http%3a/") or avatar_str_lower.startswith("/media/https%3a/"):
-									decoded = urllib.parse.unquote(avatar_str)
-								elif avatar_str_lower.startswith("/media/http:/") or avatar_str_lower.startswith("/media/https:/"):
-									decoded = avatar_str[7:]
-								if decoded:
-									if decoded.startswith("https:/") and not decoded.startswith("https://"):
-										decoded = decoded.replace("https:/", "https://", 1)
-									elif decoded.startswith("http:/") and not decoded.startswith("http://"):
-										decoded = decoded.replace("http:/", "http://", 1)
-									if decoded.lower().startswith("http://") or decoded.lower().startswith("https://"):
-										avatar_url = decoded
-									else:
-										avatar_url = avatar_str or "../css/default-avatar.png"
-								elif avatar_str_lower.startswith("http://") or avatar_str_lower.startswith("https://"):
-									avatar_url = avatar_str
-								elif avatar_str_lower.startswith("//"):
-									avatar_url = "https:" + avatar_str
-								elif avatar_str and not (avatar_str_lower.startswith("/media/") or avatar_str_lower.startswith("http://") or avatar_str_lower.startswith("https://") or avatar_str_lower.startswith("//")):
-									avatar_url = "/media/" + avatar_str.lstrip("/")
-								else:
-									avatar_url = avatar_str or "../css/default-avatar.png"
-				except Exception as e:
-					logger.error(f"Error accessing active_player_{position}: {str(e)}")
-				players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
+        if request.method == "GET":
+            try:
+                settings = GameSettings.objects.get(user=request.user)
+                debug_logs.append(f"GET: GameSettings for user {request.user.username} (ID: {request.user.id}): power_jump={settings.power_jump}")
+            except GameSettings.DoesNotExist:
+                debug_logs.append(f"GET: Creating default GameSettings for user {request.user.username} (ID: {request.user.id})")
+                settings = GameSettings.objects.create(user=request.user)
+                debug_logs.append(f"GET: Created GameSettings with power_jump={settings.power_jump}")
 
-			settings_data = {
-				"game_speed": settings.game_speed,
-				"ball_size": settings.ball_size,
-				"paddle_size": settings.paddle_size,
-				"power_jump": settings.power_jump,
-				"theme": settings.theme,
-				"font_size": settings.font_size,
-				"language": settings.language,
-				"players": players
-			}
-			return JsonResponse({"ok": True, "settings": settings_data, "statusCode": 200}, status=200)
-		elif request.method == "POST":
-			form_data = request.POST
-			files = request.FILES
-			user = request.user
-			try:
-				settings = GameSettings.objects.get(user=request.user)
-			except GameSettings.DoesNotExist:
-				logger.info(f"Creating default GameSettings for user {user.username}")
-				settings = GameSettings.objects.create(user=user)
-			try:
-				session = user.pongsession
-			except (PongSession.DoesNotExist, AttributeError) as e:
-				logger.info(f"No PongSession for user {user.username}: {str(e)}")
-				return JsonResponse({"ok": False, "error": "No active session found. Please start a session first.", "statusCode": 400}, status=400)
-			valid_game_settings = {
-				'game_speed': ['slow', 'normal', 'fast'],
-				'ball_size': ['small', 'medium', 'large'],
-				'paddle_size': ['short', 'normal', 'long'],
-				'power_jump': ['on', 'off'],
-				'theme': ['light', 'dark'],
-				'font_size': ['small', 'medium', 'large'],
-				'language': ['eng', 'fin', 'swd']
-			}
-			for key, valid_values in valid_game_settings.items():
-				if key in form_data and form_data[key] not in valid_values:
-					logger.warning(f"Invalid {key}: {form_data[key]} for user {user.username}")
-					return JsonResponse({"ok": False, "error": f"Invalid {key}: {form_data[key]}", "statusCode": 400}, status=400)
-			settings.game_speed = form_data.get('game_speed', settings.game_speed)
-			settings.ball_size = form_data.get('ball_size', settings.ball_size)
-			settings.paddle_size = form_data.get('paddle_size', settings.paddle_size)
-			settings.power_jump = form_data.get('power_jump', settings.power_jump)
-			settings.theme = form_data.get('theme', settings.theme)
-			settings.font_size = form_data.get('font_size', settings.font_size)
-			settings.language = form_data.get('language', settings.language)
-			settings.save()
-			logger.info(f"Updated GameSettings for user {user.username}")
-			if form_data.get('password'):
-				user.set_password(form_data['password'])
-				user.save()
-				logger.info(f"Updated password for user {user.username}")
-			player_fields = ['active_player_1', 'active_player_2', 'active_player_3', 'active_player_4']
-			existing_names = []
-			for field in player_fields:
-				player = getattr(session, field, None)
-				existing_names.append(player.player_name if player and hasattr(player, 'player_name') else None)
-			players_data = []
-			for player_id in range(1, 5):
-				player_name = form_data.get(f'players[{player_id - 1}][player_name]', '')
-				position = form_data.get(f'players[{player_id - 1}][position]', player_id)
-				avatar_file = files.get(f'players[{player_id - 1}][avatar]')
-				if player_name or avatar_file:
-					players_data.append({'player_name': player_name, 'position': position})
-					if not (1 <= int(position) <= 4):
-						logger.warning(f"Invalid position {position} for player {player_name} by user {user.username}")
-						return JsonResponse({"ok": False, "error": f"Invalid position: {position}", "statusCode": 400}, status=400)
-					new_names = [p['player_name'] for p in players_data if p['player_name']]
-					if len(new_names) != len(set(new_names)):
-						logger.warning(f"Duplicate player names: {new_names} for user {user.username}")
-						return JsonResponse({"ok": False, "error": "New player names must be unique", "statusCode": 400}, status=400)
-					if player_name in [n for n in existing_names if n and existing_names.index(n) != player_id - 1]:
-						logger.warning(f"Player name '{player_name}' already used for user {user.username}")
-						return JsonResponse({"ok": False, "error": f"Player name '{player_name}' is already used by another player", "statusCode": 400}, status=400)
-					player = getattr(session, player_fields[player_id - 1], None)
-					if player is None:
-						logger.warning(f"No player exists at position {position} for user {user.username}, skipping update for {player_name}")
-						continue
-					if player_name:
-						player.player_name = player_name
-						logger.info(f"Updated player name to {player_name} at position {position} for user {user.username}")
-					if avatar_file:
-						valid_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-						if avatar_file.content_type not in valid_types:
-							return JsonResponse({"ok": False, "error": f"Invalid file type for Player {position}. Use JPEG, PNG, GIF, or WebP.", "statusCode": 400}, status=400)
-						if avatar_file.size > 2 * 1024 * 1024:
-							return JsonResponse({"ok": False, "error": f"File size for Player {position} must be less than 2MB.", "statusCode": 400}, status=400)
-						extension = avatar_file.name.split('.')[-1]
-						unique_filename = f"avatar_player{position}_{uuid.uuid4()}.{extension}"
-						fs = FileSystemStorage(location=os.path.join(settings.media_root, 'avatars'))
-						try:
-							logger.info(f"Saving file to {os.path.join(settings.media_root, 'avatars', unique_filename)}")
-							filename = fs.save(unique_filename, avatar_file)
-							player.avatar = os.path.join('avatars', filename)
-							logger.info(f"Avatar saved at {player.avatar}")
-						except Exception as e:
-							logger.error(f"Avatar save failed: {str(e)}")
-							return JsonResponse({"ok": False, "error": f"Failed to save avatar for Player {position}: {str(e)}", "statusCode": 500}, status=500)
-					player.save()
-			session.save()
-			logger.info(f"Updated PongSession for user {user.username}")
-			players = []
-			for position in range(1, 5):
-				player = getattr(session, f"active_player_{position}", None)
-				player_name = ""
-				avatar_url = "../css/default-avatar.png"
-				if player and hasattr(player, 'avatar') and player.avatar:
-					avatar_val = player.avatar
-					if hasattr(avatar_val, "url"):
-						avatar_url = avatar_val.url
-					else:
-						avatar_str = str(avatar_val)
-						# Always fix protocol first
-						if avatar_str.startswith("https:/") and not avatar_str.startswith("https://"):
-							avatar_str = avatar_str.replace("https:/", "https://", 1)
-						# Now use the fixed value for all checks
-						if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
-							avatar_url = avatar_str
-						elif avatar_str.startswith("//"):
-							avatar_url = "https:" + avatar_str
-						elif avatar_str and not avatar_str.startswith("/media/") and not (avatar_str.startswith("http://") or avatar_str.startswith("https://") or avatar_str.startswith("//")):
-							avatar_url = "/media/" + avatar_str.lstrip("/")
-						else:
-							avatar_url = avatar_str or "../css/default-avatar.png"
-				elif player:
-					pass
-				players.append({
-					"player_name": player_name,
-					"position": position,
-					"avatar": avatar_url
-				})
-			settings_data = {
-				"game_speed": settings.game_speed,
-				"ball_size": settings.ball_size,
-				"paddle_size": settings.paddle_size,
-				"power_jump": settings.power_jump,
-				"theme": settings.theme,
-				"font_size": settings.font_size,
-				"language": settings.language,
-				"players": players
-			}
-			return JsonResponse({"ok": True, "message": "Settings updated successfully", "settings": settings_data, "statusCode": 200}, status=200)
-		return JsonResponse({"ok": False, "error": "Method not allowed", "statusCode": 405}, status=405)
-	except GameSettings.DoesNotExist:
-		return JsonResponse({"ok": False, "error": "Game settings not found for user", "statusCode": 400}, status=400)
-	except PongSession.DoesNotExist:
-		return JsonResponse({"ok": False, "error": "Pong session not found for user", "statusCode": 400}, status=400)
-	except Exception as err:
-		logger.error(f"Unexpected error in pong_update_settings: {str(err)}")
-		return JsonResponse({"ok": False, "error": str(err), "statusCode": 400}, status=400)
+            session = None
+            try:
+                session = request.user.pongsession
+            except (PongSession.DoesNotExist, AttributeError) as e:
+                logger.warning(f"No PongSession for user {request.user.username}: {str(e)}")
+                debug_logs.append(f"GET: No PongSession for user {request.user.username}: {str(e)}")
+
+            players = []
+            for position in range(1, 5):
+                player_name = ""
+                avatar_url = "../css/default-avatar.png"
+                try:
+                    player_field = getattr(session, f"active_player_{position}", None)
+                    if player_field and hasattr(player_field, "player_name"):
+                        player_name = player_field.player_name
+                        if hasattr(player_field, "avatar") and player_field.avatar:
+                            avatar_val = player_field.avatar
+                            if hasattr(avatar_val, "url"):
+                                avatar_url = avatar_val.url
+                            else:
+                                avatar_str = str(avatar_val)
+                                if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
+                                    avatar_url = avatar_str
+                                elif avatar_str.startswith("https:/") and not avatar_str.startswith("https://"):
+                                    avatar_str = avatar_str.replace("https:/", "https://", 1)
+                                avatar_str_lower = avatar_str.lower()
+                                import urllib.parse
+                                decoded = None
+                                if avatar_str_lower.startswith("/media/http%3a/") or avatar_str_lower.startswith("/media/https%3a/"):
+                                    decoded = urllib.parse.unquote(avatar_str)
+                                elif avatar_str_lower.startswith("/media/http:/") or avatar_str_lower.startswith("/media/https:/"):
+                                    decoded = avatar_str[7:]
+                                if decoded:
+                                    if decoded.startswith("https:/") and not decoded.startswith("https://"):
+                                        decoded = decoded.replace("https:/", "https://", 1)
+                                    elif decoded.startswith("http:/") and not decoded.startswith("http://"):
+                                        decoded = decoded.replace("http:/", "http://", 1)
+                                    if decoded.lower().startswith("http://") or decoded.lower().startswith("https://"):
+                                        avatar_url = decoded
+                                    else:
+                                        avatar_url = avatar_str or "../css/default-avatar.png"
+                                elif avatar_str_lower.startswith("http://") or avatar_str_lower.startswith("https://"):
+                                    avatar_url = avatar_str
+                                elif avatar_str_lower.startswith("//"):
+                                    avatar_url = "https:" + avatar_str
+                                elif avatar_str and not (avatar_str_lower.startswith("/media/") or avatar_str_lower.startswith("http://") or avatar_str_lower.startswith("https://") or avatar_str_lower.startswith("//")):
+                                    avatar_url = "/media/" + avatar_str.lstrip("/")
+                                else:
+                                    avatar_url = avatar_str or "../css/default-avatar.png"
+                except Exception as e:
+                    logger.error(f"Error accessing active_player_{position}: {str(e)}")
+                    debug_logs.append(f"GET: Error accessing active_player_{position}: {str(e)}")
+                players.append({"player_name": player_name, "position": position, "avatar": avatar_url})
+
+            settings_data = {
+                "game_speed": settings.game_speed,
+                "ball_size": settings.ball_size,
+                "paddle_size": settings.paddle_size,
+                "power_jump": settings.power_jump,
+                "theme": settings.theme,
+                "font_size": settings.font_size,
+                "language": settings.language,
+                "players": players
+            }
+            debug_logs.append(f"GET: settings_data before serialization: {settings_data}")
+            logger.info(f"GET: settings_data before serialization: {settings_data}")
+            return JsonResponse({
+                "ok": True,
+                "settings": settings_data,
+                "statusCode": 200,
+                "debug_logs": debug_logs
+            }, status=200)
+
+        elif request.method == "POST":
+            form_data = request.POST
+            files = request.FILES
+            user = request.user
+            try:
+                settings = GameSettings.objects.get(user=user)
+                debug_logs.append(f"POST: Retrieved GameSettings for user {user.username} (ID: {user.id}): power_jump={settings.power_jump}")
+            except GameSettings.DoesNotExist:
+                logger.info(f"POST: Creating default GameSettings for user {user.username}")
+                debug_logs.append(f"POST: Creating default GameSettings for user {user.username} (ID: {user.id})")
+                settings = GameSettings.objects.create(user=user)
+                debug_logs.append(f"POST: Created GameSettings with power_jump={settings.power_jump}")
+
+            try:
+                session = user.pongsession
+            except (PongSession.DoesNotExist, AttributeError) as e:
+                logger.info(f"No PongSession for user {user.username}: {str(e)}")
+                debug_logs.append(f"POST: No PongSession for user {user.username}: {str(e)}")
+                return JsonResponse({
+                    "ok": False,
+                    "error": "No active session found. Please start a session first.",
+                    "statusCode": 400,
+                    "debug_logs": debug_logs
+                }, status=400)
+
+            valid_game_settings = {
+                'game_speed': ['slow', 'normal', 'fast'],
+                'ball_size': ['small', 'medium', 'large'],
+                'paddle_size': ['short', 'normal', 'long'],
+                'power_jump': ['on', 'off'],
+                'theme': ['light', 'dark'],
+                'font_size': ['small', 'medium', 'large'],
+                'language': ['eng', 'fin', 'swd']
+            }
+            for key, valid_values in valid_game_settings.items():
+                if key in form_data and form_data[key] not in valid_values:
+                    logger.warning(f"Invalid {key}: {form_data[key]} for user {user.username}")
+                    debug_logs.append(f"POST: Invalid {key}: {form_data[key]} for user {user.username}")
+                    return JsonResponse({
+                        "ok": False,
+                        "error": f"Invalid {key}: {form_data[key]}",
+                        "statusCode": 400,
+                        "debug_logs": debug_logs
+                    }, status=400)
+
+            settings.game_speed = form_data.get('game_speed', settings.game_speed)
+            settings.ball_size = form_data.get('ball_size', settings.ball_size)
+            settings.paddle_size = form_data.get('paddle_size', settings.paddle_size)
+            settings.power_jump = form_data.get('power_jump', settings.power_jump)
+            settings.theme = form_data.get('theme', settings.theme)
+            settings.font_size = form_data.get('font_size', settings.font_size)
+            settings.language = form_data.get('language', settings.language)
+            settings.save()
+            logger.info(f"Updated GameSettings for user {user.username}")
+            debug_logs.append(f"POST: Updated GameSettings for user {user.username}: power_jump={settings.power_jump}")
+
+            if form_data.get('password'):
+                user.set_password(form_data['password'])
+                user.save()
+                logger.info(f"Updated password for user {user.username}")
+                debug_logs.append(f"POST: Updated password for user {user.username}")
+
+            player_fields = ['active_player_1', 'active_player_2', 'active_player_3', 'active_player_4']
+            existing_names = []
+            for field in player_fields:
+                player = getattr(session, field, None)
+                existing_names.append(player.player_name if player and hasattr(player, 'player_name') else None)
+
+            players_data = []
+            for player_id in range(1, 5):
+                player_name = form_data.get(f'players[{player_id - 1}][player_name]', '')
+                position = form_data.get(f'players[{player_id - 1}][position]', player_id)
+                avatar_file = files.get(f'players[{player_id - 1}][avatar]')
+                if player_name or avatar_file:
+                    players_data.append({'player_name': player_name, 'position': position})
+                    if not (1 <= int(position) <= 4):
+                        logger.warning(f"Invalid position {position} for player {player_name} by user {user.username}")
+                        debug_logs.append(f"POST: Invalid position {position} for player {player_name} by user {user.username}")
+                        return JsonResponse({
+                            "ok": False,
+                            "error": f"Invalid position: {position}",
+                            "statusCode": 400,
+                            "debug_logs": debug_logs
+                        }, status=400)
+                    new_names = [p['player_name'] for p in players_data if p['player_name']]
+                    if len(new_names) != len(set(new_names)):
+                        logger.warning(f"Duplicate player names: {new_names} for user {user.username}")
+                        debug_logs.append(f"POST: Duplicate player names: {new_names} for user {user.username}")
+                        return JsonResponse({
+                            "ok": False,
+                            "error": "New player names must be unique",
+                            "statusCode": 400,
+                            "debug_logs": debug_logs
+                        }, status=400)
+                    if player_name in [n for n in existing_names if n and existing_names.index(n) != player_id - 1]:
+                        logger.warning(f"Player name '{player_name}' already used for user {user.username}")
+                        debug_logs.append(f"POST: Player name '{player_name}' already used for user {user.username}")
+                        return JsonResponse({
+                            "ok": False,
+                            "error": f"Player name '{player_name}' is already used by another player",
+                            "statusCode": 400,
+                            "debug_logs": debug_logs
+                        }, status=400)
+                    player = getattr(session, player_fields[player_id - 1], None)
+                    if player is None:
+                        logger.warning(f"No player exists at position {position} for user {user.username}, skipping update for {player_name}")
+                        debug_logs.append(f"POST: No player exists at position {position} for user {user.username}, skipping update for {player_name}")
+                        continue
+                    if player_name:
+                        player.player_name = player_name
+                        logger.info(f"Updated player name to {player_name} at position {position} for user {user.username}")
+                        debug_logs.append(f"POST: Updated player name to {player_name} at position {position} for user {user.username}")
+                    if avatar_file:
+                        valid_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+                        if avatar_file.content_type not in valid_types:
+                            debug_logs.append(f"POST: Invalid file type for Player {position}: {avatar_file.content_type}")
+                            return JsonResponse({
+                                "ok": False,
+                                "error": f"Invalid file type for Player {position}. Use JPEG, PNG, GIF, or WebP.",
+                                "statusCode": 400,
+                                "debug_logs": debug_logs
+                            }, status=400)
+                        if avatar_file.size > 2 * 1024 * 1024:
+                            debug_logs.append(f"POST: File size for Player {position} exceeds 2MB")
+                            return JsonResponse({
+                                "ok": False,
+                                "error": f"File size for Player {position} must be less than 2MB.",
+                                "statusCode": 400,
+                                "debug_logs": debug_logs
+                            }, status=400)
+                        extension = avatar_file.name.split('.')[-1]
+                        unique_filename = f"avatar_player{position}_{uuid.uuid4()}.{extension}"
+                        fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'avatars'))
+                        try:
+                            logger.info(f"Saving file to {os.path.join(settings.MEDIA_ROOT, 'avatars', unique_filename)}")
+                            debug_logs.append(f"POST: Saving file to {os.path.join(settings.MEDIA_ROOT, 'avatars', unique_filename)}")
+                            filename = fs.save(unique_filename, avatar_file)
+                            player.avatar = os.path.join('avatars', filename)
+                            logger.info(f"Avatar saved at {player.avatar}")
+                            debug_logs.append(f"POST: Avatar saved at {player.avatar}")
+                        except Exception as e:
+                            logger.error(f"Avatar save failed: {str(e)}")
+                            debug_logs.append(f"POST: Avatar save failed: {str(e)}")
+                            return JsonResponse({
+                                "ok": False,
+                                "error": f"Failed to save avatar for Player {position}: {str(e)}",
+                                "statusCode": 500,
+                                "debug_logs": debug_logs
+                            }, status=500)
+                    player.save()
+            session.save()
+            logger.info(f"Updated PongSession for user {user.username}")
+            debug_logs.append(f"POST: Updated PongSession for user {user.username}")
+
+            players = []
+            for position in range(1, 5):
+                player = getattr(session, f"active_player_{position}", None)
+                player_name = ""
+                avatar_url = "../css/default-avatar.png"
+                if player and hasattr(player, 'avatar') and player.avatar:
+                    avatar_val = player.avatar
+                    if hasattr(avatar_val, "url"):
+                        avatar_url = avatar_val.url
+                    else:
+                        avatar_str = str(avatar_val)
+                        if avatar_str.startswith("https:/") and not avatar_str.startswith("https://"):
+                            avatar_str = avatar_str.replace("https:/", "https://", 1)
+                        if avatar_str.startswith("http://") or avatar_str.startswith("https://"):
+                            avatar_url = avatar_str
+                        elif avatar_str.startswith("//"):
+                            avatar_url = "https:" + avatar_str
+                        elif avatar_str and not avatar_str.startswith("/media/") and not (avatar_str.startswith("http://") or avatar_str.startswith("https://") or avatar_str.startswith("//")):
+                            avatar_url = "/media/" + avatar_str.lstrip("/")
+                        else:
+                            avatar_url = avatar_str or "../css/default-avatar.png"
+                players.append({
+                    "player_name": player_name,
+                    "position": position,
+                    "avatar": avatar_url
+                })
+
+            settings_data = {
+                "game_speed": settings.game_speed,
+                "ball_size": settings.ball_size,
+                "paddle_size": settings.paddle_size,
+                "power_jump": settings.power_jump,
+                "theme": settings.theme,
+                "font_size": settings.font_size,
+                "language": settings.language,
+                "players": players
+            }
+            debug_logs.append(f"POST: settings_data before serialization: {settings_data}")
+            logger.info(f"POST: settings_data before serialization: {settings_data}")
+            return JsonResponse({
+                "ok": True,
+                "message": "Settings updated successfully",
+                "settings": settings_data,
+                "statusCode": 200,
+                "debug_logs": debug_logs
+            }, status=200)
+
+        return JsonResponse({
+            "ok": False,
+            "error": "Method not allowed",
+            "statusCode": 405,
+            "debug_logs": debug_logs
+        }, status=405)
+
+    except Exception as err:
+        logger.error(f"Unexpected error in pong_update_settings: {str(err)}")
+        debug_logs.append(f"Unexpected error in pong_update_settings: {str(err)}")
+        return JsonResponse({
+            "ok": False,
+            "error": str(err),
+            "statusCode": 400,
+            "debug_logs": debug_logs
+        }, status=400)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
