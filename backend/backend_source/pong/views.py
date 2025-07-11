@@ -884,7 +884,7 @@ def google_login(request):
 
 		twofa_enabled = user.totpdevice_set.filter(confirmed=True, name="default").exists()
 		if twofa_enabled:
-			return Response({'2fa_required': True, 'user_id': user.id, 'username': user.username, 'name': name, 'picture': picture})
+			return Response({'2fa_enabled': True, 'user_id': user.id, 'username': user.username, 'name': name, 'picture': picture})
 		refresh = RefreshToken.for_user(user)
 		response_data = {
 			'refresh': str(refresh),

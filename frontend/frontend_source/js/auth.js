@@ -40,6 +40,8 @@ export async function register_func(user, pwd) {
 			return false;
 		}
 
+		alert("User registered successfully! Please scan the QR code with your Authenticator app to enable 2FA.");
+
 		await new Promise(resolve => setTimeout(resolve, 750));
 
 		if (response.ok) {
@@ -56,17 +58,19 @@ export async function register_func(user, pwd) {
 }
 
 export async function login_func(user, pwd) {
+	let token = prompt("Enter your 2FA code from your Authenticator app (leave blank if not enabled):") || "";
 
-	const response = await authFetch("/pong_api/login/", {
+	const response = await authFetch("/pong_api/login_with_2fa/", {
 		method: "POST",
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ username: user, password: pwd })
+		body: JSON.stringify({ username: user, password: pwd, token: token })
 	});
 
-	if (!response || !response.ok) {
-		let errorMsg = `Login failed (${ response ? response.status : "no response"}).`;
+	if (!response.ok) {
+		print("Login response:", response);
+		let errorMsg = `Login failed (${response.status}).`;
 		try {
-			const errorData = response ? await response.json() : null;
+			const errorData = await response.json();
 			if (errorData && errorData.error)
 				errorMsg = `Login failed: ${errorData.error} (${response.status})`;
 			else if (errorData && errorData.detail)
@@ -74,43 +78,14 @@ export async function login_func(user, pwd) {
 		} catch (e) {
 			errorMsg += " (Could not parse error details)";
 		}
-		showErrorMessage(errorMsg, 1);
+		showErrorMessage(errorMsg, 0);
 		return false;
 	}
 
 	const data = await response.json();
-
-	if (data["2fa_required"]) {
-		let token = prompt("Enter your 2FA code from your Authenticator app:") || "";
-		if (!token) {
-			showErrorMessage("2FA code required to complete login.", 1);
-			return false;
-		}
-		const twofaData = await authFetch("/pong_api/login_with_2fa", {
-			method: "POST",
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ username: user, password: pwd, token: token })
-		});
-		
-		if (!twofaData || !twofaData.ok) {
-			showErrorMessage("Invalid 2FA code.", 1);
-			return false;
-		}
-
-		const twofaResponse = await twofaData.json();
-		localStorage.setItem("access", twofaResponse.access);
-		localStorage.setItem("refresh", twofaResponse.refresh);
-		return true;
-	}
-	else if (data.access && data.refresh) {
-		localStorage.setItem("access", data.access);
-		localStorage.setItem("refresh", data.refresh);
-		return true;
-
-	} else {
-		showErrorMessage("Login failed. Please check your username and password.", 1);
-		return false;
-	}
+	localStorage.setItem("access", data.access);
+	localStorage.setItem("refresh", data.refresh);
+	return true;
 }
 
 export async function logout_func() {
@@ -269,7 +244,7 @@ export async function handleCredentialResponse(response) {
 
 	let data = await responseData.json();
 
-	if (data["2fa_required"]) {
+	if (data["2fa_enabled"]) {
 		const code = prompt("2FA is enabled. Please enter your 2FA code:");
 		if (!code) {
 			showErrorMessage("2FA code required to complete login.", 0);
