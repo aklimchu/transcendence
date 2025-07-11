@@ -39,7 +39,7 @@ export async function register_func(user, pwd) {
 			showErrorMessage(errorMsg, 0);
 			return false;
 		}
-		showSuccessMessage("User registered successfully! Please scan the QR code with your Authenticator app to enable 2FA.", 0);
+		// showSuccessMessage("User registered successfully! Please scan the QR code with your Authenticator app to enable 2FA.", 0);
 
 		await new Promise(resolve => setTimeout(resolve, 750));
 
@@ -83,7 +83,7 @@ export async function login_func(user, pwd) {
 	const data = await response.json();
 	localStorage.setItem("access", data.access);
 	localStorage.setItem("refresh", data.refresh);
-	showSuccessMessage("Login successful!", 1);
+	// showSuccessMessage("Login successful!", 1);
 	return true;
 }
 
@@ -106,11 +106,8 @@ export async function logout_func() {
 		setTimeout(() => { if (typeof router === "function") router(null);}, 1000);
 		return false;
 	}
-
 	if (!response || !response.ok) {
 		showErrorMessage("Failed to log out from server, but local session cleared.", 0);
-	} else {
-		showSuccessMessage("Logged out successfully.", 0);
 	}
 	window.location.reload();
 	return true;
@@ -179,65 +176,65 @@ function showErrorMessage(message, index) {
 	}
 }
 
-function showSuccessMessage(message, index) {
-	console.log("showSuccessMessage:", message);
-	const alertBox = document.getElementById("success-alert");
-	const errorMessage = document.getElementById("success-message");
-	if (!alertBox || !errorMessage) return;
+// function showSuccessMessage(message, index) {
+// 	console.log("showSuccessMessage:", message);
+// 	const alertBox = document.getElementById("success-alert");
+// 	const errorMessage = document.getElementById("success-message");
+// 	if (!alertBox || !errorMessage) return;
 
-	if (successAlertTimeout) clearTimeout(successAlertTimeout);
+// 	if (successAlertTimeout) clearTimeout(successAlertTimeout);
 
-	alertBox.classList.remove("fade", "show");
-	alertBox.style.display = "block";
-	void alertBox.offsetWidth;
+// 	alertBox.classList.remove("fade", "show");
+// 	alertBox.style.display = "block";
+// 	void alertBox.offsetWidth;
 
-	errorMessage.innerHTML = message;
+// 	errorMessage.innerHTML = message;
 
-	if (index !== 2) {
-		alertBox.style.backgroundColor = '#006600';
-		alertBox.style.color = "white";
-		alertBox.style.borderRadius = "14px";
-		alertBox.style.boxShadow = "0px 0px 20px white";
-		alertBox.style.zIndex = 1000;
-		alertBox.style.display = "flex";
-		alertBox.style.justifyContent = "center";
-		alertBox.style.alignItems = "center";
-		alertBox.style.textAlign = "center";
-		let verticalPosition;
-		if (index === 0)
-			verticalPosition = "62.5%";
-		else if (index === 1)
-			verticalPosition = "55%";
-		else
-			verticalPosition = "50%";
-		alertBox.style.top = verticalPosition;
-		alertBox.style.left = "50%";
-		alertBox.style.transform = "translateX(-50%)";
-		alertBox.style.minWidth = "200px";
-		alertBox.style.maxWidth = "90vw";
-		alertBox.style.padding = "16px";
-		alertBox.style.wordBreak = "break-word";
-		alertBox.style.whiteSpace = "pre-line";
-		alertBox.style.cursor = "pointer";
-		alertBox.style.fontSize = "20px";
-	}
+// 	if (index !== 2) {
+// 		alertBox.style.backgroundColor = '#006600';
+// 		alertBox.style.color = "white";
+// 		alertBox.style.borderRadius = "14px";
+// 		alertBox.style.boxShadow = "0px 0px 20px white";
+// 		alertBox.style.zIndex = 1000;
+// 		alertBox.style.display = "flex";
+// 		alertBox.style.justifyContent = "center";
+// 		alertBox.style.alignItems = "center";
+// 		alertBox.style.textAlign = "center";
+// 		let verticalPosition;
+// 		if (index === 0)
+// 			verticalPosition = "62.5%";
+// 		else if (index === 1)
+// 			verticalPosition = "55%";
+// 		else
+// 			verticalPosition = "50%";
+// 		alertBox.style.top = verticalPosition;
+// 		alertBox.style.left = "50%";
+// 		alertBox.style.transform = "translateX(-50%)";
+// 		alertBox.style.minWidth = "200px";
+// 		alertBox.style.maxWidth = "90vw";
+// 		alertBox.style.padding = "16px";
+// 		alertBox.style.wordBreak = "break-word";
+// 		alertBox.style.whiteSpace = "pre-line";
+// 		alertBox.style.cursor = "pointer";
+// 		alertBox.style.fontSize = "20px";
+// 	}
 
-	alertBox.classList.add("fade", "show");
+// 	alertBox.classList.add("fade", "show");
 
-	successAlertTimeout = setTimeout(() => {
-		alertBox.classList.remove("show");
-		alertBox.style.display = "none";
-	}, 3000);
+// 	successAlertTimeout = setTimeout(() => {
+// 		alertBox.classList.remove("show");
+// 		alertBox.style.display = "none";
+// 	}, 3000);
 
-	const closeButton = alertBox.querySelector(".btn-close");
-	if (closeButton) {
-		closeButton.onclick = () => {
-			alertBox.classList.remove("show");
-			alertBox.style.display = "none";
-			if (successAlertTimeout) clearTimeout(successAlertTimeout);
-		};
-	}
-}
+// 	const closeButton = alertBox.querySelector(".btn-close");
+// 	if (closeButton) {
+// 		closeButton.onclick = () => {
+// 			alertBox.classList.remove("show");
+// 			alertBox.style.display = "none";
+// 			if (successAlertTimeout) clearTimeout(successAlertTimeout);
+// 		};
+// 	}
+// }
 
 export async function authFetch(url, options = {}) {
 	let access = localStorage.getItem('access');
