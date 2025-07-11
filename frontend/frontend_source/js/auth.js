@@ -322,7 +322,7 @@ export async function handleCredentialResponse(response) {
 		if (verifyData.access && verifyData.refresh) {
 			localStorage.setItem("access", verifyData.access);
 			localStorage.setItem("refresh", verifyData.refresh);
-			showSuccessMessage("Login successful!", 0);
+			// showSuccessMessage("Login successful!", 0);
 			if (data.is_new_user) {
 				let password = null;
 				while (!password) {
@@ -342,7 +342,7 @@ export async function handleCredentialResponse(response) {
 					showErrorMessage("Failed to set password. Please try again.", 0);
 					return false;
 				}
-				showSuccessMessage("Password set successfully!", 0);
+				// showSuccessMessage("Password set successfully!", 0);
 			}
 			if (typeof router === "function") {
 				router(null);
@@ -359,7 +359,7 @@ export async function handleCredentialResponse(response) {
 	if (data.access && data.refresh) {
 		localStorage.setItem("access", data.access);
 		localStorage.setItem("refresh", data.refresh);
-		showSuccessMessage("Login successful!", 0);
+		// showSuccessMessage("Login successful!", 0);
 		if (data.is_new_user) {
 			let password = null;
 			while (!password) {
@@ -379,7 +379,7 @@ export async function handleCredentialResponse(response) {
 				showErrorMessage("Failed to set password. Please try again.", 0);
 				return false;
 			}
-			showSuccessMessage("Password set successfully!", 0);
+			// showSuccessMessage("Password set successfully!", 0);
 		}
 		if (typeof router === "function") {
 			router(null);
