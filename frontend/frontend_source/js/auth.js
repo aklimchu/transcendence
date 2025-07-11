@@ -66,8 +66,12 @@ export async function login_func(user, pwd) {
 		body: JSON.stringify({ username: user, password: pwd, token: token })
 	});
 
+	if (!response) { 
+		showErrorMessage("Login failed: Invalid credentials (401)", 0);
+		return false;
+	}
+
 	if (!response.ok) {
-		print("Login response:", response);
 		let errorMsg = `Login failed (${response.status}).`;
 		try {
 			const errorData = await response.json();
