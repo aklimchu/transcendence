@@ -82,7 +82,7 @@ export async function login_func(user, pwd) {
 		} catch (e) {
 			errorMsg += " (Could not parse error details)";
 		}
-		showErrorMessage(errorMsg, 0);
+		showErrorMessage(errorMsg, 1);
 		return false;
 	}
 
