@@ -67,7 +67,7 @@ export async function login_func(user, pwd) {
 	});
 
 	if (!response) { 
-		showErrorMessage("Login failed: Invalid credentials (401)", 0);
+		showErrorMessage("Login failed: Invalid credentials (401)", 1);
 		return false;
 	}
 
