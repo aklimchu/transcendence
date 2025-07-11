@@ -42,8 +42,8 @@ export default class extends AbstractView {
 		};
 
 		try {
-			console.log("Fetching settings from /pong_api/pong_settings/update");
-			const response = await authFetch("/pong_api/pong_settings/update", {
+			console.log("Fetching settings from /pong_api/pong_settings");
+			const response = await authFetch("/pong_api/pong_settings", {
 				method: "GET",
 				headers: { "Content-Type": "application/json" }
 			});
