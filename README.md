@@ -1,5 +1,7 @@
 *****README UNDER CONSTRUCTION*****
 
+------------------------------------
+
 Usage:
 ```bash
 git clone git@github.com:LucasOpoka/transcendence.git
