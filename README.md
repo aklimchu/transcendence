@@ -2,6 +2,9 @@
 
 ------------------------------------
 
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/9de7806b-f85f-49e5-af0c-8ae7e1ef8ef6" />
+
+
 Usage:
 ```bash
 git clone https://github.com/aklimchu/transcendence
