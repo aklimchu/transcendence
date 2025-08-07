@@ -4,7 +4,7 @@
 
 Usage:
 ```bash
-git clone git@github.com:LucasOpoka/transcendence.git
+git clone https://github.com/aklimchu/transcendence
 ```
 Ensure you have docker installed
 ```bash
