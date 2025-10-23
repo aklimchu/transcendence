@@ -12,8 +12,9 @@ Transcendence is a full-stack web application featuring a multiplayer game with 
 - HTML
 - Docker
 
-### Screenshot
-<img width="1366" height="768" alt="Game Screenshot" src="https://github.com/user-attachments/assets/9de7806b-f85f-49e5-af0c-8ae7e1ef8ef6" />
+### Screenshots
+<img width="1366" height="911" alt="Game Screenshot" src="https://github.com/user-attachments/assets/2fc74ac5-2db0-4d4c-9c65-8c434859e36f" />
+<img width="1366" height="768" alt="Game Screenshot 2" src="https://github.com/user-attachments/assets/9de7806b-f85f-49e5-af0c-8ae7e1ef8ef6" />
 
 ### Usage
 1. Clone the repository:
